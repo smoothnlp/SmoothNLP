@@ -1,7 +1,7 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read().decode().encode('utf-8')
+# with open("README.md", "r") as fh:
+#     long_description = fh.read().decode().encode('utf-8')
 
 setuptools.setup(
     name="SmoothNLP",
@@ -9,7 +9,7 @@ setuptools.setup(
     author="Ruinan(Victor) Zhang",
     author_email="ruinan.zhang@icloud.com",
     description="Simple utilities for fast and easy NLP pipeline deployment",
-    long_description=long_description,
+    long_description="",
     long_description_content_type="text/markdown",
     url="https://github.com/zhangruinan/SmoothNLP",
     packages=setuptools.find_packages(),
