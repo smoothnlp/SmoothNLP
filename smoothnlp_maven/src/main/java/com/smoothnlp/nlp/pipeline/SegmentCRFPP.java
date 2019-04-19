@@ -9,7 +9,7 @@ import com.smoothnlp.nlp.basic.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SegmentCRFPP {
+public class SegmentCRFPP implements SequenceTagger{
 
     protected ModelImpl model;
     private static String STOP_LABEL = "S";
