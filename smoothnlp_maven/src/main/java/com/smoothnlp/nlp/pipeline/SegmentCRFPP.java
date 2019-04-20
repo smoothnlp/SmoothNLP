@@ -9,7 +9,7 @@ import com.smoothnlp.nlp.basic.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SegmentCRFPP implements SequenceTagger{
+public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
 
     protected ModelImpl model;
     private static String STOP_LABEL = "S";
@@ -19,6 +19,8 @@ public class SegmentCRFPP implements SequenceTagger{
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
     }
+
+
 
     public List<SToken> process(String input){
         Tagger tagger = this.model.createTagger();
@@ -30,8 +32,8 @@ public class SegmentCRFPP implements SequenceTagger{
         } else {
             char[] chars = input.toCharArray();
             for (char c: chars) {
-                System.out.println(c);
-                tagger.add(c + "");
+                String ftrs = super.buildFtrs(c);  // Build ftrs for crf needed sequence, in this case, only each char is needed
+                tagger.add(ftrs);
             }
 
             tagger.parse();
@@ -51,7 +53,7 @@ public class SegmentCRFPP implements SequenceTagger{
 
     public static void main(String[] args){
         SegmentCRFPP s = new SegmentCRFPP();
-        System.out.println(s.process("你好,我在soho上班"));
+        System.out.println(s.process("五十块钱买了两个冰淇淋还是挺便宜的"));
     }
 
 }

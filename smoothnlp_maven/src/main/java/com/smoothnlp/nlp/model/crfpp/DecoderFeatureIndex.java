@@ -56,7 +56,7 @@ public class DecoderFeatureIndex extends FeatureIndex {
         File binFile = new File(binarymodel);
         if (binFile.exists()) {
             try {
-                if (!open(new FileInputStream(binFile))) {
+                if (!open(new FileInputStream(binFile))) {   // FILE INPUT STREAM MAY be changed
                     System.err.println("Fail to read binary model " + binarymodel);
                     return false;
                 }

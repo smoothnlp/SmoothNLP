@@ -1,5 +1,6 @@
 package com.smoothnlp.nlp.model.crfpp;
 
+import com.smoothnlp.nlp.SmoothNLP;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
