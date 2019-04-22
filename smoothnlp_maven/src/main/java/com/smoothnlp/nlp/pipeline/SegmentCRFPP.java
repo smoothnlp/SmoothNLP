@@ -35,7 +35,6 @@ public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
                 String ftrs = super.buildFtrs(c);  // Build ftrs for crf needed sequence, in this case, only each char is needed
                 tagger.add(ftrs);
             }
-
             tagger.parse();
             StringBuilder temToken = new StringBuilder();
             List<SToken> resTokens = new ArrayList<SToken>();

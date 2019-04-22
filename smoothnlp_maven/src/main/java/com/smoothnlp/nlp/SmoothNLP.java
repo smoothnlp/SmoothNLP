@@ -13,8 +13,9 @@ public class SmoothNLP {
 
     public static IIOAdapter IOAdaptor = new FileIOAdapter();
 
-    public static String CRF_SEGMENT_MODEL = "segment_crf.bin";
+    public static String CRF_SEGMENT_MODEL = "segment_crfpp.bin";
 
+    public static String CRF_POSTAG_MODEL = "postag_crfpp.bin";
 
 
 }

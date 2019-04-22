@@ -19,4 +19,6 @@ public class SToken {
         return this.token;
     }
 
+    public void setPostag(String postag) { this.postag = postag; }
+
 }
