@@ -12,6 +12,8 @@ public abstract class CRFModel {
 
     public String buildFtrs(char c){return String.valueOf(c);}
 
+    public String buildFtrs(String token){return token;}
+
     public static String join(String delimeter, String[] contents){
         if (contents.length<=0){return "";}
         else{

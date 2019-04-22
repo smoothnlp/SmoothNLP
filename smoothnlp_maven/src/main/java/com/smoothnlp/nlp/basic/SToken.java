@@ -16,8 +16,15 @@ public class SToken {
     }
 
     public String toString(){
-        return this.token;
+        if (postag == null){
+            return this.token;
+        }else{
+            return this.token+"/"+this.postag;
+        }
+
     }
+
+    public String getToken(){ return this.token; }
 
     public void setPostag(String postag) { this.postag = postag; }
 
