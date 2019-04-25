@@ -28,4 +28,6 @@ public class SToken {
 
     public void setPostag(String postag) { this.postag = postag; }
 
+    public String getPostag(){return this.postag;}
+
 }
