@@ -13,6 +13,10 @@ import ml.dmlc.xgboost4j.java.XGBoost;
 
 public class CoNLLDependencyGraph {
 
+    /**
+     * construct dependencies as a graph
+     */
+
     public CoNLLToken[] tokens;
     private int nodeSize;
     public float[][] edgeScores;
@@ -43,6 +47,10 @@ public class CoNLLDependencyGraph {
 
 
     public List<DependencyRelationship> parseDependencyRelationships(){
+        /**
+         * figure out dependency using "maximal spanning tree" algorithm.
+         * Implemented with a PriorityQuee
+         */
 
         PriorityQueue<ScoreEdge> edgePQ = new PriorityQueue<ScoreEdge>();
         for (int i = 0; i<this.nodeSize; i++){
@@ -99,6 +107,9 @@ public class CoNLLDependencyGraph {
     }
 
     public Float[][] buildAllFtrs(){
+        /**
+         * build features for all token pair
+         */
         int ftr_size = buildFtrs(0,0).length;
         Float[][] all_ftrs = new Float[(this.nodeSize)*(this.nodeSize)][ftr_size];
         for (int i = 0; i< this.nodeSize ;i++){
@@ -110,6 +121,9 @@ public class CoNLLDependencyGraph {
     }
 
     public Float[] getAllLabel(){
+        /**
+         * return dependency connection labels for all token pairs
+         */
         Float[] labels = new Float[(this.nodeSize)*(this.nodeSize)];
         for (int i = 0; i< this.nodeSize;i++){
             for (int j =0; j< this.nodeSize; j++){
@@ -120,6 +134,9 @@ public class CoNLLDependencyGraph {
     }
 
     public static CoNLLDependencyGraph parseLines2Graph(String[] conllLines){
+        /**
+         * parse lines in CoNLLX/U format into a Dependency Graph
+         */
         CoNLLToken[] tokens = new CoNLLToken[conllLines.length+1];
         tokens[0] = CoNLLToken.ROOT;
         for (int i = 0; i< conllLines.length; i++){

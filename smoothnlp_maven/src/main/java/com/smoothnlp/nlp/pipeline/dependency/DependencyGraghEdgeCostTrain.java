@@ -19,6 +19,10 @@ import ml.dmlc.xgboost4j.java.XGBoost;
 
 public class DependencyGraghEdgeCostTrain {
 
+    public DependencyGraghEdgeCostTrain(){
+
+    }
+
     public static DMatrix readCoNLL2DMatrix(String CoNLLFile) throws IOException {
         InputStream in = SmoothNLP.IOAdaptor.open(CoNLLFile);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));

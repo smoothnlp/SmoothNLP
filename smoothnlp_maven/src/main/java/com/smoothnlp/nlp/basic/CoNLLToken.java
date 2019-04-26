@@ -1,6 +1,12 @@
 package com.smoothnlp.nlp.basic;
 
 public class CoNLLToken extends SToken{
+    /**
+     *  The following attributes are added beyond SToken:
+     *     - self index
+     *     - dependent index (dependent word index)
+     *     - relationship (dependency relationship name)
+     */
 
     public int dependentIndex;
     public int selfIndex;

@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-public class MaxEdgeScoreDependencyParser {
+public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 
     private Booster edgeScoreModel;
 
