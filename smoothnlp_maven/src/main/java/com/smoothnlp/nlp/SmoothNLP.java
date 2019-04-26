@@ -4,6 +4,8 @@ import java.util.logging.Logger;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.ISequenceTagger;
 import com.smoothnlp.nlp.pipeline.*;
+import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
+import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
 
 public class SmoothNLP {
 
@@ -22,5 +24,6 @@ public class SmoothNLP {
     // static Pipelines
     public static ISequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
     public static ISequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
+    public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
 
 }
