@@ -34,6 +34,13 @@
         <!-- https://mvnrepository.com/artifact/ml.dmlc/xgboost4j -->
         <dependency>
             <groupId>ml.dmlc</groupId>
+            <artifactId>xgboost-jvm</artifactId>
+            <version>0.82</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>ml.dmlc</groupId>
             <artifactId>xgboost4j</artifactId>
             <version>0.82</version>
         </dependency>
