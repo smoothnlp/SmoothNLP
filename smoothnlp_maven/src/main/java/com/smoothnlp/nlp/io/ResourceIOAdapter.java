@@ -1,5 +1,7 @@
 package com.smoothnlp.nlp.io;
 
+import com.typesafe.config.ConfigException;
+
 import java.io.*;
 
 /**
@@ -11,7 +13,8 @@ public class ResourceIOAdapter implements IIOAdapter
 
     public InputStream open(String path) throws IOException
     {
-        InputStream is = ResourceIOAdapter.class.getResourceAsStream(path);
+//        InputStream is = this.getClass().getClassLoader().getResourceAsStream()
+        InputStream is = ResourceIOAdapter.class.getClassLoader().getResourceAsStream(path);
         if (is == null)
         {
             throw new FileNotFoundException("资源文件" + path + "不存在于jar中");
@@ -25,4 +28,10 @@ public class ResourceIOAdapter implements IIOAdapter
     {
         return new FileOutputStream(path);
     }
+
+//    public static void main(String[] args) throws IOException {
+//        ResourceIOAdapter r = new ResourceIOAdapter();
+//        r.open("segment_crfpp.bin");
+//    }
+
 }

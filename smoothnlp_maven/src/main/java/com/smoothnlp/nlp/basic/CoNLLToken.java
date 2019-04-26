@@ -6,7 +6,7 @@ public class CoNLLToken extends SToken{
     public int selfIndex;
     public String relationship;  // this may updated to static enum later
 
-    public static CoNLLToken ROOT = new CoNLLToken("ROOT","ROOT",0);
+    public static CoNLLToken ROOT = new CoNLLToken("ROOT","ROOT",0,-1,"ROOT");
 
     public CoNLLToken(String token, String postag) {
         super(token,postag);
