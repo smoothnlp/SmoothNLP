@@ -2,7 +2,6 @@ package com.smoothnlp.nlp.learner;
 
 import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
-import sun.tools.jstat.Token;
 
 import java.util.*;
 
