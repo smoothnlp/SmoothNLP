@@ -13,8 +13,8 @@ public interface IDependencyParser {
      * @throws Error
      */
 
-    public List<DependencyRelationship> parse(String input) throws Error;
+    public List<DependencyRelationship> parse(String input) throws Exception;
 
-    public List<DependencyRelationship> parse(List<SToken> stokens) throws Error;
+    public List<DependencyRelationship> parse(List<SToken> stokens) throws Exception;
 
 }
