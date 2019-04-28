@@ -1,6 +1,8 @@
 package com.smoothnlp.nlp.basic;
 
 import java.util.Arrays;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class UtilFns {
 
@@ -39,6 +41,15 @@ public class UtilFns {
             }
         }
         return output;
+    }
+
+
+    public static String toJson(Object o){
+        GsonBuilder gb = new GsonBuilder();
+        gb = gb.serializeSpecialFloatingPointValues();
+        gb = gb.serializeNulls();
+        Gson gson = gb.create();
+        return gson.toJson(o);
     }
 
 }
