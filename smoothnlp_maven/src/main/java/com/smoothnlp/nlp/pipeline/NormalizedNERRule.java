@@ -1,6 +1,7 @@
-package com.smoothnlp.nlp.simple;
+package com.smoothnlp.nlp.pipeline;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.SEntity;
@@ -506,5 +507,21 @@ public class NormalizedNERRule {
         String inputText = "我买了五斤苹果，总共10元";
         NormalizedNERRule  ner = new NormalizedNERRule();
         System.out.println(ner.analyze(inputText));
+
+        SEntity s = new SEntity();
+        s.charStart = 1;
+        s.sTokenList = new HashMap<>();
+        SToken stoken = new SToken("我");
+        s.sTokenList.put(1,stoken);
+        s.sTokenList.put(2,stoken);
+
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(s);
+        System.out.println(json);
+
+        SEntity e = gson.fromJson(json, SEntity.class);
+
+        System.out.println(e.charStart);
+
     }
 }
