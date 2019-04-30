@@ -52,6 +52,7 @@ public class SmoothNLP {
 
     public static void main(String[] args) throws Exception{
         System.out.println(process("五块钱苹果"));
+        System.out.println(process("我买了十斤水果"));
     }
 
 }
