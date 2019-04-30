@@ -21,6 +21,7 @@ public class CoNLLToken extends SToken{
     public CoNLLToken(String token, String postag, int selfIndex){
         super(token,postag);
         this.selfIndex= selfIndex;
+
     }
 
     public CoNLLToken(String token, String postag, int selfIndex , int targetIndex, String relationship){

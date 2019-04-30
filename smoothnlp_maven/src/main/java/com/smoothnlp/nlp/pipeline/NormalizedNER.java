@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-public class NormalizedNERRule {
+public class NormalizedNER implements IEntityRecognizer{
 
     public static String BACKGROUND_SYMBOL = "0";
     private static String LITERAL_DECIMAL_POINT = "点";
@@ -98,7 +98,7 @@ public class NormalizedNERRule {
         fullDigitToHalfDigit.put("0","0");
     }
 
-    public List<SEntity> classifiy(List<SToken> document){
+    public List<SEntity> classify(List<SToken> document){
         List<SEntity> entityList = new ArrayList<SEntity>();
         List<SToken> paddingList = new ArrayList<SToken>();
         paddingList.add(new SToken("", null));
@@ -133,8 +133,6 @@ public class NormalizedNERRule {
                     entity.nerTag = NUMBER_TAG;
                 }
             }
-
-
             entityList.add(entity);
 
         }
@@ -168,8 +166,10 @@ public class NormalizedNERRule {
      * @param termList
      * @return
      */
-    public List<SEntity> addNormalizedQuantitesToEntities(List<SToken> termList){
-        List<SEntity> entityList = classifiy(termList);
+    public List<SEntity> process(List<SToken> termList){
+        // classify terms to entity.nerTags
+        List<SEntity> entityList = classify(termList);
+
 
         String prevNerTag = BACKGROUND_SYMBOL;
         int beforeIndex = -1;
@@ -209,7 +209,7 @@ public class NormalizedNERRule {
                     }
                 }
 
-                collector.forEach(e-> System.out.println(e.text));
+//                collector.forEach(e-> System.out.println(e.text));
                 collector = new ArrayList<SEntity>();
             }
 
@@ -475,8 +475,11 @@ public class NormalizedNERRule {
     }
 
     public ArrayList<HashMap<String,String>> getNormalizedNER(List<SToken> termList){
+        /**
+         * this is a deprecated function for version 0.1, implemented for convenience
+         */
 
-        List<SEntity> entityList = addNormalizedQuantitesToEntities(termList);
+        List<SEntity> entityList = process(termList);
 
         ArrayList<HashMap<String,String>> nerRes = new ArrayList<HashMap<String, String>>();
         for(SEntity entity :entityList){
@@ -493,7 +496,6 @@ public class NormalizedNERRule {
     }
 
     public ArrayList<HashMap<String,String>> getNormalizedNER(String inputText){
-        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         return getNormalizedNER(SmoothNLP.POSTAG_PIPELINE.process(inputText));
     }
 
@@ -505,7 +507,7 @@ public class NormalizedNERRule {
 
     public static void main(String[] args){
         String inputText = "我买了五斤苹果，总共10元";
-        NormalizedNERRule  ner = new NormalizedNERRule();
+        NormalizedNER ner = new NormalizedNER();
         System.out.println(ner.analyze(inputText));
 
         SEntity s = new SEntity();

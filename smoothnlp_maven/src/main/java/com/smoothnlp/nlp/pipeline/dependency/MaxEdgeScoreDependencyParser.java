@@ -38,7 +38,6 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 
     public List<DependencyRelationship> parse(List<SToken> stokens) throws XGBoostError{
         CoNLLDependencyGraph cgraph = new CoNLLDependencyGraph(stokens);
-        System.out.println(stokens);
         // build ftrs
         Float[][] pairFtrs = cgraph.buildAllFtrs();
         float[] flattenPairFtrs = UtilFns.flatten2dFloatArray(pairFtrs);
