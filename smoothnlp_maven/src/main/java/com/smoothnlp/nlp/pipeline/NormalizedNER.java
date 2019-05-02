@@ -287,7 +287,6 @@ public class NormalizedNER implements IEntityRecognizer{
                 }
                 break;
         }
-
         for (SEntity wi: l){
             wi.normalizedEntityTag = p;
         }
@@ -466,7 +465,7 @@ public class NormalizedNER implements IEntityRecognizer{
         int idx = s.indexOf(unit);
         if (idx != -1){
             Double first = Double.valueOf(1.0);
-            if (("十").equals(unit) || "百".equals(unit) && idx == 0) {
+            if (("十".equals(unit) || "百".equals(unit)) && idx == 0) {
                 // do nothing
             }else{
                 first = recurNormalizeLiteralIntegerString(s.substring(0,idx));
@@ -565,12 +564,13 @@ public class NormalizedNER implements IEntityRecognizer{
     }
 
     public static void main(String[] args){
-        String inputText = "我买了五斤苹果，总共10元,我一共带去20元，占百分之50";
+        String inputText;
         NormalizedNER ner = new NormalizedNER();
+        inputText = "我买了五斤苹果，总共10元";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
-        inputText = "我买了五斤苹果，总共10元,我一共带去20元，占50%";
+        inputText = "我一共带去二十元，占百分之五十";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
