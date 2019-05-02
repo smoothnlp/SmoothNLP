@@ -1,10 +1,26 @@
 package com.smoothnlp.nlp.basic;
 
 import java.util.Arrays;
+import java.util.Collections;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.util.Collection;
 
 public class UtilFns {
+
+    public static String join(String delimeter, Collection<Object> contents){
+        if (contents.size()<=0){return "";}
+        else{
+            StringBuilder sb = new StringBuilder();
+            for (Object s: contents){
+                sb.append(s.toString());
+                sb.append(delimeter);
+            }
+            sb.setLength(sb.length()-1);
+            return sb.toString();
+        }
+    }
 
     public static String join(String delimeter, Object[] contents){
         if (contents.length<=0){return "";}

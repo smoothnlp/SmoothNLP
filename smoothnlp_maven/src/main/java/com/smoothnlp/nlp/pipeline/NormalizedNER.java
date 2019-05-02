@@ -156,6 +156,12 @@ public class NormalizedNER implements IEntityRecognizer{
 
     }
 
+
+    public List<SEntity> process(String inputText){
+        List<SToken> termList = SmoothNLP.POSTAG_PIPELINE.process(inputText);
+        return process(termList);
+    }
+
     /**
      * Indentifies contiguous MONEY, TIME , DATE or PERCENT entities
      * and tags each of their constituents with a 'normalizedQuantity"
