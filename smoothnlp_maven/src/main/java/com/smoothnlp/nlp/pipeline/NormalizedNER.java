@@ -132,6 +132,8 @@ public class NormalizedNER implements IEntityRecognizer{
                 }else{
                     entity.nerTag = NUMBER_TAG;
                 }
+            }else if (PERCENT_WORD_PATTERN1.matcher(me.token).matches() || PERCENT_WORD_PATTERN2.matcher(me.token).matches()){
+                entity.nerTag = PERCENT_TAG;
             }
             entityList.add(entity);
 
@@ -227,7 +229,17 @@ public class NormalizedNER implements IEntityRecognizer{
             }
             prevNerTag = currNerTag;
         }
-        return entityList.stream().filter(entity -> entity.nerTag !=null).collect(Collectors.toList());
+
+        Iterator<SEntity> iter = entityList.iterator();
+        while (iter.hasNext()){
+            SEntity sEntity = iter.next();
+            if(sEntity.nerTag == null){
+                iter.remove();
+            }else if (sEntity.normalizedEntityTag==null){
+                sEntity.normalizedEntityTag=sEntity.text;
+            }
+        }
+        return entityList;
     }
 
     public static List<SEntity> processEntity(List<SEntity> l, String entityType, String compModifier,
@@ -259,6 +271,9 @@ public class NormalizedNER implements IEntityRecognizer{
                     p = null;
                 }
                 break;
+            case PERCENT_TAG:
+                p = normalizedPercentString(s,nextWord);
+                break;
             case MONEY_TAG:
                 p = "";
                 if (compModifier != null){
@@ -272,6 +287,7 @@ public class NormalizedNER implements IEntityRecognizer{
                 }
                 break;
         }
+
         for (SEntity wi: l){
             wi.normalizedEntityTag = p;
         }
@@ -466,6 +482,43 @@ public class NormalizedNER implements IEntityRecognizer{
 
 
     /**
+     * Normalize a percent string. Handle both  % and ‰.
+     */
+
+    private static String normalizedPercentString(String s, String nextWord){
+
+        String ns = "";
+        if (s.startsWith("百分之")){
+            ns = normalizedNumberString(s.substring(3),nextWord,1.0);
+            if(ns!=null){
+                ns+="%";
+            }
+        }else if (s.startsWith("千分之")){
+            ns = normalizedNumberString(s.substring(3),nextWord, 1.0);
+            if(ns!=null){
+                ns+="‰";
+            }
+        }else if (s.endsWith("%")){
+            ns = normalizedNumberString(s.substring(0, s.length()-1) ,nextWord, 1.0);
+            if(ns!=null){
+                ns+="%";
+            }
+        }else if (s.endsWith("‰")){
+            ns = normalizedNumberString(s.substring(0, s.length()-1),nextWord, 1.0);
+            if(ns!=null){
+                ns+="‰";
+            }
+        }else{
+            ns = normalizedNumberString(s,nextWord,1.0);
+            if(ns!=null){
+                ns+="%";
+            }
+        }
+        return ns;
+    }
+
+
+    /**
      * Concatenate entity annotations to a String. Note that Chinese does not use space to separate
      * tokens so we will follow this convention here.
      * @param l
@@ -512,24 +565,15 @@ public class NormalizedNER implements IEntityRecognizer{
     }
 
     public static void main(String[] args){
-        String inputText = "我买了五斤苹果，总共10元";
+        String inputText = "我买了五斤苹果，总共10元,我一共带去20元，占百分之50";
         NormalizedNER ner = new NormalizedNER();
+        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
-        SEntity s = new SEntity();
-        s.charStart = 1;
-        s.sTokenList = new HashMap<>();
-        SToken stoken = new SToken("我");
-        s.sTokenList.put(1,stoken);
-        s.sTokenList.put(2,stoken);
+        inputText = "我买了五斤苹果，总共10元,我一共带去20元，占50%";
+        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+        System.out.println(ner.analyze(inputText));
 
-        Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(s);
-        System.out.println(json);
-
-        SEntity e = gson.fromJson(json, SEntity.class);
-
-        System.out.println(e.charStart);
 
     }
 }
