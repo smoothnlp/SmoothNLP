@@ -13,7 +13,7 @@ import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
 
-public class SmoothNLP {
+public class SmoothNLP{
 
     public static String NAME = "SmoothNLP";
 
@@ -31,6 +31,7 @@ public class SmoothNLP {
     public static ISequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
     public static IEntityRecognizer NORMALIZED_NER = new NormalizedNER();
+    public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"finance_agency","finance_agencies.txt"},true);
 
     // simple static class for storing results
     private static class SmoothNLPresult {
@@ -53,6 +54,7 @@ public class SmoothNLP {
     public static void main(String[] args) throws Exception{
         System.out.println(process("五块钱苹果"));
         System.out.println(process("我买了十斤水果"));
+        System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
     }
 
 }

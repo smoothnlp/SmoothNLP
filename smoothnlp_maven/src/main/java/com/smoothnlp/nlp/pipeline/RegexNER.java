@@ -35,7 +35,7 @@ public class RegexNER implements IEntityRecognizer {
     private boolean useRegexMatch;
     private Pattern patterns;
 
-    public RegexNER(String[] args, boolean useRegexMatch) throws IOException {
+    public RegexNER(String[] args, boolean useRegexMatch){
         this.useRegexMatch = useRegexMatch;
         this.labelSet = new HashSet<String>();
         this.word2label = new HashMap<>();
@@ -43,11 +43,15 @@ public class RegexNER implements IEntityRecognizer {
             String label = args[i];
             this.labelSet.add(label);
             String fileName = args[i+1];
-            InputStream is = SmoothNLP.IOAdaptor.open(fileName);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            while(reader.ready()) {
-                String word = reader.readLine();
-                word2label.put(word,label);
+            try {
+                InputStream is = SmoothNLP.IOAdaptor.open(fileName);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                while(reader.ready()) {
+                    String word = reader.readLine();
+                    word2label.put(word,label);
+                }
+            }catch(IOException e){
+                SmoothNLP.LOGGER.severe(e.getMessage());
             }
         }
         if (this.useRegexMatch){
