@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'numpy',
-        "pandas"
+        "pandas",
         "jpype1>=0.6.2"
       ],
     classifiers=[
