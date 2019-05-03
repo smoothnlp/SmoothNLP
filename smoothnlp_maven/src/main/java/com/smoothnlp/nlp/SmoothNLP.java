@@ -16,6 +16,8 @@ import com.sun.org.apache.regexp.internal.RE;
 
 public class SmoothNLP{
 
+    public SmoothNLP(){ }
+
     public static String NAME = "SmoothNLP";
 
     public static Logger LOGGER = Logger.getLogger("SmoothNLP");
@@ -23,7 +25,7 @@ public class SmoothNLP{
     public static IIOAdapter IOAdaptor = new ResourceIOAdapter();
 
     // static libraries
-    public static String[] libraries = new String[]{"financial_agencies.txt","financial_metrix.txt","metrix_action.txt"};
+    public static String[] libraries = new String[]{"financial_agencies.txt","financial_metrix.txt","financial_metrix_action.txt"};
 
     // static model files
     public static String CRF_SEGMENT_MODEL = "segment_crfpp.bin";
@@ -37,7 +39,7 @@ public class SmoothNLP{
     public static IEntityRecognizer NORMALIZED_NER = new NormalizedNER();
     public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"financial_agencies","financial_agencies.txt",
                                                                             "financial_metrix","financial_metrix.txt",
-                                                                            "metrix_action","metrix_action.txt"},true);
+                                                                            "metrix_action","financial_metrix_action.txt"},true);
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
 
@@ -65,6 +67,7 @@ public class SmoothNLP{
         System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
         System.out.println(process("我买了十斤水果"));
         System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
+
     }
 
 }
