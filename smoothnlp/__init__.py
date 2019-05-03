@@ -4,4 +4,4 @@ __name__ = "SmoothNLP"
 import smoothnlp.jvm as jvm
 from smoothnlp.jvm import initJVMConnection
 
-smoothnlp = jvm.SafeJClass("com.smoothnlp.nlp.SmoothNLP")
+smoothnlp = jvm.LazyLoadingJClass("com.smoothnlp.nlp.SmoothNLP")
