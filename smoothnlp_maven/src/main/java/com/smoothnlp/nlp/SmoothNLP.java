@@ -12,6 +12,7 @@ import com.smoothnlp.nlp.pipeline.*;
 import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
+import com.sun.org.apache.regexp.internal.RE;
 
 public class SmoothNLP{
 
@@ -22,7 +23,7 @@ public class SmoothNLP{
     public static IIOAdapter IOAdaptor = new ResourceIOAdapter();
 
     // static libraries
-    public static String[] libraries = new String[]{"finance_agencies.txt"};
+    public static String[] libraries = new String[]{"financial_agencies.txt","financial_metrix.txt","financial_metrix_action.txt"};
 
     // static model files
     public static String CRF_SEGMENT_MODEL = "segment_crfpp.bin";
@@ -34,8 +35,10 @@ public class SmoothNLP{
     public static ISequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
     public static IEntityRecognizer NORMALIZED_NER = new NormalizedNER();
-    public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"financial_agencies","finance_agencies.txt"},true);
-    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
+    public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"financial_agencies","financial_agencies.txt",
+                                                                            "financial_metrix","financial_metrix.txt",
+                                                                            "metrix_action","financial_metrix_action.txt"},true);
+//    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
 
     // simple static class for storing results
@@ -53,13 +56,16 @@ public class SmoothNLP{
         res.dependencyRelationships = dependencyRelationships;
         List<SEntity> normalizedEntities = NORMALIZED_NER.process(sTokensPOS);
         res.entities = normalizedEntities;
+        res.entities.addAll(REGEX_NER.process(inputText));
+//        res.entities.addAll(STOKEN_NER.process(sTokensPOS));
         return UtilFns.toJson(res);
     }
 
     public static void main(String[] args) throws Exception{
-        System.out.println(process("五块钱苹果"));
+        System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
         System.out.println(process("我买了十斤水果"));
         System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
+
     }
 
 }

@@ -84,15 +84,14 @@ public class RegexNER implements IEntityRecognizer {
                 SEntity entity =new SEntity(matcher.start(),matcher.end(),matcher.group(),this.word2label.get(matcher.group()));
                 entityList.add(entity);
             }
-            System.out.println(entityList.get(0));
             return entityList;
         }
     };
 
     public static void main(String[] args) throws IOException{
         System.out.println("hello");
-        RegexNER n = new RegexNER(new String[]{"finance_agency","finance_agencies.txt"},true);
-        List<SEntity> l = n.process("万科是一家房地产企业,国泰君安是一家资本公司");
+        RegexNER n = new RegexNER(new String[]{"finance_agency","finance_agencies.txt","financial_metrix","financial_metrix.txt"},true);
+        List<SEntity> l = n.process("万科是一家房地产企业,国泰君安是一家资本公司; 标普500指数上涨5个点");
         System.out.println(l);
     }
 
