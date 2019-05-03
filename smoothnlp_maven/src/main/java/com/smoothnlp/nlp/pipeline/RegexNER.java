@@ -55,7 +55,7 @@ public class RegexNER implements IEntityRecognizer {
             }
         }
         if (this.useRegexMatch){
-            this.patterns = Pattern.compile(UtilFns.join("|",word2label.keySet().toArray()));
+            this.patterns = Pattern.compile(UtilFns.join("|",word2label.keySet()));
         }
 
     }

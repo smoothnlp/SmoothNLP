@@ -21,6 +21,9 @@ public class SmoothNLP{
 
     public static IIOAdapter IOAdaptor = new ResourceIOAdapter();
 
+    // static libraries
+    public static String[] libraries = new String[]{"finance_agencies.txt"};
+
     // static model files
     public static String CRF_SEGMENT_MODEL = "segment_crfpp.bin";
     public static String CRF_POSTAG_MODEL = "postag_crfpp.bin";
@@ -31,7 +34,9 @@ public class SmoothNLP{
     public static ISequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
     public static IEntityRecognizer NORMALIZED_NER = new NormalizedNER();
-    public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"finance_agency","finance_agencies.txt"},true);
+    public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"financial_agencies","finance_agencies.txt"},true);
+    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
+
 
     // simple static class for storing results
     private static class SmoothNLPresult {

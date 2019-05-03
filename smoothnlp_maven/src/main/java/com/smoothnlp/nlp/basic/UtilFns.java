@@ -9,7 +9,7 @@ import java.util.Collection;
 
 public class UtilFns {
 
-    public static String join(String delimeter, Collection<Object> contents){
+    public static String join(String delimeter, Collection<String> contents){
         if (contents.size()<=0){return "";}
         else{
             StringBuilder sb = new StringBuilder();
