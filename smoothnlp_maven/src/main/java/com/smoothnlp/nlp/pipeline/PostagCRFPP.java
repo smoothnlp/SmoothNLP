@@ -21,6 +21,8 @@ public class PostagCRFPP extends CRFModel implements ISequenceTagger{
         this.segment_pipeline = segment_pipeline;
     }
 
+    public void setDictionary(String[] dictionaries){};
+
     public void setSegment_pipeline(ISequenceTagger segment_pipeline) {
         this.segment_pipeline = segment_pipeline;
     }

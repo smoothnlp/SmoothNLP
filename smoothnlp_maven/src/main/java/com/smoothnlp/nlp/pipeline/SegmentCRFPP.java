@@ -25,13 +25,17 @@ public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
     public SegmentCRFPP(String[] library_files){
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
-        this.dictionary = new SDictionary(library_files);
+        this.setDictionary(library_files);
     }
 
     public SegmentCRFPP(){
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
         this.dictionary = new SDictionary(SmoothNLP.libraries);
+    }
+
+    public void setDictionary(String[] library_files){
+        this.dictionary = new SDictionary(library_files);
     }
 
     public List<SToken> process(String input){
@@ -79,39 +83,6 @@ public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
         }
 
         return resTokens;
-
-    }
-
-    private class SDictionary{
-        private List<String> wordList;
-        private Pattern patterns;
-
-        public SDictionary(String[] args){
-            wordList = new ArrayList<>();
-            for (int i = 0; i<args.length;i=i+1){
-                String fileName = args[i];
-                try {
-                    InputStream is = SmoothNLP.IOAdaptor.open(fileName);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                    while(reader.ready()) {
-                        String word = reader.readLine();
-                        wordList.add(word);
-                    }
-                }catch(IOException e){
-                    SmoothNLP.LOGGER.severe(e.getMessage());
-                }
-            }
-            patterns = Pattern.compile(UtilFns.join("|",wordList));
-        }
-
-        public List<int[]> indicate(String inputText){
-            List<int[]> resList = new ArrayList<>();
-            Matcher matcher = patterns.matcher(inputText);
-            while (matcher.find()){
-                resList.add(new int[]{matcher.start(),matcher.end()});
-            }
-            return resList;
-        }
 
     }
 

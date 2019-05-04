@@ -8,6 +8,7 @@ import com.smoothnlp.nlp.basic.SEntity;
 import com.smoothnlp.nlp.basic.SToken;
 // import com.smoothnlp.nlp.basic.UtilFns;
 import com.smoothnlp.nlp.basic.SmoothNLPResult;
+import com.smoothnlp.nlp.basic.UtilFns;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.ISequenceTagger;
 import com.smoothnlp.nlp.pipeline.*;
@@ -60,11 +61,11 @@ public class SmoothNLP{
         return res;
     }
 
-    // public static void main(String[] args) throws Exception{
-    //     System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
-    //     System.out.println(process("我买了十斤水果"));
-    //     System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
+     public static void main(String[] args) throws Exception{
+         System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
+         System.out.println(UtilFns.toJson(process("广汽集团一季度营收27.78亿")));
+         System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
 
-    // }
+     }
 
 }
