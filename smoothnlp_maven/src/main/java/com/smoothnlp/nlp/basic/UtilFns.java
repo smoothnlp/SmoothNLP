@@ -6,6 +6,10 @@ import java.util.Collections;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Collection;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UtilFns {
 
@@ -59,13 +63,28 @@ public class UtilFns {
         return output;
     }
 
-
     public static String toJson(Object o){
         GsonBuilder gb = new GsonBuilder();
         gb = gb.serializeSpecialFloatingPointValues();
         gb = gb.serializeNulls();
         Gson gson = gb.create();
         return gson.toJson(o);
+    }
+
+    public static List<String> split2sentences(String corpus){
+        List<String> sentences = new LinkedList<>();
+        Pattern seg_patterns = Pattern.compile("[。，]|[!?！？]+");
+        Matcher matcher = seg_patterns.matcher(corpus);
+        int indexer = 0;
+        while (matcher.find()){
+            sentences.add(corpus.substring(indexer,matcher.end()));
+            indexer = matcher.end();
+        }
+        return sentences;
+    }
+
+    public static void main(String[] args){
+        System.out.println(split2sentences("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点?你是认真的嘛?"));
     }
 
 }

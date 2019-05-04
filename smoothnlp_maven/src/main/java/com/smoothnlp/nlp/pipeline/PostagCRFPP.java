@@ -17,6 +17,14 @@ public class PostagCRFPP extends CRFModel implements ISequenceTagger{
         this.model.open(SmoothNLP.CRF_POSTAG_MODEL,0,0,1.0);
     }
 
+    public PostagCRFPP(ISequenceTagger segment_pipeline){
+        this.segment_pipeline = segment_pipeline;
+    }
+
+    public void setSegment_pipeline(ISequenceTagger segment_pipeline) {
+        this.segment_pipeline = segment_pipeline;
+    }
+
     public List<SToken> process(String input){
         if (segment_pipeline==null){
             segment_pipeline = new SegmentCRFPP();
