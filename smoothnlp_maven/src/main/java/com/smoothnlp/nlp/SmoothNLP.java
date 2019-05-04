@@ -14,7 +14,6 @@ import com.smoothnlp.nlp.pipeline.*;
 import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
-// import com.sun.org.apache.regexp.internal.RE;
 
 public class SmoothNLP{
 
