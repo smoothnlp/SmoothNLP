@@ -31,6 +31,8 @@ public class NormalizedNER implements IEntityRecognizer{
     // Pattern we need
 
     private static final Pattern ARABIC_NUMBERS_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+");
+    private static final Pattern MIX_NUMBERS_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+(亿|万)");
+
     public static final Pattern CURRENCY_WORD_PATTERN =
             Pattern.compile("元|元钱|刀|(?:美|欧|加|日|韩)元|英?磅|法郎|卢比|卢布|马克|先令|克朗|泰铢|(?:越南)?盾|美分|便士|块钱|毛钱|角钱");
     public static final Pattern PERCENT_WORD_PATTERN1 = Pattern.compile("(?:百分之|千分之).+");
@@ -134,6 +136,10 @@ public class NormalizedNER implements IEntityRecognizer{
                 }
             }else if (PERCENT_WORD_PATTERN1.matcher(me.token).matches() || PERCENT_WORD_PATTERN2.matcher(me.token).matches()){
                 entity.nerTag = PERCENT_TAG;
+            }else if (me.postag.equals("NN")){
+                    if(MIX_NUMBERS_PATTERN.matcher(me.token).matches()){
+                        entity.nerTag=NUMBER_TAG;
+                    }
             }
             entityList.add(entity);
 
@@ -571,6 +577,10 @@ public class NormalizedNER implements IEntityRecognizer{
         System.out.println(ner.analyze(inputText));
 
         inputText = "我一共带去二十元，占百分之五十";
+        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+        System.out.println(ner.analyze(inputText));
+
+        inputText = "广汽集团一季度营收142.56亿，归母净利润27.78亿元";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
