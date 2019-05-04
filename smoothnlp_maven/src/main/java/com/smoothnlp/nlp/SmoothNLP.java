@@ -46,12 +46,6 @@ public class SmoothNLP{
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
 
-    // simple static class for storing results
-    // private static class SmoothNLPresult {
-    //     public List<SToken> tokens;
-    //     public List<DependencyRelationship> dependencyRelationships;
-    //     public List<SEntity> entities;
-    // }
 
     public static SmoothNLPResult process(String inputText) throws Exception{
         SmoothNLPResult res = new SmoothNLPResult();
