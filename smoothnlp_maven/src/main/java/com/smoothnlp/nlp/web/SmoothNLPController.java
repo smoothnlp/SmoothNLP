@@ -1,6 +1,7 @@
-package com.smoothnlp.nlp;
+package com.smoothnlp.nlp.web;
 
 import com.smoothnlp.nlp.SmoothNLP;
+import com.smoothnlp.nlp.SmoothNLPResult;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,20 +10,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class SmoothNLPController{
-    private static final String template = "%s";
 
-    @GetMapping("/payload")
+    @GetMapping("/smoothnlp")
     @ResponseBody
-    public Payload handle(@RequestParam(name="value", required=false, defaultValue="我买了十斤水果") String value){
-        String result;
+    public SmoothNLPResult handle(@RequestParam(name="value", required=false, defaultValue="我买了十斤水果") String value){
+        SmoothNLPResult result;
         try {
             result = SmoothNLP.process(value);
-            return new Payload(String.format(template, result)) ;
+            return result;
         } catch (Exception e) {
             System.out.println(e);
+            return new SmoothNLPResult(e.toString());
         }
 
-        return new Payload(String.format(template, "error occurs."));
 
 
     }

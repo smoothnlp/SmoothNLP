@@ -112,7 +112,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.smoothnlp.nlp.SmoothNLPApplication</mainClass>
+							<mainClass>com.smoothnlp.nlp.web.SmoothNLPApplication</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -123,7 +123,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <fork>true</fork>
-                    <mainClass>com.smoothnlp.nlp.SmoothNLPApplication</mainClass>
+                    <mainClass>com.smoothnlp.nlp.web.SmoothNLPApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

@@ -3,9 +3,10 @@ package com.smoothnlp.nlp;
 import java.util.List;
 import java.util.logging.Logger;
 
+
 import com.smoothnlp.nlp.basic.SEntity;
 import com.smoothnlp.nlp.basic.SToken;
-import com.smoothnlp.nlp.basic.UtilFns;
+// import com.smoothnlp.nlp.basic.UtilFns;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.ISequenceTagger;
 import com.smoothnlp.nlp.pipeline.*;
@@ -45,14 +46,14 @@ public class SmoothNLP{
 
 
     // simple static class for storing results
-    private static class SmoothNLPresult {
-        public List<SToken> tokens;
-        public List<DependencyRelationship> dependencyRelationships;
-        public List<SEntity> entities;
-    }
+    // private static class SmoothNLPresult {
+    //     public List<SToken> tokens;
+    //     public List<DependencyRelationship> dependencyRelationships;
+    //     public List<SEntity> entities;
+    // }
 
-    public static String process(String inputText) throws Exception{
-        SmoothNLPresult res = new SmoothNLPresult();
+    public static SmoothNLPResult process(String inputText) throws Exception{
+        SmoothNLPResult res = new SmoothNLPResult();
         List<SToken> sTokensPOS = POSTAG_PIPELINE.process(inputText);
         res.tokens = sTokensPOS;
         List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(inputText);
@@ -61,7 +62,8 @@ public class SmoothNLP{
         res.entities = normalizedEntities;
         res.entities.addAll(REGEX_NER.process(inputText));
 //        res.entities.addAll(STOKEN_NER.process(sTokensPOS));
-        return UtilFns.toJson(res);
+        // return UtilFns.toJson(res);
+        return res;
     }
 
     // public static void main(String[] args) throws Exception{
