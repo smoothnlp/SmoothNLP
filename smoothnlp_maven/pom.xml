@@ -69,24 +69,30 @@
             <version>2.1.4.RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <version>2.1.4.RELEASE</version>
+            <optional>true</optional>
+        </dependency>
 
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>maven-repo</id>
-            <url>http://central.maven.org/maven2</url>
-        </repository>
-    </repositories>
+    <!--<repositories>-->
+        <!--<repository>-->
+            <!--<id>maven-repo</id>-->
+            <!--<url>http://central.maven.org/maven2</url>-->
+        <!--</repository>-->
+    <!--</repositories>-->
 
     <build>
         <plugins>
-            <!--<plugin>-->
-                <!--<artifactId>maven-surefire-plugin</artifactId>-->
-                <!--<version>2.14</version>-->
-                <!--<configuration>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
+                <configuration>
+                </configuration>
+            </plugin>
             <!--<plugin>-->
                 <!--<artifactId> maven-assembly-plugin </artifactId>-->
                 <!--<configuration>-->
@@ -121,10 +127,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <fork>true</fork>
-                    <mainClass>com.smoothnlp.nlp.web.SmoothNLPApplication</mainClass>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -132,6 +134,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <fork>true</fork>
+                    <addResources>true</addResources>
+                    <!--This ensures the spring compiled package can be used as a dependency-->
+                    <classifier>exec</classifier>
+                    <mainClass>com.smoothnlp.nlp.web.SmoothNLPApplication</mainClass>
+                </configuration>
             </plugin>
 
         </plugins>
