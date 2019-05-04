@@ -22,6 +22,12 @@ public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
     private static String BLANK_LABEL = "B";
     private SDictionary dictionary;
 
+    public SegmentCRFPP(String[] library_files){
+        this.model = new ModelImpl();
+        this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
+        this.dictionary = new SDictionary(library_files);
+    }
+
     public SegmentCRFPP(){
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
