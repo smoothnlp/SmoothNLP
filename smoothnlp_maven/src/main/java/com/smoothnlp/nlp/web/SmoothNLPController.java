@@ -1,7 +1,7 @@
 package com.smoothnlp.nlp.web;
 
 import com.smoothnlp.nlp.SmoothNLP;
-import com.smoothnlp.nlp.SmoothNLPResult;
+import com.smoothnlp.nlp.basic.SmoothNLPResult;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

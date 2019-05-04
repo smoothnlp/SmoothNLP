@@ -1,4 +1,4 @@
-package com.smoothnlp.nlp;
+package com.smoothnlp.nlp.basic;
 
 import java.util.List;
 

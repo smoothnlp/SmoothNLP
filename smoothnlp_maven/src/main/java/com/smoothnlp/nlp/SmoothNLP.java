@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import com.smoothnlp.nlp.basic.SEntity;
 import com.smoothnlp.nlp.basic.SToken;
 // import com.smoothnlp.nlp.basic.UtilFns;
+import com.smoothnlp.nlp.basic.SmoothNLPResult;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.ISequenceTagger;
 import com.smoothnlp.nlp.pipeline.*;
