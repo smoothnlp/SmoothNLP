@@ -12,7 +12,7 @@ import com.smoothnlp.nlp.pipeline.*;
 import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
-import com.sun.org.apache.regexp.internal.RE;
+// import com.sun.org.apache.regexp.internal.RE;
 
 public class SmoothNLP{
 
@@ -64,11 +64,11 @@ public class SmoothNLP{
         return UtilFns.toJson(res);
     }
 
-    public static void main(String[] args) throws Exception{
-        System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
-        System.out.println(process("我买了十斤水果"));
-        System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
+    // public static void main(String[] args) throws Exception{
+    //     System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
+    //     System.out.println(process("我买了十斤水果"));
+    //     System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
 
-    }
+    // }
 
 }
