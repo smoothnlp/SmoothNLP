@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class SmoothNLPController{
 
-    @GetMapping("/smoothnlp")
+    @GetMapping("/")
     @ResponseBody
-    public SmoothNLPResult handle(@RequestParam(name="value", required=false, defaultValue="我买了十斤水果") String value){
+    public SmoothNLPResult handle(@RequestParam(name="text", required=false, defaultValue="我买了十斤水果") String value){
         SmoothNLPResult result;
         try {
             result = SmoothNLP.process(value);
@@ -22,9 +22,6 @@ public class SmoothNLPController{
             System.out.println(e);
             return new SmoothNLPResult(e.toString());
         }
-
-
-
     }
 
 }
