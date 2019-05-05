@@ -1,5 +1,6 @@
 package com.smoothnlp.nlp.pipeline;
 
+import com.smoothnlp.nlp.basic.SDictionary;
 import com.smoothnlp.nlp.basic.SEntity;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.SmoothNLP;
@@ -18,7 +19,7 @@ import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RegexNER implements IEntityRecognizer {
+public class RegexNER extends BaseEntityRecognizer {
 
     private HashMap<String,String> word2label;
     private Set<String> labelSet; // keep track of all labels, may change to string[] in later implementation
@@ -35,39 +36,42 @@ public class RegexNER implements IEntityRecognizer {
     private boolean useRegexMatch;
     private Pattern patterns;
 
-    public RegexNER(String[] args, boolean useRegexMatch){
+    public RegexNER(boolean useRegexMatch){
         this.useRegexMatch = useRegexMatch;
-        this.labelSet = new HashSet<String>();
-        this.word2label = new HashMap<>();
-        for (int i = 0; i<args.length;i=i+2){
-            String label = args[i];
-            this.labelSet.add(label);
-            String fileName = args[i+1];
-            try {
-                InputStream is = SmoothNLP.IOAdaptor.open(fileName);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                while(reader.ready()) {
-                    String word = reader.readLine();
-                    word2label.put(word,label);
-                }
-            }catch(IOException e){
-                SmoothNLP.LOGGER.severe(e.getMessage());
-            }
-        }
-        if (this.useRegexMatch){
-            this.patterns = Pattern.compile(UtilFns.join("|",word2label.keySet()));
-        }
-
+//        this.labelSet = new HashSet<String>();
+//        this.word2label = new HashMap<>();
+//        for (int i = 0; i<args.length;i=i+2){
+//            String label = args[i];
+//            this.labelSet.add(label);
+//            String fileName = args[i+1];
+//            try {
+//                InputStream is = SmoothNLP.IOAdaptor.open(fileName);
+//                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+//                while(reader.ready()) {
+//                    String word = reader.readLine();
+//                    word2label.put(word,label);
+//                }
+//            }catch(IOException e){
+//                SmoothNLP.LOGGER.severe(e.getMessage());
+//            }
+//        }
+//        if (this.useRegexMatch){
+//            this.patterns = Pattern.compile(UtilFns.join("|",word2label.keySet()));
+//        }
     }
-
 
     public List<SEntity> process(List<SToken> sTokenList){
         List<SEntity> entityList = new ArrayList<SEntity>();
         int charCounter = 0;
         for (int i = 0; i<sTokenList.size(); i++){
             String token = sTokenList.get(i).getToken();
-            if (this.word2label.containsKey(token)){
-                entityList.add(new SEntity(charCounter,charCounter+token.length(),sTokenList.get(i),this.word2label.get(token)));
+
+            List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(token,this.libraryNames);
+            if (matches.size()==1){
+                SDictionary.MatchResult match = matches.get(0);
+                if (match.end - match.start==token.length()){
+                    entityList.add(new SEntity(charCounter,charCounter+token.length(),token,match.label));
+                }
             }
             charCounter+=token.length();
         }
@@ -79,9 +83,9 @@ public class RegexNER implements IEntityRecognizer {
             return process(SmoothNLP.SEGMENT_PIPELINE.process(inputText));
         }else{
             List<SEntity> entityList = new ArrayList<SEntity>();
-            Matcher matcher = this.patterns.matcher(inputText);
-            while(matcher.find()){
-                SEntity entity =new SEntity(matcher.start(),matcher.end(),matcher.group(),this.word2label.get(matcher.group()));
+            List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(inputText,this.libraryNames);
+            for (SDictionary.MatchResult match : matches){
+                SEntity entity = new SEntity(match.start,match.end,inputText.substring(match.start,match.end),match.label);
                 entityList.add(entity);
             }
             return entityList;
@@ -90,7 +94,7 @@ public class RegexNER implements IEntityRecognizer {
 
     public static void main(String[] args) throws IOException{
         System.out.println("hello");
-        RegexNER n = new RegexNER(new String[]{"finance_agency","finance_agencies.txt","financial_metrix","financial_metrix.txt"},true);
+        RegexNER n = new RegexNER(true);
         List<SEntity> l = n.process("万科是一家房地产企业,国泰君安是一家资本公司; 标普500指数上涨5个点");
         System.out.println(l);
     }

@@ -1,14 +1,13 @@
 package com.smoothnlp.nlp;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 
-import com.smoothnlp.nlp.basic.SEntity;
-import com.smoothnlp.nlp.basic.SToken;
-// import com.smoothnlp.nlp.basic.UtilFns;
-import com.smoothnlp.nlp.basic.SmoothNLPResult;
-import com.smoothnlp.nlp.basic.UtilFns;
+import com.fasterxml.jackson.databind.ser.Serializers;
+import com.smoothnlp.nlp.basic.*;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.ISequenceTagger;
 import com.smoothnlp.nlp.pipeline.*;
@@ -27,7 +26,17 @@ public class SmoothNLP{
     public static IIOAdapter IOAdaptor = new ResourceIOAdapter();
 
     // static libraries
-    public static String[] libraries = new String[]{"financial_agencies.txt","financial_metrix.txt","metrix_action.txt","organization_metrix.txt"};
+    public static Map<String, String> libraries = new HashMap<String, String>() {
+        {
+            put("financial_agency", "financial_agencies.txt");
+            put("financial_metric", "financial_metrics.txt");
+            put("metrix_action", "metric_action.txt");
+            put("organization_metric","organization_metrics.txt");
+        }
+    };
+
+    // static Dictionary
+    public static SDictionary DICTIONARIES = new SDictionary(libraries);
 
     // static model files
     public static String CRF_SEGMENT_MODEL = "segment_crfpp.bin";
@@ -35,14 +44,11 @@ public class SmoothNLP{
     public static String DP_EDGE_SCORE_XGBOOST = "DP_Edge_Score_XgbModel.bin";
 
     // static Pipelines
-    public static ISequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
-    public static ISequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
+    public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
+    public static BaseSequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
-    public static IEntityRecognizer NORMALIZED_NER = new NormalizedNER();
-    public static IEntityRecognizer REGEX_NER = new RegexNER(new String[]{"financial_agencies","financial_agencies.txt",
-                                                                            "financial_metrix","financial_metrix.txt",
-                                                                            "organization_metrix","organization_metrix.txt",
-                                                                            "metrix_action","metrix_action.txt"},true);
+    public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
+    public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
 
@@ -63,7 +69,8 @@ public class SmoothNLP{
 
      public static void main(String[] args) throws Exception{
          System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
-         System.out.println(UtilFns.toJson(process("广汽集团一季度营收27.78亿")));
+         System.out.println(UtilFns.toJson(process("广汽集团一季度营收27.78亿").entities));
+         System.out.println(UtilFns.toJson(process("广汽集团一季度营收上涨30%").entities));
          System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
 
      }

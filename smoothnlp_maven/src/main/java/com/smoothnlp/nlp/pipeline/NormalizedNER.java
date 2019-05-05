@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-public class NormalizedNER implements IEntityRecognizer{
+public class NormalizedNER extends BaseEntityRecognizer{
 
     public static String BACKGROUND_SYMBOL = "0";
     private static String LITERAL_DECIMAL_POINT = "点";

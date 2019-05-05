@@ -12,30 +12,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
+public class SegmentCRFPP extends CRFModel{
 
     protected ModelImpl model;
     private static String STOP_LABEL = "S";
     private static String BLANK_LABEL = "B";
-    private SDictionary dictionary;
+    private List<String> libraryNames = null;
 
-    public SegmentCRFPP(String[] library_files){
-        this.model = new ModelImpl();
-        this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
-        this.setDictionary(library_files);
-    }
 
     public SegmentCRFPP(){
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
-        this.dictionary = new SDictionary(SmoothNLP.libraries);
     }
 
-    public void setDictionary(String[] library_files){
-        this.dictionary = new SDictionary(library_files);
+    public void setActiveDictionaries(List<String> libraryNames){
+        this.libraryNames = libraryNames;
     }
 
     public List<SToken> process(String input){
@@ -63,10 +55,10 @@ public class SegmentCRFPP extends CRFModel implements ISequenceTagger {
         }
 
         // get stop/blank tags by matching keywords
-        List<int[]> matchedRanges = this.dictionary.indicate(input);
-        for (int[] range: matchedRanges){
-            int start = range[0];
-            int end = range[1];
+        List<SDictionary.MatchResult> matchedRanges = SmoothNLP.DICTIONARIES.find(input,libraryNames);
+        for (SDictionary.MatchResult match: matchedRanges){
+            int start = match.start;
+            int end = match.end;
             for (int j = start; j<end; j++){
                 ytags[j] = BLANK_LABEL;
             }

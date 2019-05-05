@@ -1,7 +1,9 @@
 package com.smoothnlp.nlp.pipeline;
 
 
-public abstract class CRFModel {
+import com.smoothnlp.nlp.basic.SDictionarySupported;
+
+public abstract class CRFModel extends BaseSequenceTagger {
     public String buildFtrs(char c, String[] ftrs){
         return buildFtrs(String.valueOf(c),ftrs);
     }

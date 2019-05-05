@@ -8,9 +8,11 @@ import com.smoothnlp.nlp.model.crfpp.Tagger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostagCRFPP extends CRFModel implements ISequenceTagger{
+public class PostagCRFPP extends CRFModel{
     protected ModelImpl model;
     protected ISequenceTagger segment_pipeline;
+    private List<String> libraryNames = null;
+
 
     public PostagCRFPP(){
         this.model = new ModelImpl();
@@ -21,7 +23,9 @@ public class PostagCRFPP extends CRFModel implements ISequenceTagger{
         this.segment_pipeline = segment_pipeline;
     }
 
-    public void setDictionary(String[] dictionaries){};
+    public void setActiveDictionaries(List<String> libraryNames){
+        this.libraryNames = libraryNames;
+    }
 
     public void setSegment_pipeline(ISequenceTagger segment_pipeline) {
         this.segment_pipeline = segment_pipeline;
@@ -36,7 +40,6 @@ public class PostagCRFPP extends CRFModel implements ISequenceTagger{
     };
 
     public List<SToken> process(List<SToken> stokens){
-
         Tagger tagger = this.model.createTagger();
         if (tagger==null){
             SmoothNLP.LOGGER.severe(String.format("CRF segment model is not properly read"));
@@ -54,7 +57,6 @@ public class PostagCRFPP extends CRFModel implements ISequenceTagger{
                 stokens.get(i).setPostag(ytag);
             }
         }
-
         return stokens;
     };
 
