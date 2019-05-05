@@ -80,11 +80,14 @@ public class UtilFns {
             sentences.add(corpus.substring(indexer,matcher.end()));
             indexer = matcher.end();
         }
+        if (indexer ==0){
+            sentences.add(corpus);
+        }
         return sentences;
     }
 
     public static void main(String[] args){
-        System.out.println(split2sentences("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点?你是认真的嘛?"));
+        System.out.println(split2sentences("广汽集团上季度营收27.78亿"));
     }
 
 }

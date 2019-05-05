@@ -26,6 +26,7 @@ public class SEntity {
         this.charEnd = charEnd;
         this.text = token.getToken();
         this.nerTag = nerTag;
+        this.normalizedEntityValue = text;
     }
 
     public SEntity(int charStart, int charEnd, String token, String nerTag){
@@ -33,6 +34,7 @@ public class SEntity {
         this.charEnd = charEnd;
         this.text = token;
         this.nerTag = nerTag;
+        this.normalizedEntityValue = text;
     }
 
     public String toString(){
