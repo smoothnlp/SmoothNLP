@@ -34,30 +34,14 @@ public class RegexNER extends BaseEntityRecognizer {
      *      MEANWHILE,  if TRUE, it won't have such problem.
      */
     private boolean useRegexMatch;
-    private Pattern patterns;
 
     public RegexNER(boolean useRegexMatch){
         this.useRegexMatch = useRegexMatch;
-//        this.labelSet = new HashSet<String>();
-//        this.word2label = new HashMap<>();
-//        for (int i = 0; i<args.length;i=i+2){
-//            String label = args[i];
-//            this.labelSet.add(label);
-//            String fileName = args[i+1];
-//            try {
-//                InputStream is = SmoothNLP.IOAdaptor.open(fileName);
-//                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-//                while(reader.ready()) {
-//                    String word = reader.readLine();
-//                    word2label.put(word,label);
-//                }
-//            }catch(IOException e){
-//                SmoothNLP.LOGGER.severe(e.getMessage());
-//            }
-//        }
-//        if (this.useRegexMatch){
-//            this.patterns = Pattern.compile(UtilFns.join("|",word2label.keySet()));
-//        }
+    }
+
+    public RegexNER(List<String> libraryNames, boolean useRegexMatch){
+        this.setActiveDictionaries(libraryNames);
+        this.useRegexMatch = useRegexMatch;
     }
 
     public List<SEntity> process(List<SToken> sTokenList){
