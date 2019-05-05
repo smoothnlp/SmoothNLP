@@ -20,6 +20,10 @@ public class SDictionary{
 
     public SDictionary(Map<String,String> libraryMaps){
         this.wordLibrary = new HashMap<>();
+        setDictionary(libraryMaps);
+    }
+
+    public void setDictionary(Map<String,String> libraryMaps){
         for (String label: libraryMaps.keySet()){
             String fileName = libraryMaps.get(label);
             List<String> wordList = new LinkedList<>();

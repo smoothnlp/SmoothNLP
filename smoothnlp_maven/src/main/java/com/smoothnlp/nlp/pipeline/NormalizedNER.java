@@ -242,8 +242,8 @@ public class NormalizedNER extends BaseEntityRecognizer{
             SEntity sEntity = iter.next();
             if(sEntity.nerTag == null){
                 iter.remove();
-            }else if (sEntity.normalizedEntityTag==null){
-                sEntity.normalizedEntityTag=sEntity.text;
+            }else if (sEntity.normalizedEntityValue==null){
+                sEntity.normalizedEntityValue=sEntity.text;
             }
         }
         return entityList;
@@ -295,7 +295,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
                 break;
         }
         for (SEntity wi: l){
-            wi.normalizedEntityTag = p;
+            wi.normalizedEntityValue = p;
         }
         return l;
     }
@@ -554,7 +554,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
             emMap.put("charStart", Integer.toString(entity.charStart));
             emMap.put("charEnd", Integer.toString(entity.charEnd));
             emMap.put("entityType", entity.nerTag);
-            emMap.put("normlizedNamedEntityTag", entity.normalizedEntityTag);
+            emMap.put("normlizedNamedEntityTag", entity.normalizedEntityValue);
             nerRes.add(emMap);
         }
         return  nerRes;

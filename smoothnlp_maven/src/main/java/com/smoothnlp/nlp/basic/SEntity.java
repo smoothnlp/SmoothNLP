@@ -17,7 +17,7 @@ public class SEntity {
      */
     public Map<Integer, SToken> sTokenList;
 
-    public String normalizedEntityTag;
+    public String normalizedEntityValue;
 
     public SEntity(){}
 
