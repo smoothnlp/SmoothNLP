@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.SEntity;
+import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -66,7 +67,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
         oneCharCurrencyWords = new HashMap<String, Character>();
         oneCharCurrencyWords.put("刀",'$');
         oneCharCurrencyWords.put("镑",'£');
-        oneCharCurrencyWords.put("元",' ');
+        oneCharCurrencyWords.put("元",'¥');
 
         quantityUnitToValues = new HashMap<String, Double>();
         quantityUnitToValues.put("十",10.0);
@@ -181,60 +182,59 @@ public class NormalizedNER extends BaseEntityRecognizer{
      * @param termList
      * @return
      */
+
     public List<SEntity> process(List<SToken> termList){
-        // classify terms to entity.nerTags
+       // classify terms to entity.nerTags
         List<SEntity> entityList = classify(termList);
 
-
         String prevNerTag = BACKGROUND_SYMBOL;
-        int beforeIndex = -1;
-        ArrayList<SEntity> collector = new ArrayList<SEntity>();
-        for (int i = 0 , sz = entityList.size(); i<=sz; i++){
-            SEntity wi = null;
+
+        ArrayList <SEntity> collector = new ArrayList<SEntity>();
+        for (int i = 0, sz = entityList.size(); i<=sz;i++){
+            SEntity currEntity = null;
+            SEntity nextEntity = null;
             String currNerTag = null;
             String nextWord = "";
-            if(i<sz){
-                wi = entityList.get(i);
-                if(i+1 <sz){
-                    nextWord = entityList.get(i).text;
-                    if(nextWord == null){
+            if(i < sz){
+                currEntity = entityList.get(i);
+                if(i+1 < sz){
+
+                    nextEntity = entityList.get(i+1);
+                    nextWord = nextEntity.text;
+                    if (nextWord == null) {
                         nextWord = "";
                     }
                 }
-                currNerTag = wi.nerTag;
+                currNerTag = currEntity.nerTag;
             }
-            // if the current wi is a non-continuation and last one was a quantity,
-            // we close and process the last segment.
-            if((currNerTag == null) || !currNerTag.equals(prevNerTag) && quantifiable.contains(prevNerTag)){
-                String modifier = null;
-                if(prevNerTag !=null){
+
+            if (prevNerTag!= null && currNerTag!= null && currNerTag.equals(MONEY_TAG) && prevNerTag.equals(NUMBER_TAG)){
+                if(collector.get(collector.size()-1).charEnd == currEntity.charStart){
+                    collector.add(currEntity);
+                    processEntity(collector, currNerTag,null, nextWord, termList);
+                }
+                i ++ ;
+                collector = new ArrayList<>();
+            }else if((currNerTag == null)|| !currNerTag.equals(prevNerTag) && quantifiable.contains(prevNerTag)){
+                if(prevNerTag != null){
                     switch (prevNerTag){
                         case DATE_TAG:
-                            processEntity(collector, prevNerTag, modifier, nextWord, termList);
-                        default:
-                            if (prevNerTag.equals(NUMBER_TAG) ||  prevNerTag.equals(PERCENT_TAG)
-                                    || prevNerTag.equals(MONEY_TAG)) {
-                                //modifier = detectQuantityModifier(termList, beforeIndex, i);
-                            }
-                            if (!collector.isEmpty()){
-                                processEntity(collector, prevNerTag, modifier, nextWord, termList);
-                            }
-                            //processEntity(collector, prevNerTag, modifier, nextWord, termList);
-                            break;
+                            processEntity(collector, prevNerTag, null, nextWord, termList);
+                            default:
+                                if(!collector.isEmpty()){
+                                    processEntity(collector, prevNerTag, null, nextWord,termList);
+                                }
+                                break;
                     }
                 }
-
-//                collector.forEach(e-> System.out.println(e.text));
-                collector = new ArrayList<SEntity>();
+                collector = new ArrayList<>();
             }
 
             if(quantifiable.contains(currNerTag)){
-                if(collector.isEmpty()){
-                    beforeIndex = i - 1;
-                }
-                collector.add(wi);
+                collector.add(currEntity);
             }
             prevNerTag = currNerTag;
+
         }
 
         Iterator<SEntity> iter = entityList.iterator();
@@ -294,10 +294,20 @@ public class NormalizedNER extends BaseEntityRecognizer{
                 }
                 break;
         }
-        for (SEntity wi: l){
-            wi.normalizedEntityValue = p;
+        int sz= l.size();
+        SEntity lastEntity = l.get(sz-1);
+        lastEntity.normalizedEntityValue = p;
+
+        if(sz > 1){
+            for(SEntity sEntity:l.subList(0, sz-1)){
+                lastEntity.sTokenList.putAll(sEntity.sTokenList);
+                sEntity.nerTag = null;
+            }
+            lastEntity.charStart = l.get(0).charStart;
+            lastEntity.text = lastEntity.getText();
         }
         return l;
+
     }
 
     private static String normalizedMoneyString(String s, String nextWord){
@@ -531,7 +541,6 @@ public class NormalizedNER extends BaseEntityRecognizer{
      * @return
      */
     private static String singleEntityToString(List<SEntity> l){
-        String entityType = l.get(0).nerTag;
         StringBuilder sb = new StringBuilder();
         for (SEntity w : l){
             sb.append(w.text);
@@ -543,6 +552,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
         /**
          * this is a deprecated function for version 0.1, implemented for convenience
          */
+
 
         List<SEntity> entityList = process(termList);
 
@@ -577,9 +587,10 @@ public class NormalizedNER extends BaseEntityRecognizer{
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
-        inputText = "我一共带去二十元，占百分之五十";
+        inputText = "我一共带去30元，占百分之五十";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
+
 
         inputText = "广汽集团一季度营收142.56亿，归母净利润27.78亿元";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
