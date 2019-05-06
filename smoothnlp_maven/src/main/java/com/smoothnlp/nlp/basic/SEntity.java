@@ -49,7 +49,7 @@ public class SEntity {
     public String getText(){
         return this.sTokenList.entrySet()
         .stream()
-        .sorted()
+        .sorted(((o1, o2) -> o1.getKey().compareTo(o2.getKey())))
         .map(e->e.getValue().token)
         .collect(Collectors.joining(""));
     }
