@@ -15,7 +15,7 @@ public class SEntity {
     /**
      * mapping from token index to SToken; Index START FROM 1
      */
-    public Map<Integer, SToken> sTokenList;
+    public Map<Integer, SToken> sTokenList ;
 
     public String normalizedEntityValue;
 
