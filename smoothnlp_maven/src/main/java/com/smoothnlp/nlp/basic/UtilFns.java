@@ -73,7 +73,7 @@ public class UtilFns {
 
     public static List<String> split2sentences(String corpus){
         List<String> sentences = new LinkedList<>();
-        Pattern seg_patterns = Pattern.compile("[。，]|[!?！？;]+");
+        Pattern seg_patterns = Pattern.compile("[。，;]|[!?！？;]+");
         Matcher matcher = seg_patterns.matcher(corpus);
         int indexer = 0;
         while (matcher.find()){
@@ -82,12 +82,16 @@ public class UtilFns {
         }
         if (indexer ==0){
             sentences.add(corpus);
+        }else{
+            if (indexer<corpus.length()){
+                sentences.add(corpus.substring(indexer+1));
+            }
         }
         return sentences;
     }
 
     public static void main(String[] args){
-        System.out.println(split2sentences("广汽集团上季度营收27.78亿"));
+        System.out.println(split2sentences("广汽集团上季度营收27.78亿; 广汽集团上月利润达到5千万"));
     }
 
 }
