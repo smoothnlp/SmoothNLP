@@ -33,7 +33,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
 
     private static final Pattern ARABIC_NUMBERS_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+");
     private static final Pattern MIX_NUMBERS_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+(亿|万)");
-    private static final Pattern CHINESE_MIX_NUMBERS_PATTERN = Pattern.compile("[一二三四五六七八九零十〇\\d]+[点一二三四五六七八九零十〇\\d]*(亿|万)");
+    private static final Pattern CHINESE_MIX_NUMBERS_PATTERN = Pattern.compile("[一二三四五六七八九零十〇\\d]+[点一二三四五六七八九零十〇\\d]*[千]*(亿|万)");
     private static final Pattern CHINESE_MIX_NUMBERS_PATTERN2 = Pattern.compile("[一二三四五六七八九零十〇\\d]+[点一二三四五六七八九零十〇\\d]*");
 
     public static final Pattern CURRENCY_WORD_PATTERN =
@@ -604,7 +604,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
-        inputText = "一点三";
+        inputText = "广汽集团上月利润达到5万";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
     }
