@@ -73,7 +73,7 @@ public class SmoothNLP{
          System.out.println(UtilFns.toJson(process("广汽集团一季度营收上涨30%").entities));
          System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
          System.out.println(UtilFns.toJson(process("董秘工资哪家高？万科董秘年薪超八百万笑傲董秘圈 ｜ 资色").entities));
+         System.out.println(UtilFns.toJson(process("广汽集团1月利润达到5").entities));
 
      }
-
 }

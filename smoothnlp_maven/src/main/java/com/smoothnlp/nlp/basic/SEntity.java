@@ -2,7 +2,7 @@ package com.smoothnlp.nlp.basic;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SEntity {
+public class SEntity implements Comparable<SEntity>{
 
     public int charStart;
 
@@ -52,6 +52,10 @@ public class SEntity {
         .sorted(((o1, o2) -> o1.getKey().compareTo(o2.getKey())))
         .map(e->e.getValue().token)
         .collect(Collectors.joining(""));
+    }
+
+    public int compareTo(SEntity target){
+        return (this.charEnd-this.charStart) - (target.charEnd - charStart);
     }
 
 }
