@@ -4,8 +4,6 @@ import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SEntity;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
-import org.hibernate.validator.spi.scripting.ScriptEvaluatorNotFoundException;
-import sun.nio.ch.sctp.SendFailed;
 
 import java.util.*;
 
