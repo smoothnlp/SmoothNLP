@@ -67,6 +67,10 @@ public class SmoothNLP{
         return res;
     }
 
+    public static List<SToken> segment(String inputText){
+        return POSTAG_PIPELINE.process(inputText);
+    }
+
      public static void main(String[] args) throws Exception{
          System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
          System.out.println(UtilFns.toJson(process("广汽集团一季度营收27.78亿").entities));
