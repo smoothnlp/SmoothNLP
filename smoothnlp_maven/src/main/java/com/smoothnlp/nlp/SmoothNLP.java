@@ -49,6 +49,7 @@ public class SmoothNLP{
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
     public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
     public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
+    public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER});
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
 
@@ -59,11 +60,7 @@ public class SmoothNLP{
         res.tokens = sTokensPOS;
         List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(inputText);
         res.dependencyRelationships = dependencyRelationships;
-        List<SEntity> normalizedEntities = NORMALIZED_NER.process(sTokensPOS);
-        res.entities = normalizedEntities;
-        res.entities.addAll(REGEX_NER.process(inputText));
-//        res.entities.addAll(STOKEN_NER.process(sTokensPOS));
-        // return UtilFns.toJson(res);
+        res.entities = NER_PIPELINE.process(inputText);
         return res;
     }
 
