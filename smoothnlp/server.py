@@ -1,3 +1,5 @@
+import requests
+
 class smoothNlpRequest(object):
     def __init__(self, url:str="http://api.smoothnlp.com/query"):
         self.url = url
