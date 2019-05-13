@@ -5,8 +5,8 @@ import setuptools
 
 setuptools.setup(
     name="SmoothNLP",
-    version="0.2",
-    author="Ruinan(Victor) Zhang",
+    version="0.2.2",
+    author="Ruinan(Victor) Zhang, Jun Yin",
     author_email="ruinan.zhang@icloud.com",
     description="Python Package for SmoothNLP Project",
     long_description="",
@@ -16,7 +16,8 @@ setuptools.setup(
     install_requires=[
         'numpy',
         "pandas",
-        "jpype1>=0.6.2"
+        "jpype1>=0.6.2",
+        "requests"
       ],
     classifiers=[
         "Programming Language :: Python :: 3",
