@@ -39,6 +39,10 @@ class smoothNlpRequest(object):
 
     def segment(self,text):
         self.__call__(text)
+        return [v['token'] for v in self.result['tokens']]
+
+    def postag(self,text):
+        self.__call__(text)
         return self.result['tokens']
 
     def analyze(self, text):
