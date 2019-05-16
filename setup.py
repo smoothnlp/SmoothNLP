@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name="SmoothNLP",
-    version="0.2.2",
+    version="0.2.4",
     author="Ruinan(Victor) Zhang, Jun Yin",
     author_email="ruinan.zhang@icloud.com",
     description="Python Package for SmoothNLP Project",
