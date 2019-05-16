@@ -66,21 +66,21 @@ public class SmoothNLP{
     }
 
 
-    public static List<String> segment(String inputText){
-        List<SToken> res = SEGMENT_PIPELINE.process(inputText);
+    public static String segment(String inputText){
+        List<SToken> res= POSTAG_PIPELINE.process(inputText);
         List<String> segList = new ArrayList<>();
-        for(SToken st: res){
+        for(SToken st : res){
             segList.add(st.token);
         }
-        return segList;
+        return UtilFns.toJson(segList);
     }
 
-    public static List<SToken> postag(String inputText){
-        return POSTAG_PIPELINE.process(inputText);
+    public static String postag(String inputText){
+        return UtilFns.toJson(POSTAG_PIPELINE.process(inputText));
     }
 
-    public static List<SEntity> ner(String inputText){
-        return NER_PIPELINE.process(inputText);
+    public static String ner(String inputText){
+        return UtilFns.toJson(NER_PIPELINE.process(inputText));
     }
 
      public static void main(String[] args) throws Exception{
@@ -90,9 +90,10 @@ public class SmoothNLP{
          //System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
          //System.out.println(UtilFns.toJson(process("董秘工资哪家高？万科董秘年薪超八百万笑傲董秘圈 ｜ 资色").entities));
          //System.out.println(UtilFns.toJson(process("广汽集团1月利润达到5").entities));
-         System.out.println(segment("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
-         System.out.println(postag("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
+         System.out.println(segment("国泰君安的估值去年上涨了百分之五十"));
+         System.out.println(postag(""));
          System.out.println(ner("国泰君安的估值去年上涨了百分之五十"));
+         postag("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。");
 
      }
 }
