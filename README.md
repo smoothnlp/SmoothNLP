@@ -9,7 +9,7 @@
 
 <!-- ----------- -->
 - <a href="#python">python</a>
-- <a href="java-maven">Java Maven-Project</a>
+- <a href="#Java Maven-Project">Java Maven-Project</a>
     
 ## Python
 python interfaces for SmoothNLP 的 Python 接口， 支持自动下载底层jar包 ，目前支持Python3
