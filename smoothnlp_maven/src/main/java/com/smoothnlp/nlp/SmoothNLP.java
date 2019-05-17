@@ -31,8 +31,10 @@ public class SmoothNLP{
         {
             put("financial_agency", "financial_agencies.txt");
             put("financial_metric", "financial_metrics.txt");
-            put("metrix_action", "metric_action.txt");
+            put("metric_action", "metric_action.txt");
             put("organization_metric","organization_metrics.txt");
+            put("datetime","datetime_relative.txt");
+            put("datetime","datetime.txt");
         }
     };
 
