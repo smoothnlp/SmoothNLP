@@ -9,7 +9,7 @@
 
 <!-- ----------- -->
 - <a href="#python">python</a>
-- <a href="#Java Maven-Project">Java Maven-Project</a>
+- <a href="#Java">Java</a>
     
 ## Python
 python interfaces for SmoothNLP 的 Python 接口， 支持自动下载底层jar包 ，目前支持Python3
@@ -78,7 +78,7 @@ smoothnlp.number_recognize("百度移动应用的月活跃设备达11亿台")
 
 ----------
 
-### Java Maven-Project
+## Java
 **SmoothNLP**项目的主要功能都在Java中有实现, 打包好的Jar文件会在[Release页面]定期更新, 或者在提供的[maven](https://github.com/zhangruinan/SmoothNLP/tree/master/smoothnlp_maven)项目代码中, 直接编译即可
 ```
 git clone https://github.com/zhangruinan/SmoothNLP.git
