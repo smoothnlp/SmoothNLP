@@ -81,7 +81,7 @@ smoothnlp.number_recognize("百度移动应用的月活跃设备达11亿台")
 ## Java
 **SmoothNLP**项目的主要功能都在Java中有实现, 打包好的Jar文件会在[Release页面]定期更新, 或者在提供的[maven](https://github.com/zhangruinan/SmoothNLP/tree/master/smoothnlp_maven)项目代码中, 直接编译即可
 ```
-git clone https://github.com/zhangruinan/SmoothNLP.git
+git clone https://github.com/smoothnlp/SmoothNLP.git
 cd smoothnlp_maven
 mvn clean package
 ```
