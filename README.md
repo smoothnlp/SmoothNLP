@@ -14,10 +14,19 @@
 ## Python
 python interfaces for SmoothNLP 的 Python 接口， 支持自动下载底层jar包 ，目前支持Python3
 
+### Pypi 官方安装
 ```shell
 pip3 install smoothnlp
 ```
 请注意使用`python3`安装smoothnlp项目，当前版本 version=0.2.4
+
+如果您使用的Mac,且用anaconda管理python, 可能会碰到报错, 请尝试:
+```
+export MACOSX_DEPLOYMENT_TARGET=10.10 CFLAGS='-stdlib=libc++' 
+pip3 install jpype1 
+pip3 install smoothnlp
+```
+
 
 #### API 
 
