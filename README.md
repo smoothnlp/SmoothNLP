@@ -83,7 +83,6 @@ smoothnlp.number_recognize("百度移动应用的月活跃设备达11亿台")
 #-- output
 [{'charEnd': 16, 'charStart': 13, 'nerTag': 'NUMBER', 'normalizedEntityValue': '1100000000', 'sTokenList': {'9': {'postag': 'CD', 'token': '11亿'}}, 'text': '11亿'}]
 ```
-更多功能请阅读pySmoothnlp项目文档
 
 ----------
 
