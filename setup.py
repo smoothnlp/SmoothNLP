@@ -1,21 +1,21 @@
 import setuptools
+import os
 
-# with open("README.md", "r") as fh:
-#     long_description = fh.read().decode().encode('utf-8')
+rootdir = os.path.abspath(os.path.dirname(__file__))
+long_description = open(os.path.join(rootdir, 'readme.rst')).read()
 
 setuptools.setup(
     name="SmoothNLP",
-    version="0.2.4",
+    version="0.2.7",
     author="Ruinan(Victor) Zhang, Jun Yin",
-    author_email="ruinan.zhang@icloud.com",
+    author_email="ruinan.zhang@icloud.com, yjun1989@gmail.com",
     description="Python Package for SmoothNLP Project",
-    long_description="",
-    long_description_content_type="text/markdown",
+    long_description=long_description,
+    long_description_content_type="",
     url="https://github.com/zhangruinan/SmoothNLP",
     packages=setuptools.find_packages(),
     install_requires=[
         'numpy',
-        "pandas",
         "jpype1>=0.6.2",
         "requests"
       ],
