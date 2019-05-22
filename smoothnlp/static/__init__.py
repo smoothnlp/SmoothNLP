@@ -11,7 +11,7 @@ import errno
 import time
 import glob
 
-release_url = "https://api.github.com/repos/yjun1989/Smoothnlp/releases"
+release_url = "https://api.github.com/repos/smoothnlp/SmoothNLP/releases"
 download_jar_url = "http://datashare.smoothnlp.com/data/smoothnlp-{}-jar-with-dependencies.jar"
 
 STATIC_ROOT = os.path.dirname(os.path.realpath(__file__))
@@ -31,10 +31,7 @@ def remove_file(filename):
 
 
 def smoothnlp_latest_version():
-    #smoothnlp_releases()[0]
-    meta = ['0.2']
-    return meta
-
+    return smoothnlp_releases()[0]
 
 def smoothnlp_releases(cache=True):
     global SMOOTHNLP_RELEASE
@@ -49,10 +46,10 @@ def smoothnlp_releases(cache=True):
     content = json.loads(content.decode('utf-8-sig'))
     meta = []
     for r in content:
-        jar_name = r['tag-name']
-        if jar_name.startwith('smooth'):
-            jar_name = jar_name[1:]
-        meta.append((jar_name))
+        jar_version = r['tag_name']
+        if jar_version.startswith('v'):
+            jar_version = jar_version[1:]
+        meta.append((jar_version))
 
     SMOOTHNLP_RELEASE = meta
     return meta
