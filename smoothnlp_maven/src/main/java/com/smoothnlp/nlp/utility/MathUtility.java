@@ -1,4 +1,4 @@
-package com.smoothnlp.nlp.model.hmm;
+package com.smoothnlp.nlp.utility;
 
 /**
  * math tools
