@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.smoothnlp.nlp.basic.*;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.ISequenceTagger;
@@ -42,8 +41,8 @@ public class SmoothNLP{
     public static SDictionary DICTIONARIES = new SDictionary(libraries);
 
     // static model files
-    public static String CRF_SEGMENT_MODEL = "segment_crfpp.bin";
-    public static String CRF_POSTAG_MODEL = "postag_crfpp.bin";
+    public static String CRF_SEGMENT_MODEL = "prod_model/segment_crf_pku.bin";
+    public static String CRF_POSTAG_MODEL = "prod_model/postag2gram_crf_pku.bin";
     public static String DP_EDGE_SCORE_XGBOOST = "DP_Edge_Score_XgbModel.bin";
 
     // static Pipelines
