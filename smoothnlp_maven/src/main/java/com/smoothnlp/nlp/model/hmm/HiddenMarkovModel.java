@@ -1,6 +1,5 @@
 package com.smoothnlp.nlp.model.hmm;
 
-import com.smoothnlp.nlp.utility.MathUtility;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;

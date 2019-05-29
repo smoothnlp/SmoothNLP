@@ -28,12 +28,12 @@ public class SmoothNLP{
     // static libraries
     public static Map<String, String> libraries = new HashMap<String, String>() {
         {
-            put("financial_agency", "financial_agencies.txt");
-            put("financial_metric", "financial_metrics.txt");
-            put("metric_action", "metric_action.txt");
-            put("organization_metric","organization_metrics.txt");
-            put("datetime_relative","datetime_relative.txt");
-            put("datetime","datetime.txt");
+            put("COMPANY_NAME", "financial_agencies.txt");
+            put("FINANCE_METRIX", "financial_metrics.txt");
+            put("METRIX_ACTION", "metric_action.txt");
+            put("COMPANY_METRIX","organization_metrics.txt");
+            put("RELATIVE_TIME","datetime_relative.txt");
+            put("DATETIME","datetime.txt");
         }
     };
 
@@ -91,9 +91,9 @@ public class SmoothNLP{
          //System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
          //System.out.println(UtilFns.toJson(process("董秘工资哪家高？万科董秘年薪超八百万笑傲董秘圈 ｜ 资色").entities));
          //System.out.println(UtilFns.toJson(process("广汽集团1月利润达到5").entities));
-         System.out.println(segment("去年此时，腾讯的股价逼近430港元的高点，数次超越Facebook成为全球市值第五的上市公司"));
-         System.out.println(postag("去年此时，腾讯的股价逼近430港元的高点，数次超越Facebook成为全球市值第五的上市公司"));
-         System.out.println(ner("去年此时，腾讯的股价逼近430港元的高点，数次超越Facebook成为全球市值第五的上市公司"));
+         System.out.println(segment("2019年三月"));
+         System.out.println(postag("5月5日"));
+         System.out.println(ner("5月5日"));
          System.out.println("--------");
          System.out.println(segment("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
          System.out.println(ner("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
