@@ -125,9 +125,9 @@ public class NormalizedNER extends BaseEntityRecognizer{
             entity.nerTag = null;
 
             //if (CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")){
-            if(CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("CD")){
+            if(CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")){
                 entity.nerTag = MONEY_TAG;
-            }else if (me.postag.equals("CD")){
+            }else if (me.postag.equals("m")){
                 if (PERCENT_WORD_PATTERN1.matcher(me.token).matches() || PERCENT_WORD_PATTERN2.matcher(me.token).matches()){
                     entity.nerTag = PERCENT_TAG;
                 }else if(rightScanFindsMoneyWord(paddingList, i)){
@@ -152,7 +152,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
     private static boolean rightScanFindsMoneyWord(List<SToken> pl, int i ){
         int j = i ;
         int sz = pl.size();
-        while (j<sz && pl.get(j).postag.equals("M")){
+        while (j<sz && pl.get(j).postag.equals("m")){
             j++;
         }
         if (j >= sz){
@@ -161,8 +161,8 @@ public class NormalizedNER extends BaseEntityRecognizer{
         String tag = pl.get(j).postag;
         String word = pl.get(j).token;
 
-        //return (tag.equals("m")|| tag.equals("n") || tag.equals("nz") && CURRENCY_WORD_PATTERN.matcher(word).matches());
-        return ((tag.equals("M")|| tag.equals("NN")||tag.equals("NNS")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
+        return (tag.equals("m")|| tag.equals("n") || tag.equals("nz") && CURRENCY_WORD_PATTERN.matcher(word).matches());
+        //return ((tag.equals("M")|| tag.equals("NN")||tag.equals("NNS")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
 
     }
 
