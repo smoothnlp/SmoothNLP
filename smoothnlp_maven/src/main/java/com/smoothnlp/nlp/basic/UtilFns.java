@@ -72,8 +72,12 @@ public class UtilFns {
     }
 
     public static List<String> split2sentences(String corpus){
+        return split2sentences(corpus, "[。，;]|[!?！？;]+");
+    }
+
+    public static List<String> split2sentences(String corpus, String splitsStr){
         List<String> sentences = new LinkedList<>();
-        Pattern seg_patterns = Pattern.compile("[。，;]|[!?！？;]+");
+        Pattern seg_patterns = Pattern.compile(splitsStr);
         Matcher matcher = seg_patterns.matcher(corpus);
         int indexer = 0;
         while (matcher.find()){
