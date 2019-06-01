@@ -161,7 +161,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
         String tag = pl.get(j).postag;
         String word = pl.get(j).token;
 
-        return (tag.equals("m")|| tag.equals("n") || tag.equals("nz") && CURRENCY_WORD_PATTERN.matcher(word).matches());
+        return ((tag.equals("m")|| tag.equals("n") || tag.equals("nz")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
         //return ((tag.equals("M")|| tag.equals("NN")||tag.equals("NNS")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
 
     }
