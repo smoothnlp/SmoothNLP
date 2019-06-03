@@ -231,8 +231,8 @@ def ner(text):
 
 
 @localSupportCatch
-def financial_agency_recognize(text):
-    return nlp.financial_agency_recognize(text)
+def company_recognize(text):
+    return nlp.company_recognize(text)
 
 @localSupportCatch
 def number_recognize(text):
