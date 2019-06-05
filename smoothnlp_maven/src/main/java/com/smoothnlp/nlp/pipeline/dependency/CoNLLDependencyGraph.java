@@ -171,6 +171,7 @@ public class CoNLLDependencyGraph {
      * @return
      */
     public void selectIndex(){
+        this.selectedIndexes = new LinkedList<>();
         LinkedList<int[]> negativePairs = new LinkedList<>();
         for (int i = 0; i< this.nodeSize;i++){
             for (int j =0; j< this.nodeSize; j++){
@@ -249,6 +250,9 @@ public class CoNLLDependencyGraph {
         };
 
         CoNLLDependencyGraph g = parseLines2Graph(doc);
+
+        g.selectIndex();
+        System.out.println(UtilFns.toJson(g.selectedIndexes));
 
 //        System.out.println(g);
         System.out.println(g.buildAllFtrs().length);
