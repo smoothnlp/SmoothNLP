@@ -105,13 +105,29 @@ public class CoNLLDependencyGraph {
 
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
         float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[targetIndex].getToken());
+        ftrs.addAll(getTopN(dependent_vec,5));
+        ftrs.addAll(getTopN(dependent_vec,5));
 
-
-
-        for (float f: dependent_vec) {ftrs.add(f);};
-        for (float f: target_vec) {ftrs.add(f);};
-
+//        for (float f: dependent_vec) {ftrs.add(f);};
+//        for (float f: target_vec) {ftrs.add(f);};
+        //System.out.println(ftrs.size());
         return ftrs.toArray(new Float[ftrs.size()]);
+    }
+
+    public List<Float> getTopN(float[] a, int topn){
+        float[] tempa = a.clone();
+        Arrays.sort(tempa);
+        LinkedList<Float> resultIndexes = new LinkedList<>();
+        for (int i=0;i<topn;i++){
+            float target_value = tempa[i];
+            for (int j = 0; j<a.length;j++){
+                if (target_value == a[j]){
+                    resultIndexes.add((float) j);
+                    break;
+                }
+            }
+        }
+        return resultIndexes;
     }
 
     public Float getLabel(int dependentIndex, int targetIndex){
