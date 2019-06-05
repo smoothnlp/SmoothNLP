@@ -101,7 +101,7 @@ public class DependencyGraghEdgeCostTrain {
 
     }
 
-    public static void trainXgbModel(String trainFile, String devFile, String modelAddr) throws IOException{
+    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround) throws IOException{
         final DMatrix trainMatrix = readCoNLL2DMatrix(trainFile);
         final DMatrix devMatrix = readCoNLL2DMatrix(devFile);
         try{
@@ -121,7 +121,6 @@ public class DependencyGraghEdgeCostTrain {
                     put("dev",devMatrix);
                 }
             };
-            int nround = 20;
             Booster booster = XGBoost.train(trainMatrix, params, nround, watches, null, null);
             OutputStream outstream = SmoothNLP.IOAdaptor.create(modelAddr);
             booster.saveModel(outstream);
@@ -134,7 +133,12 @@ public class DependencyGraghEdgeCostTrain {
 //        readCoNLL2DMatrix("dev.conllx");
         // put in train, valid, model destinationß
         //trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin");
-        trainXgbModel(args[0],args[1],args[2]);
+        if (args.length==3){
+            trainXgbModel(args[0],args[1],args[2],20);
+        }else{
+            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]));
+        }
+
     }
 
 }

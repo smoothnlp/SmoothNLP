@@ -1,5 +1,6 @@
 package com.smoothnlp.nlp.pipeline.dependency;
 
+import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.CoNLLToken;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
@@ -86,7 +87,7 @@ public class CoNLLDependencyGraph {
          * the feature building might be simple in early stages
          * for latter development, please reference: https://github.com/orgs/smoothnlp/teams/let-s-survive/discussions/6
          */
-        List<Float> ftrs = new ArrayList<Float>();
+        List<Float> ftrs = new LinkedList<>();
         float dhashcode = this.tokens[dependentIndex].getToken().hashCode();
         float thashcode = this.tokens[targetIndex].getToken().hashCode();
         ftrs.add(dhashcode);
@@ -97,6 +98,12 @@ public class CoNLLDependencyGraph {
         ftrs.add(dpostag_hcode);
         ftrs.add(tpostag_hcode);
         ftrs.add((float) dependentIndex - targetIndex);  // 两者token之间的位置
+
+        // 添加Embedding 特征
+        float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
+        float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[targetIndex].getToken());
+        for (float f: dependent_vec) {ftrs.add(f);};
+        for (float f: target_vec) {ftrs.add(f);};
 
         return ftrs.toArray(new Float[ftrs.size()]);
     }
