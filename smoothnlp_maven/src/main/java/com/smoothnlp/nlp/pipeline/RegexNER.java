@@ -79,8 +79,14 @@ public class RegexNER extends BaseEntityRecognizer {
     public static void main(String[] args) throws IOException{
         System.out.println("hello");
         RegexNER n = new RegexNER(true);
-        List<SEntity> l = n.process("万科是一家房地产企业,国泰君安是一家资本公司; 标普500指数上涨5个点");
+        List<SEntity> l = n.process("5月3日");
         System.out.println(l);
+        System.out.println(n.process("2019年5月3日"));
+        System.out.println(n.process("五月三日"));
+        System.out.println(n.process("5月三日"));
+        System.out.println(n.process("二零一九年"));
+        System.out.println(n.process("二零一九年五月三日"));
+
     }
 
 }

@@ -96,7 +96,7 @@ public class CoNLLDependencyGraph {
         float tpostag_hcode = this.tokens[targetIndex].getPostag().hashCode();
         ftrs.add(dpostag_hcode);
         ftrs.add(tpostag_hcode);
-        ftrs.add((float) dependentIndex - targetIndex);
+        ftrs.add((float) dependentIndex - targetIndex);  // 两者token之间的位置
 
         return ftrs.toArray(new Float[ftrs.size()]);
     }

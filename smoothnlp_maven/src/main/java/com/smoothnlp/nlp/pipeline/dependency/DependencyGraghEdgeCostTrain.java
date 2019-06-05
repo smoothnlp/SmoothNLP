@@ -132,7 +132,9 @@ public class DependencyGraghEdgeCostTrain {
 
     public static void main (String[] args) throws IOException {
 //        readCoNLL2DMatrix("dev.conllx");
-        trainXgbModel("train.conllx","dev.conllx","DP_Edge_Score_XgbModel.bin");
+        // put in train, valid, model destinationß
+        //trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin");
+        trainXgbModel(args[0],args[1],args[2]);
     }
 
 }

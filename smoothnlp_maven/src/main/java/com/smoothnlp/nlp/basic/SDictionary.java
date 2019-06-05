@@ -119,4 +119,15 @@ public class SDictionary{
 
     }
 
+    public static void main(String[] args){
+        Map<String, String> libraries = new HashMap<String, String>() {
+            {
+                put("datetime","test.txt");
+            }
+        };
+        SDictionary dict = new SDictionary(SmoothNLP.libraries);
+        System.out.println(UtilFns.toJson(dict.find("5月")));
+        System.out.println(UtilFns.toJson(dict.find("5月3日")));
+    }
+
 }
