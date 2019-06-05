@@ -100,8 +100,8 @@ public class CoNLLDependencyGraph {
         ftrs.add((float) dependentIndex - targetIndex);  // 两者token之间的位置
 
         // 添加Embedding 特征
-        System.out.println(String.format("dependent token : %s",this.tokens[dependentIndex].getToken()));
-        System.out.println(String.format("target token : %s",this.tokens[targetIndex].getToken()));
+        //System.out.println(String.format("dependent token : %s",this.tokens[dependentIndex].getToken()));
+        //System.out.println(String.format("target token : %s",this.tokens[targetIndex].getToken()));
 
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
         float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[targetIndex].getToken());
