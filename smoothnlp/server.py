@@ -27,13 +27,13 @@ class smoothNlpRequest(object):
                 numbers.append(entity)
         return numbers
 
-    def financial_agency_recognize(self, text):
+    def company_recognize(self, text):
         entities = self.ner(text)
         if entities is None:
             return
         financial_agency = []
         for entity in entities:
-            if entity['nerTag'].lower() == "financial_agency":
+            if entity['nerTag'].lower() == "company_name":
                 financial_agency.append(entity)
         return financial_agency
 
@@ -46,4 +46,5 @@ class smoothNlpRequest(object):
         return self.result['tokens']
 
     def analyze(self, text):
-        return self.__call__(text)
+        self.__call__(text)
+        return self.result

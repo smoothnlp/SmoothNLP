@@ -44,6 +44,7 @@ public class SmoothNLP{
     public static String CRF_SEGMENT_MODEL = "prod_model/segment_crf_pku.bin";
     public static String CRF_POSTAG_MODEL = "prod_model/ctb_3gram_postag_f5_c1.bin";
     public static String DP_EDGE_SCORE_XGBOOST = "DP_Edge_Score_XgbModel.bin";
+    public static String WordEmbedding_MODEL = "prod_model/wordembedding.txt";
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
@@ -52,6 +53,7 @@ public class SmoothNLP{
     public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
     public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
     public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER});
+    public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
 
@@ -100,5 +102,6 @@ public class SmoothNLP{
          System.out.println(ner("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
          postag("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。");
 
+         System.out.println(UtilFns.toJson(WORDEMBEDDING_PIPELINE.process("的")));
      }
 }
