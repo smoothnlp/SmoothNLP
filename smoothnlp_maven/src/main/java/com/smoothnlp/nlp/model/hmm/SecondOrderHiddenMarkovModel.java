@@ -3,13 +3,22 @@ package com.smoothnlp.nlp.model.hmm;
 import java.util.Collection;
 import java.util.Map;
 
-public class SecondOrderHiddenMarkovModel extends HiddenMarkovModel{
+public class SecondOrderHiddenMarkovModel extends HiddenMarkovModel
+{
     /**
      * 状态转移概率矩阵
      */
-    float [][] [] transition_probability2;
+    float[][][] transition_probability2;
 
-    private SecondOrderHiddenMarkovModel(float[]start_probability, float[][] transition_probability, float[][] emission_probability){
+    /**
+     * 构造隐马模型
+     *
+     * @param start_probability      初始状态概率向量
+     * @param transition_probability 状态转移概率矩阵
+     * @param emission_probability   观测概率矩阵
+     */
+    private SecondOrderHiddenMarkovModel(float[] start_probability, float[][] transition_probability, float[][] emission_probability)
+    {
         super(start_probability, transition_probability, emission_probability);
     }
 
@@ -25,15 +34,17 @@ public class SecondOrderHiddenMarkovModel extends HiddenMarkovModel{
         this(null, null, null, null);
     }
 
-    protected void estimateTransitionProbability(Collection<int[][]> samples, int max_state){
+    @Override
+    protected void estimateTransitionProbability(Collection<int[][]> samples, int max_state)
+    {
         transition_probability = new float[max_state + 1][max_state + 1];
         transition_probability2 = new float[max_state + 1][max_state + 1][max_state + 1];
-
-        for (int [][] sample : samples)
+        for (int[][] sample : samples)
         {
             int prev_s = sample[1][0];
             int prev_prev_s = -1;
-            for (int i = 1; i<sample[0].length; i++){
+            for (int i = 1; i < sample[0].length; i++)
+            {
                 int s = sample[1][i];
                 if (i == 1)
                     ++transition_probability[prev_s][s];
@@ -50,8 +61,57 @@ public class SecondOrderHiddenMarkovModel extends HiddenMarkovModel{
                 normalize(p);
     }
 
+    @Override
+    public int[][] generate(int length)
+    {
+        double[] pi = logToCdf(start_probability);
+        double[][] A = logToCdf(transition_probability);
+        double[][][] A2 = logToCdf(transition_probability2);
+        double[][] B = logToCdf(emission_probability);
+        int os[][] = new int[2][length];
+        os[1][0] = drawFrom(pi); // 采样首个隐状态
+        os[0][0] = drawFrom(B[os[1][0]]); // 根据首个隐状态采样它的显状态
 
+        os[1][1] = drawFrom(A[os[1][0]]);
+        os[0][1] = drawFrom(B[os[1][1]]);
 
+        for (int t = 2; t < length; t++)
+        {
+            os[1][t] = drawFrom(A2[os[1][t - 2]][os[1][t - 1]]);
+            os[0][t] = drawFrom(B[os[1][t]]);
+        }
+
+        return os;
+    }
+
+    private double[][][] logToCdf(float[][][] log)
+    {
+        double[][][] cdf = new double[log.length][log[0].length][log[0][0].length];
+        for (int i = 0; i < log.length; i++)
+        {
+            cdf[i] = logToCdf(log[i]);
+        }
+        return cdf;
+    }
+
+    @Override
+    protected void toLog()
+    {
+        super.toLog();
+        if (transition_probability2 != null)
+        {
+            for (float[][] m : transition_probability2)
+            {
+                for (float[] v : m)
+                {
+                    for (int i = 0; i < v.length; i++)
+                    {
+                        v[i] = (float) Math.log(v[i]);
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public float predict(int[] observation, int[] state)
@@ -150,17 +210,35 @@ public class SecondOrderHiddenMarkovModel extends HiddenMarkovModel{
         return max_score;
     }
 
-    protected  void toLog(){
-        super.toLog();
-        if(transition_probability2 !=null){
-            for( float[][] m:transition_probability2){
-                for (float[] v:m){
-                    for (int i= 0; i<v.length;i++){
-                        v[i] = (float) Math.log(v[i]);
-                    }
+    @Override
+    public void unLog()
+    {
+        super.unLog();
+        for (float[][] m : transition_probability2)
+        {
+            for (float[] v : m)
+            {
+                for (int i = 0; i < v.length; i++)
+                {
+                    v[i] = (float) Math.exp(v[i]);
                 }
             }
         }
     }
 
+    @Override
+    public boolean similar(HiddenMarkovModel model)
+    {
+        if (!(model instanceof SecondOrderHiddenMarkovModel)) return false;
+        SecondOrderHiddenMarkovModel hmm2 = (SecondOrderHiddenMarkovModel) model;
+        for (int i = 0; i < transition_probability.length; i++)
+        {
+            for (int j = 0; j < transition_probability.length; j++)
+            {
+                if (!similar(transition_probability2[i][j], hmm2.transition_probability2[i][j]))
+                    return false;
+            }
+        }
+        return super.similar(model);
+    }
 }
