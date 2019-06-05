@@ -112,7 +112,6 @@ public class CoNLLDependencyGraph {
 
         for (float f: dependent_vec) {ftrs.add(f);};
         for (float f: target_vec) {ftrs.add(f);};
-        System.out.println(ftrs.size());
         return ftrs.toArray(new Float[ftrs.size()]);
     }
 
