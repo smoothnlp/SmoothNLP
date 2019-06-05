@@ -21,6 +21,8 @@ public class CoNLLDependencyGraph {
     public CoNLLToken[] tokens;
     private int nodeSize;
     public float[][] edgeScores;
+    private int posNegSampleRate = 2;
+    private LinkedList<int[]> selectedIndexes = null;
 
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
         this.tokens = tokens;
@@ -105,30 +107,30 @@ public class CoNLLDependencyGraph {
 
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
         float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[targetIndex].getToken());
-        ftrs.addAll(getTopN(dependent_vec,5));
-        ftrs.addAll(getTopN(dependent_vec,5));
+//        ftrs.addAll(getTopN(dependent_vec,5));
+//        ftrs.addAll(getTopN(target_vec,5));
 
-//        for (float f: dependent_vec) {ftrs.add(f);};
-//        for (float f: target_vec) {ftrs.add(f);};
-        //System.out.println(ftrs.size());
+        for (float f: dependent_vec) {ftrs.add(f);};
+        for (float f: target_vec) {ftrs.add(f);};
+        System.out.println(ftrs.size());
         return ftrs.toArray(new Float[ftrs.size()]);
     }
 
-    public List<Float> getTopN(float[] a, int topn){
-        float[] tempa = a.clone();
-        Arrays.sort(tempa);
-        LinkedList<Float> resultIndexes = new LinkedList<>();
-        for (int i=0;i<topn;i++){
-            float target_value = tempa[i];
-            for (int j = 0; j<a.length;j++){
-                if (target_value == a[j]){
-                    resultIndexes.add((float) j);
-                    break;
-                }
-            }
-        }
-        return resultIndexes;
-    }
+//    public List<Float> getTopN(float[] a, int topn){
+//        float[] tempa = a.clone();
+//        Arrays.sort(tempa);
+//        LinkedList<Float> resultIndexes = new LinkedList<>();
+//        for (int i=0;i<topn;i++){
+//            float target_value = tempa[i];
+//            for (int j = 0; j<a.length;j++){
+//                if (target_value == a[j]){
+//                    resultIndexes.add((float) j);
+//                    break;
+//                }
+//            }
+//        }
+//        return resultIndexes;
+//    }
 
     public Float getLabel(int dependentIndex, int targetIndex){
         float label = this.tokens[targetIndex].getDependentIndex()==dependentIndex ? 1.0f : 0.0f ;
@@ -140,26 +142,81 @@ public class CoNLLDependencyGraph {
          * build features for all token pair
          */
         int ftr_size = buildFtrs(0,0).length;
-        Float[][] all_ftrs = new Float[(this.nodeSize)*(this.nodeSize)][ftr_size];
-        for (int i = 0; i< this.nodeSize ;i++){
+
+
+        if (selectedIndexes==null){
+            Float[][] all_ftrs = new Float[(this.nodeSize)*(this.nodeSize)][ftr_size];
+            for (int i = 0; i< this.nodeSize ;i++){
+                for (int j =0; j< this.nodeSize; j++){
+                    all_ftrs[i*(this.nodeSize)+j] = buildFtrs(i,j);
+                }
+            }
+            return all_ftrs;
+        }else{
+            Float[][] all_ftrs = new Float[selectedIndexes.size()][ftr_size];
+            int count = 0;
+            for (int[] index : selectedIndexes){
+                int i = index[0];
+                int j = index[1];
+                all_ftrs[count] = buildFtrs(i,j);
+                count+=1;
+            }
+            return all_ftrs;
+        }
+
+
+    }
+
+    /**
+     * 由于两两token组合中, label=0 占比高很多, 所以对样本准备做适当undersample
+     * @return
+     */
+    public void selectIndex(){
+        LinkedList<int[]> negativePairs = new LinkedList<>();
+        for (int i = 0; i< this.nodeSize;i++){
             for (int j =0; j< this.nodeSize; j++){
-                all_ftrs[i*(this.nodeSize)+j] = buildFtrs(i,j);
+                if (getLabel(i,j)==1.0f) {
+                    this.selectedIndexes.add(new int[]{i, j});
+                }else{
+                    negativePairs.add(new int[]{i,j});
+                }
             }
         }
-        return all_ftrs;
+        Collections.shuffle(negativePairs);
+        if (this.posNegSampleRate*this.selectedIndexes.size()<negativePairs.size()){
+            this.selectedIndexes.addAll(negativePairs.subList(0,this.posNegSampleRate*selectedIndexes.size()));
+        }else{
+            selectedIndexes.addAll(negativePairs);
+        }
     }
 
     public Float[] getAllLabel(){
         /**
          * return dependency connection labels for all token pairs
          */
-        Float[] labels = new Float[(this.nodeSize)*(this.nodeSize)];
-        for (int i = 0; i< this.nodeSize;i++){
-            for (int j =0; j< this.nodeSize; j++){
-                labels[i*(this.nodeSize)+j] = getLabel(i,j);
+
+
+        if (selectedIndexes==null){
+            Float[] labels = new Float[(this.nodeSize)*(this.nodeSize)];
+            for (int i = 0; i< this.nodeSize;i++){
+                for (int j =0; j< this.nodeSize; j++){
+                    labels[i*(this.nodeSize)+j] = getLabel(i,j);
+                }
             }
+            return labels;
+        }else{
+            Float[] labels = new Float[this.selectedIndexes.size()];
+            int count = 0;
+            for (int[] index : selectedIndexes){
+                int i = index[0];
+                int j = index[1];
+                labels[count] = getLabel(i,j);
+                count+=1;
+            }
+            return labels;
         }
-        return labels;
+
+
     }
 
     public static CoNLLDependencyGraph parseLines2Graph(String[] conllLines){
