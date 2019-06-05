@@ -42,7 +42,7 @@ public class SmoothNLP{
 
     // static model files
     public static String CRF_SEGMENT_MODEL = "prod_model/segment_crf_pku.bin";
-    public static String CRF_POSTAG_MODEL = "prod_model/postag2gram_crf_pku.bin";
+    public static String CRF_POSTAG_MODEL = "prod_model/ctb_3gram_postag_f5_c1.bin";
     public static String DP_EDGE_SCORE_XGBOOST = "DP_Edge_Score_XgbModel.bin";
     public static String WordEmbedding_MODEL = "prod_model/wordembedding.txt";
 
@@ -95,7 +95,8 @@ public class SmoothNLP{
          //System.out.println(UtilFns.toJson(process("广汽集团1月利润达到5").entities));
          System.out.println(segment("2019年三月"));
          System.out.println(postag("5月5日"));
-         System.out.println(ner("5月5日"));
+         System.out.println(postag("百分点这家科技公司, 在过去的30年中, 营收上涨了30个百分点"));
+         System.out.println(postag("上赛季赚了50个亿"));
          System.out.println("--------");
          System.out.println(segment("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
          System.out.println(ner("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));

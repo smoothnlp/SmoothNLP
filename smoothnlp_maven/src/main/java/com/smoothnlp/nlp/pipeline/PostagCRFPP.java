@@ -53,7 +53,7 @@ public class PostagCRFPP extends CRFModel{
             }
             tagger.parse();
             for (int i=0; i<stokens.size();i++){
-                String ytag = tagger.yname(tagger.y(i));
+                String ytag = tagger.yname(tagger.y(i));  // predict的t
                 stokens.get(i).setPostag(ytag);
             }
         }
