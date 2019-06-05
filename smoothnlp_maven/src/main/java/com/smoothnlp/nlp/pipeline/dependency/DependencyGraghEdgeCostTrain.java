@@ -46,7 +46,7 @@ public class DependencyGraghEdgeCostTrain {
         for (String[] cdoc: conll_docs){
             try{
                 CoNLLDependencyGraph conllGraph =CoNLLDependencyGraph.parseLines2Graph(cdoc);
-
+                conllGraph.selectIndex();
                 labelCollection.add(conllGraph.getAllLabel());
                 ftrCollection.add(conllGraph.buildAllFtrs());
             }catch (Exception e){
