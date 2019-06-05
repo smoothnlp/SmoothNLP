@@ -21,7 +21,7 @@ public class CoNLLDependencyGraph {
     public CoNLLToken[] tokens;
     private int nodeSize;
     public float[][] edgeScores;
-    private int posNegSampleRate = 2;
+    private int posNegSampleRate = 4;
     private LinkedList<int[]> selectedIndexes = null;
 
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
