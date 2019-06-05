@@ -9,9 +9,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 public class WordEmbedding implements IEmbedding{
     public static Map<String, float[]> wordEmbedding ;
+    public int embedding_size;
     public static String sep = " ";
 
     // 加载embedding dictionary
@@ -52,6 +54,7 @@ public class WordEmbedding implements IEmbedding{
                 wordEmbedding.put(word, embedding);
 
             }
+            this.embedding_size = dimen;
             //System.out.println("Embedding 读入条数" + index + ", 耗时" + (System.currentTimeMillis()-start) + "ms");
         }catch (IOException e){
             SmoothNLP.LOGGER.severe(e.getMessage());
@@ -67,7 +70,9 @@ public class WordEmbedding implements IEmbedding{
         if(wordEmbedding.containsKey(input)) {
             return wordEmbedding.get(input);
         }else{
-            return null;
+            float[] dummy_vec = new float[this.embedding_size];
+            Arrays.fill(dummy_vec,0f);
+            return dummy_vec;
         }
     }
 

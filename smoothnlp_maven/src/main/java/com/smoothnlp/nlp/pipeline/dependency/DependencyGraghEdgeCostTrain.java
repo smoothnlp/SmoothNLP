@@ -89,7 +89,7 @@ public class DependencyGraghEdgeCostTrain {
         System.out.println(String.format("~~ Flattened ftrs: %d ~~",counter));
 
         System.out.println(String.format("~~ Ftr and Label preparation ready: %d %d", labels_array.length, ftrs_array.length));
-
+        System.out.println(String.format("~~ Ftr Size: %d ~~",ftr_size));
         try{
             final DMatrix dmatrix = new DMatrix(ftrs_array,record_counter,ftr_size,Float.NaN);
             dmatrix.setLabel(labels_array);
