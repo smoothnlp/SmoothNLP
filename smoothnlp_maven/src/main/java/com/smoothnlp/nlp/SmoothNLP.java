@@ -41,10 +41,10 @@ public class SmoothNLP{
     public static SDictionary DICTIONARIES = new SDictionary(libraries);
 
     // static model files
-    public static String CRF_SEGMENT_MODEL = "prod_model/segment_crf_pku.bin";
-    public static String CRF_POSTAG_MODEL = "prod_model/ctb_3gram_postag_f5_c1.bin";
-    public static String DP_EDGE_SCORE_XGBOOST = "DP_Edge_Score_XgbModel.bin";
-    public static String WordEmbedding_MODEL = "prod_model/wordembedding.txt";
+    public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
+    public static String CRF_POSTAG_MODEL = "model/ctb_3gram_postag_f5_c1.bin";
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_500.bin";
+    public static String WordEmbedding_MODEL = "embedding/wordembedding.txt";
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
@@ -96,12 +96,16 @@ public class SmoothNLP{
          System.out.println(segment("2019年三月"));
          System.out.println(postag("5月5日"));
          System.out.println(postag("百分点这家科技公司, 在过去的30年中, 营收上涨了30个百分点"));
-         System.out.println(postag("上赛季赚了50个亿"));
+         System.out.println(postag("华为去年生产值不少于50%"));
          System.out.println("--------");
          System.out.println(segment("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
          System.out.println(ner("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
          postag("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。");
 
          System.out.println(UtilFns.toJson(WORDEMBEDDING_PIPELINE.process("的")));
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿").dependencyRelationships));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；").dependencyRelationships));
+
      }
 }

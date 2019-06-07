@@ -50,7 +50,9 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
         float[][] edgeScores = new float[cgraph.size()][cgraph.size()];
         for (int i =0; i<cgraph.size(); i++){
             for (int j = 0; j<cgraph.size(); j++){
-                edgeScores[i][j] = predictScoresFlatten[i*cgraph.size()+j];
+                if (i!=j){  // 过滤一个token 自己依赖自己的情况
+                    edgeScores[i][j] = predictScoresFlatten[i*cgraph.size()+j];
+                }
             }
         }
         cgraph.setEdgeScores(edgeScores);
