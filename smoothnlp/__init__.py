@@ -151,7 +151,7 @@ class LazyLoadingJClass(object):
         return SafeJClass(proxy)
 
 
-from smoothnlp.server import smoothNlpRequest
+from smoothnlp.server import smoothNlpRequest, smoothnlpDateRange
 
 
 class Smoothnlp(object):
@@ -162,10 +162,12 @@ class Smoothnlp(object):
             self.nlp = SafeJClass('com.smoothnlp.nlp.SmoothNLP')
         else:
             self.nlp= smoothNlpRequest()
+            self.daterange =smoothnlpDateRange()
 
 global MODE, nlp
 MODE = 'server'
 nlp = Smoothnlp(MODE).nlp
+daterange = Smoothnlp(MODE).daterange
 
 def set_mode(mode):
     global MODE, nlp
@@ -238,5 +240,7 @@ def company_recognize(text):
 def number_recognize(text):
     return nlp.number_recognize(text)
 
-
+@localSupportCatch
+def getDateRange(pubdate, givendate):
+    return daterange.getDateRange(pubdate, givendate)
 

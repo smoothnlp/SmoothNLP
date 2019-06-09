@@ -48,3 +48,16 @@ class smoothNlpRequest(object):
     def analyze(self, text):
         self.__call__(text)
         return self.result
+
+class smoothnlpDateRange(object):
+    def __init__(self,url:str="http://api.smoothnlp.com/querydate"):
+        self.url = url
+
+    def __call__(self, pubdate:str="", givendate:str=""):
+        content = {"givendate":givendate}
+        r = requests.get(self.url, params=content)
+        self.result = r.json()['payload']['response']
+
+    def getDateRange(self,pubdate,givendate):
+        self.__call__(pubdate,givendate)
+        return self.result
