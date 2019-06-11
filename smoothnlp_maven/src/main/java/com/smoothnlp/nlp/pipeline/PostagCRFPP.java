@@ -2,6 +2,7 @@ package com.smoothnlp.nlp.pipeline;
 
 import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
+import com.smoothnlp.nlp.basic.UtilFns;
 import com.smoothnlp.nlp.model.crfpp.ModelImpl;
 import com.smoothnlp.nlp.model.crfpp.Tagger;
 
@@ -63,6 +64,7 @@ public class PostagCRFPP extends CRFModel{
     public static void main(String[] args){
         ISequenceTagger s = new PostagCRFPP();
         System.out.println(s.process("五十块钱买了两个冰淇淋还是挺便宜的"));
+        System.out.println(UtilFns.toJson(s.process("广汽集团上月利润达到5万")));
     }
 
 }

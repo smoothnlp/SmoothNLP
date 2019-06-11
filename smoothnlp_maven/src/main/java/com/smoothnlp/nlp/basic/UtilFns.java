@@ -21,7 +21,7 @@ public class UtilFns {
                 sb.append(s.toString());
                 sb.append(delimeter);
             }
-            sb.setLength(sb.length()-1);
+            sb.setLength(sb.length()-delimeter.length());
             return sb.toString();
         }
     }

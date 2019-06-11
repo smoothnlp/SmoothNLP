@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.SEntity;
+import com.smoothnlp.nlp.basic.UtilFns;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 import java.util.*;
@@ -23,6 +24,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
     private static final String DATE_TAG = "DATE";
 
     private static final Set<String> quantifiable; // Entity types that are quantifiable
+    private static final Set<String> moneyPostagSet;
     private static final Map<String, Character> multiCharCurrencyWords;
     private static final Map<String, Character> oneCharCurrencyWords;
     private static final Map<String, Double> wordsToValue;
@@ -101,6 +103,11 @@ public class NormalizedNER extends BaseEntityRecognizer{
         fullDigitToHalfDigit.put("8","8");
         fullDigitToHalfDigit.put("9","9");
         fullDigitToHalfDigit.put("0","0");
+
+        moneyPostagSet = new HashSet<>();
+        moneyPostagSet.add("m");
+        moneyPostagSet.add("CD");
+
     }
 
     public List<SEntity> classify(List<SToken> document){
@@ -125,9 +132,11 @@ public class NormalizedNER extends BaseEntityRecognizer{
             entity.nerTag = null;
 
             //if (CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")){
-            if(CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")){
+            if(CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")) {
                 entity.nerTag = MONEY_TAG;
-            }else if (me.postag.equals("m")){
+//            }else if (me.postag.equals("m")){
+            }else if (moneyPostagSet.contains(me.postag.toString())){
+
                 if (PERCENT_WORD_PATTERN1.matcher(me.token).matches() || PERCENT_WORD_PATTERN2.matcher(me.token).matches()){
                     entity.nerTag = PERCENT_TAG;
                 }else if(rightScanFindsMoneyWord(paddingList, i)){
@@ -152,16 +161,19 @@ public class NormalizedNER extends BaseEntityRecognizer{
     private static boolean rightScanFindsMoneyWord(List<SToken> pl, int i ){
         int j = i ;
         int sz = pl.size();
-        while (j<sz && pl.get(j).postag.equals("m")){
+        while (j<sz & j<i+5){
+            String word = pl.get(j).token;
             j++;
+            if (CURRENCY_WORD_PATTERN.matcher(word).matches()){
+                return true;
+            };
+
         }
         if (j >= sz){
             return false;
         }
-        String tag = pl.get(j).postag;
-        String word = pl.get(j).token;
-
-        return ((tag.equals("m")|| tag.equals("n") || tag.equals("nz")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
+        return false;
+        //return ((tag.equals("m")|| tag.equals("n") || tag.equals("nz")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
         //return ((tag.equals("M")|| tag.equals("NN")||tag.equals("NNS")) && CURRENCY_WORD_PATTERN.matcher(word).matches());
 
     }
@@ -583,13 +595,13 @@ public class NormalizedNER extends BaseEntityRecognizer{
     public static void main(String[] args){
         String inputText;
         NormalizedNER ner = new NormalizedNER();
-        inputText = "我买了五斤苹果，总共10元";
-        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
-        System.out.println(ner.analyze(inputText));
-
-        inputText = "我一共带去30元，占百分之五十";
-        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
-        System.out.println(ner.analyze(inputText));
+//        inputText = "我买了五斤苹果，总共10元";
+//        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+//        System.out.println(ner.analyze(inputText));
+//
+//        inputText = "我一共带去30元，占百分之五十";
+//        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+//        System.out.println(ner.analyze(inputText));
 
 
         inputText = "广汽集团一季度营收142.56亿，归母净利润27.78亿元";
@@ -604,8 +616,11 @@ public class NormalizedNER extends BaseEntityRecognizer{
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
-        inputText = "广汽集团上月利润达到5万";
+        inputText = "广汽集团上月利润达到5万元";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
+
+        System.out.println(UtilFns.toJson(ner.process(inputText)));
+
     }
 }
