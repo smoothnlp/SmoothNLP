@@ -9,6 +9,9 @@ class smoothNlpRequest(object):
             url = "http://api.smoothnlp.com/query"
         self.url = url
 
+    def set_url(self,url):
+        self.url = url
+
     def __call__(self,text):
         content = {"text":text}
         r = requests.get(self.url, params=content)
