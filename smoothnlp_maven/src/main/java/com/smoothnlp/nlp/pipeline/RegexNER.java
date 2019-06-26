@@ -7,11 +7,7 @@ import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.UtilFns;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -45,48 +41,88 @@ public class RegexNER extends BaseEntityRecognizer {
     }
 
     public List<SEntity> process(List<SToken> sTokenList){
-        List<SEntity> entityList = new ArrayList<SEntity>();
-        int charCounter = 0;
-        for (int i = 0; i<sTokenList.size(); i++){
-            String token = sTokenList.get(i).getToken();
 
-            List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(token,this.libraryNames);
-            if (matches.size()==1){
-                SDictionary.MatchResult match = matches.get(0);
-                if (match.end - match.start==token.length()){
-                    entityList.add(new SEntity(charCounter,charCounter+token.length(),token,match.label));
+        List<String> StringTokens = new LinkedList<>();
+        for (int i = 0; i<sTokenList.size(); i++){
+            StringTokens.add(sTokenList.get(i).getToken());
+        }
+        System.out.println(UtilFns.toJson(StringTokens));
+        String sentence = UtilFns.join("",StringTokens);
+
+        List<SEntity> hardEntities = hardMatch(sentence);
+        if (hardEntities.size()<1){return hardEntities;}  // 先通过强匹配, 如果没有entity, 则直接返回空list
+        else{ // 处理如果强匹配找到entity的情况
+            List<SEntity> entityList = new LinkedList<>();
+            for (SEntity entity : hardEntities){
+                int charCounter = 0;
+                boolean startChecker=false, endChecker=false;
+                Map<Integer, SToken> tokenMap = new HashMap<>();
+                int tokenIndex = 1; // notice token index starts from 1
+                for (SToken token : sTokenList){
+                    if (entity.charStart == charCounter){
+                        startChecker=true;
+                    }
+                    charCounter+=token.token.length();
+                    if (entity.charEnd == charCounter){
+                        endChecker = true;
+                    }
+                    if (startChecker){
+                        tokenMap.put(tokenIndex,token);
+                    }
+                    if (startChecker==true & endChecker==true){
+                        entity.sTokenList = tokenMap;
+                        entityList.add(entity);
+                        break;
+                    }
+                    tokenIndex++;
                 }
             }
-            charCounter+=token.length();
+            return entityList;
         }
-        return entityList;
+
+//        for (int i = 0; i<sTokenList.size(); i++){
+//            String token = sTokenList.get(i).getToken();  // 对每一个token进行match
+//            List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(token,this.libraryNames);
+//            if (matches.size()==1){
+//                SDictionary.MatchResult match = matches.get(0);
+//                if (match.end - match.start==token.length()){
+//                    entityList.add(new SEntity(charCounter,charCounter+token.length(),token,match.label));
+//                }
+//            }
+//            charCounter+=token.length();
+//        }
+//        return entityList;
     };
 
     public List<SEntity> process(String inputText){
         if (!this.useRegexMatch){
             return process(SmoothNLP.SEGMENT_PIPELINE.process(inputText));
         }else{
-            List<SEntity> entityList = new ArrayList<SEntity>();
-            List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(inputText,this.libraryNames);
-            for (SDictionary.MatchResult match : matches){
-                SEntity entity = new SEntity(match.start,match.end,inputText.substring(match.start,match.end),match.label);
-                entityList.add(entity);
-            }
-            return entityList;
+            return hardMatch(inputText);
         }
     };
 
+    public List<SEntity> hardMatch(String inputText){
+        List<SEntity> entityList = new LinkedList<>();
+        List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(inputText,this.libraryNames);
+        for (SDictionary.MatchResult match : matches){
+            SEntity entity = new SEntity(match.start,match.end,inputText.substring(match.start,match.end),match.label);
+            entityList.add(entity);
+        }
+        return entityList;
+    }
+
     public static void main(String[] args) throws IOException{
         System.out.println("hello");
-        RegexNER n = new RegexNER(true);
+        RegexNER n = new RegexNER(false);
         List<SEntity> l = n.process("5月3日");
         System.out.println(l);
         System.out.println(n.process("2019年5月3日"));
         System.out.println(n.process("五月三日"));
         System.out.println(n.process("5月三日"));
         System.out.println(n.process("二零一九年"));
-        System.out.println(n.process("二零一九年五月三日"));
-
+        System.out.println(n.process("90元,二零一九年五月三日"));
+        System.out.println(UtilFns.toJson(n.process("90元,二零一九年五月三日")));
     }
 
 }
