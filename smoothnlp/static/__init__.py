@@ -111,7 +111,7 @@ def download(url, path):
 
 def install_smoothnlp_jar(version=None):
     if version is None:
-        version = smoothnlp_latest_version()[0]
+        version = smoothnlp_latest_version()
     url = download_jar_url.format(version)
     jar_path= os.path.join(STATIC_ROOT, 'smoothnlp-{}-jar-with-dependencies.jar'.format(version))
     download(url, jar_path)
