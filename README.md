@@ -1,9 +1,9 @@
 # [SmoothNLP](http://www.smoothnlp.com)
 [![GitHub release](https://img.shields.io/badge/Version-0.2-green.svg)](https://github.com/zhangruinan/SmoothNLP/releases)
 ****	
-|Author|Victor|Yinjun
+|Author|Victor|Yinjun|haizhe
 |---|---|----
-|E-mail|zhangruinan@smoothnlp.com|yinjun@smoothnlp.com
+|E-mail|zhangruinan@smoothnlp.com|yinjun@smoothnlp.com|yuzhe_wang@smoothnlp.com
 ****
 
 
