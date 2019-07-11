@@ -130,9 +130,8 @@ public class NormalizedNER extends BaseEntityRecognizer{
             entity.sTokenList = new HashMap<Integer, SToken>();
             entity.sTokenList.put(i,me);
             entity.nerTag = null;
-
             //if (CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")){
-            if(CURRENCY_WORD_PATTERN.matcher(me.token).matches() && prev.postag.equals("m")) {
+            if(CURRENCY_WORD_PATTERN.matcher(me.token).matches() && i != 1 && prev.postag.equals("m")) {
                 entity.nerTag = MONEY_TAG;
 //            }else if (me.postag.equals("m")){
             }else if (moneyPostagSet.contains(me.postag.toString())){
@@ -621,6 +620,9 @@ public class NormalizedNER extends BaseEntityRecognizer{
         System.out.println(ner.analyze(inputText));
 
         System.out.println(UtilFns.toJson(ner.process(inputText)));
+
+        System.out.println(ner.analyze("元六鸿远首次公开发行A股网上路演公告"));
+
 
     }
 }
