@@ -30,6 +30,8 @@ public class SegmentCRFPP extends CRFModel{
         this.libraryNames = libraryNames;
     }
 
+    public List<SToken> process(List<SToken> tokens){return tokens;}
+
     public List<SToken> process(String input){
         Tagger tagger = this.model.createTagger();
         if (tagger==null){
@@ -55,7 +57,8 @@ public class SegmentCRFPP extends CRFModel{
         }
 
         // get stop/blank tags by matching keywords
-        List<SDictionary.MatchResult> matchedRanges = SmoothNLP.DICTIONARIES.find(input,libraryNames);
+        List<IDictionary.MatchResult> matchedRanges = SmoothNLP.DICTIONARIES.find(input,libraryNames);
+
         for (SDictionary.MatchResult match: matchedRanges){
             int start = match.start;
             int end = match.end;
@@ -80,7 +83,7 @@ public class SegmentCRFPP extends CRFModel{
 
     public static void main(String[] args){
         SegmentCRFPP s = new SegmentCRFPP();
-        System.out.println(s.process("国泰君安是一家资本公司"));
+        System.out.println(s.process("腾讯云是一家云服务提供商"));
     }
 
 }

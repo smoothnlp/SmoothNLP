@@ -25,20 +25,29 @@ public class SmoothNLP{
 
     public static IIOAdapter IOAdaptor = new ResourceIOAdapter();
 
-    // static libraries
-    public static Map<String, String> libraries = new HashMap<String, String>() {
+    // static libraries based on word dictionaries
+    public static Map<String, String> dictLibraries = new HashMap<String, String>() {
         {
             put("COMPANY_NAME", "financial_agencies.txt");
             put("FINANCE_METRIX", "financial_metrics.txt");
             put("METRIX_ACTION", "metric_action.txt");
             put("COMPANY_METRIX","organization_metrics.txt");
+        }
+    };
+
+    // static libraries based on regex patterns
+    public static Map<String, String> regexLibraries = new HashMap<String, String>() {
+        {
             put("RELATIVE_TIME","datetime_relative.txt");
             put("DATETIME","datetime.txt");
         }
     };
 
+    public static IDictionary regexDict = new SDictionary(regexLibraries);
+    public static IDictionary trieDict = new TrieDictionary(dictLibraries);
+
     // static Dictionary
-    public static SDictionary DICTIONARIES = new SDictionary(libraries);
+    public static IDictionary DICTIONARIES = new MultiDictionary(new IDictionary[]{regexDict,trieDict});
 
     // static model files
     public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
@@ -93,19 +102,26 @@ public class SmoothNLP{
          //System.out.println(process("国泰君安的估值去年上涨了百分之五十"));
          //System.out.println(UtilFns.toJson(process("董秘工资哪家高？万科董秘年薪超八百万笑傲董秘圈 ｜ 资色").entities));
          //System.out.println(UtilFns.toJson(process("广汽集团1月利润达到5").entities));
-         System.out.println(segment("2019年三月"));
-         System.out.println(postag("5月5日"));
-         System.out.println(postag("百分点这家科技公司, 在过去的30年中, 营收上涨了30个百分点"));
-         System.out.println(postag("华为去年生产值不少于50%"));
-         System.out.println("--------");
-         System.out.println(segment("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
-         System.out.println(ner("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
-         postag("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。");
+//         System.out.println(segment("2019年三月"));
+//         System.out.println(postag("5月5日"));
+//         System.out.println(postag("百分点这家科技公司, 在过去的30年中, 营收上涨了30个百分点"));
+//         System.out.println(postag("华为去年生产值不少于50%"));
+//         System.out.println("--------");
+//         System.out.println(segment("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
+//         System.out.println(ner("腾讯前三季度云服务的总收入超过60亿元，而前三季度，腾讯以支付及相关服务和云服务为主的其他收入累计金额为538亿元左右，由此推算，三季度腾讯的支付及相关业务累计营收额约为478亿元。"));
+//         postag("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。");
 
-         System.out.println(UtilFns.toJson(WORDEMBEDDING_PIPELINE.process("的")));
+//         System.out.println(UtilFns.toJson(WORDEMBEDDING_PIPELINE.process("的")));
+//
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿").dependencyRelationships));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；").dependencyRelationships));
 
-         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿").dependencyRelationships));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；").dependencyRelationships));
+
+         System.out.println(UtilFns.toJson(DICTIONARIES.find("腾讯云在去年5月实现营收达到3亿元")));
+
+         System.out.println("test normalized ner: ");
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("生动态,第四范式获三大国有银行共同战略投资")));
 
      }
 }

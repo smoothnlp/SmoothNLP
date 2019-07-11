@@ -13,7 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Map;
 
-public class SDictionary{
+import com.smoothnlp.nlp.basic.IDictionary.MatchResult;
+
+public class SDictionary implements IDictionary{
     private Map<String, List<String>> wordLibrary;
     private Map<String, Pattern> patterns = new HashMap<>();
     private List<String> activeLibraries = null;
@@ -106,18 +108,6 @@ public class SDictionary{
     }
 
 
-    public class MatchResult{
-        public int start;
-        public int end;
-        public String label;
-
-        public MatchResult(int start, int end, String label){
-            this.start = start;
-            this.end = end;
-            this.label = label;
-        }
-
-    }
 
     public static void main(String[] args){
         Map<String, String> libraries = new HashMap<String, String>() {
@@ -125,7 +115,7 @@ public class SDictionary{
                 put("datetime","test.txt");
             }
         };
-        SDictionary dict = new SDictionary(SmoothNLP.libraries);
+        SDictionary dict = new SDictionary(SmoothNLP.regexLibraries);
         System.out.println(UtilFns.toJson(dict.find("5月")));
         System.out.println(UtilFns.toJson(dict.find("5月3日")));
     }

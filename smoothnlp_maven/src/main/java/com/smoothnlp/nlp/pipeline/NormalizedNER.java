@@ -166,8 +166,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
             j++;
             if (CURRENCY_WORD_PATTERN.matcher(word).matches()){
                 return true;
-            };
-
+            }
         }
         if (j >= sz){
             return false;
