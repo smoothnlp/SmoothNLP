@@ -5,10 +5,14 @@ import glob
 import os
 import sys
 import platform
-import logging
 import jpype
-
 from jpype import JClass,startJVM, getDefaultJVMPath, isThreadAttachedToJVM, attachThreadToJVM
+from smoothnlp.server import smoothNlpRequest, smoothnlpDateRange
+
+from functools import wraps
+import requests
+import logging
+import json
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
 
@@ -151,9 +155,6 @@ class LazyLoadingJClass(object):
         return SafeJClass(proxy)
 
 
-from smoothnlp.server import smoothNlpRequest, smoothnlpDateRange
-
-
 class Smoothnlp(object):
     def __init__(self, mode: str = 'server'):
         self.mode = mode
@@ -174,12 +175,7 @@ def set_mode(mode):
     MODE = mode
     nlp = Smoothnlp(MODE).nlp
 
-from functools import wraps
-import requests
-import logging
-import json
-
-log = logging.getLogger()
+logger = logging.getLogger()
 
 ########################
 ## attribute function ##
@@ -190,7 +186,7 @@ def localSupportCatch(func):
         try:
             return func(text)
         except AttributeError:
-            log.error("This function does not support local mode : %s " % func.__name__)
+            logger.error("This function does not support local mode : %s " % func.__name__)
     return trycatch
 
 def requestTimeout(func):
@@ -230,7 +226,6 @@ def postag(text):
 @convert
 def ner(text):
     return nlp.ner(text)
-
 
 @localSupportCatch
 def company_recognize(text):

@@ -56,8 +56,8 @@ def get_ngram_freq_info(corpus, ## list or generator
                          min_freq:int=2,
                          ):
 
-    ngram_freq_total = {}
-    ngram_keys = {i: set() for i in range(1, max_n + 2)}
+    ngram_freq_total = {}  ## 记录词频
+    ngram_keys = {i: set() for i in range(1, max_n + 2)}  ## 用来存储N=?时, 都有哪些词
 
     def _process_corpus_chunk(corpus_chunk):
         ngram_freq = {}
@@ -92,8 +92,6 @@ def get_ngram_freq_info(corpus, ## list or generator
         len_corpus = len(corpus)
         for i in range(0,len_corpus,chunk_size):
             corpus_chunk = corpus[i:min(len_corpus,i+chunk_size)]
-
-
             ngram_freq = _process_corpus_chunk(corpus_chunk)
             ngram_freq_total = union_word_freq(ngram_freq,ngram_freq_total)
         for k in ngram_keys:
@@ -101,21 +99,22 @@ def get_ngram_freq_info(corpus, ## list or generator
         return ngram_freq_total,ngram_keys
 
 def _ngram_entropy_scorer(parent_ngrams_freq):
+    """
+    根据一个candidate的neighbor的出现频率, 计算Entropy
+    :param parent_ngrams_freq:
+    :return:
+    """
     _total_count = sum(parent_ngrams_freq)
     _parent_ngram_probas = map(lambda x: x/_total_count,parent_ngrams_freq)
     _entropy = sum(map(lambda x: -1 * x * math.log(x,2),_parent_ngram_probas))
     return _entropy
-
-def special_generator(ngrams,static1,static2):
-    for ngram in ngrams:
-        yield ngram,static1,static2
 
 def _calc_ngram_entropy(ngram_freq,
                         ngram_keys,
                         n,
                         dir:int=1):
 
-    if isinstance(n,Iterable):
+    if isinstance(n,Iterable): ## 一次性计算 len(N)>1 的 ngram
         entropy = {}
         for ni in n:
             entropy = {**entropy,**_calc_ngram_entropy(ngram_freq,ngram_keys,ni,dir)}
@@ -151,6 +150,13 @@ def _calc_ngram_entropy(ngram_freq,
         pass
 
 def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
+    """
+    计算 Pointwise Mutual Information
+    :param ngram_freq:
+    :param ngram_keys:
+    :param n:
+    :return:
+    """
     if isinstance(n,Iterable):
         mi = {}
         for ni in n:
