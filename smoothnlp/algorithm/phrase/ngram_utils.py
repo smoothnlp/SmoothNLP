@@ -69,34 +69,19 @@ def get_ngram_freq_info(corpus, ## list or generator
         ngram_freq = {k: v for k, v in ngram_freq.items() if v >= min_freq}  ## 每个chunk的ngram频率统计
         return ngram_freq
 
-    if isinstance(corpus,types.GeneratorType) or isinstance(corpus,io.IOBase):
-        while True:
-            corpus_chunk = []
-            counter = 0
-            try:
-                corpus_item = next(corpus)
-                corpus_chunk.append(corpus_item)
-                counter+=1
-                ngram_freq = _process_corpus_chunk(corpus_chunk)
-                ngram_freq_total = union_word_freq(ngram_freq, ngram_freq_total)
-                if counter>=chunk_size:
-                    counter = 0
-                    corpus_chunk = []
-            except StopIteration:
-                ngram_freq = _process_corpus_chunk(corpus_chunk)
-                ngram_freq_total = union_word_freq(ngram_freq, ngram_freq_total)
-                for k in ngram_keys:
-                    ngram_keys[k] = ngram_keys[k] & ngram_freq_total.keys()
-                return ngram_freq_total, ngram_keys
+    if isinstance(corpus,types.GeneratorType):
+        for corpus_chunk in corpus:
+            ngram_freq = _process_corpus_chunk(corpus_chunk)
+            ngram_freq_total = union_word_freq(ngram_freq, ngram_freq_total)
     elif isinstance(corpus,list):
         len_corpus = len(corpus)
         for i in range(0,len_corpus,chunk_size):
             corpus_chunk = corpus[i:min(len_corpus,i+chunk_size)]
             ngram_freq = _process_corpus_chunk(corpus_chunk)
             ngram_freq_total = union_word_freq(ngram_freq,ngram_freq_total)
-        for k in ngram_keys:
-            ngram_keys[k] = ngram_keys[k] & ngram_freq_total.keys()
-        return ngram_freq_total,ngram_keys
+    for k in ngram_keys:
+        ngram_keys[k] = ngram_keys[k] & ngram_freq_total.keys()
+    return ngram_freq_total,ngram_keys
 
 def _ngram_entropy_scorer(parent_ngrams_freq):
     """
