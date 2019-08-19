@@ -1,11 +1,11 @@
-from smoothnlp import logger
+# from smoothnlp import logger
 from collections import Counter
 import io
 import re
 import types
-import pandas as pd
 from multiprocessing import cpu_count,Pool
 import math
+import pandas as pd
 from collections.abc import Iterable
 from operator import mul
 from functools import reduce
@@ -188,10 +188,9 @@ def get_scores(corpus,
 # print(list(generate_ngram("你好,我叫Victor")))
 # print(generate_ngram(["你好,我叫Victor"]))
 #
-# corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
-# ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
-#
-# print(get_scores(corpus))
-#
+corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
+ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
+
+print(get_scores(corpus))
 #
 # print(get_scores(corpus_iterator(corpus),chunk_size=1))
