@@ -1,4 +1,4 @@
-# from smoothnlp import logger
+from smoothnlp import logger
 from collections import Counter
 import io
 import re
