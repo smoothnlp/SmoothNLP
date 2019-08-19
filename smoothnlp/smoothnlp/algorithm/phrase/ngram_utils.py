@@ -180,6 +180,7 @@ def get_scores(corpus,
               for k,v in word_info.items()}
     scores = pd.DataFrame.from_dict(scores, orient='index', columns=['score']).sort_values('score', ascending=False)
 
+
     return scores
 
 
@@ -188,9 +189,9 @@ def get_scores(corpus,
 # print(list(generate_ngram("你好,我叫Victor")))
 # print(generate_ngram(["你好,我叫Victor"]))
 #
-corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
-ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
-
-print(get_scores(corpus))
+# corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
+# ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
+#
+# print(get_scores(corpus))
 #
 # print(get_scores(corpus_iterator(corpus),chunk_size=1))
