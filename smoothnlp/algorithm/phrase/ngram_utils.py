@@ -169,11 +169,16 @@ def get_scores(corpus,
     left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(2,max_n+1))
     mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(2,max_n+1))
     joint_phrase = mi.keys() & left_right_entropy.keys()
-    scores = {k:(mi[k],
+    word_liberalization = lambda x: math.log((x[1]*2 ** x[2] + x[2]*2 ** x[1]+0.00001)/(abs(x[1]-x[2])+1),1.5)
+    word_info = {k: (mi[k],
                  left_right_entropy[k][0],
                  left_right_entropy[k][1]
-                 )
+                     )
               for k in joint_phrase}
+    scores = {k: word_liberalization(v)+v[0]/len(k)
+              for k,v in word_info.items()}
+    scores = pd.DataFrame.from_dict(scores, orient='index', columns=['score']).sort_values('score', ascending=False)
+
     return scores
 
 
