@@ -66,7 +66,7 @@ def get_ngram_freq_info(corpus, ## list or generator
             nigram_freq = dict(Counter(ngram_generator))
             ngram_keys[ni] = (ngram_keys[ni] | nigram_freq.keys())
             ngram_freq = {**nigram_freq, **ngram_freq}
-        ngram_freq = {k: v for k, v in ngram_freq.items() if v >= min_freq}  ## 每个chunk的ngram频率统计
+        ngram_freq = {word: count for word, count in ngram_freq.items() if count >= min_freq}  ## 每个chunk的ngram频率统计
         return ngram_freq
 
     if isinstance(corpus,types.GeneratorType):
@@ -154,7 +154,9 @@ def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
         target_ngrams_freq = ngram_freq[target_ngram]
         joint_proba = target_ngrams_freq/target_n_total_count
         indep_proba = reduce(mul,[ngram_freq[char] for char in target_ngram])/((n1_totalcount)**n)
-        mi[target_ngram] = math.log(joint_proba/indep_proba,2)
+        pmi = math.log(joint_proba/indep_proba,2)   #point-wise mutual information
+        ami = pmi/len(target_ngram)                 #average mutual information
+        mi[target_ngram] = (pmi,ami)
     return mi
 
 
@@ -169,17 +171,17 @@ def get_scores(corpus,
     left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(2,max_n+1))
     mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(2,max_n+1))
     joint_phrase = mi.keys() & left_right_entropy.keys()
-    word_liberalization = lambda x: math.log((x[1]*2 ** x[2] + x[2]*2 ** x[1]+0.00001)/(abs(x[1]-x[2])+1),1.5)
-    word_info = {k: (mi[k],
-                 left_right_entropy[k][0],
-                 left_right_entropy[k][1]
+    word_liberalization = lambda le,re: math.log((le * 2 ** re + re * 2 ** le+0.00001)/(abs(le - re)+1),1.5)
+    word_info_scores = {word: (mi[word][0],     #point-wise mutual information
+                 mi[word][1],                   #average mutual information
+                 left_right_entropy[word][0],   #left_entropy
+                 left_right_entropy[word][1],   #right_entropy
+                 min(left_right_entropy[word][0],left_right_entropy[word][1]),    #branch entropy  BE=min{left_entropy,right_entropy}
+                 word_liberalization(left_right_entropy[word][0],left_right_entropy[word][1])+mi[word][1]   #our score
                      )
-              for k in joint_phrase}
-    scores = {k: word_liberalization(v)+v[0]/len(k)
-              for k,v in word_info.items()}
-    scores = pd.DataFrame.from_dict(scores, orient='index', columns=['score']).sort_values('score', ascending=False)
+              for word in joint_phrase}
 
-    return scores
+    return word_info_scores
 
 
 # print(sentence_split_by_punc("你好,我叫Victor"))
