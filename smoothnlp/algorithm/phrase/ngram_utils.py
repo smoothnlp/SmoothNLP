@@ -9,6 +9,8 @@ from collections.abc import Iterable
 from operator import mul
 from functools import reduce
 from pygtrie import Trie
+import sqlalchemy
+
 
 CPU_COUNT = 1
 
@@ -45,7 +47,7 @@ def generate_ngram(corpus,n:int=2):
     if isinstance(corpus,str):
         for ngram in generate_ngram_str(corpus,n):
             yield ngram
-    elif isinstance(corpus,list) or isinstance(corpus,types.GeneratorType):
+    elif isinstance(corpus, (list, types.GeneratorType)):
         for text in corpus:
             for ngram in generate_ngram_str(text,n):
                 yield ngram
@@ -79,6 +81,12 @@ def get_ngram_freq_info(corpus, ## list or generator
             corpus_chunk = corpus[i:min(len_corpus,i+chunk_size)]
             ngram_freq = _process_corpus_chunk(corpus_chunk)
             ngram_freq_total = union_word_freq(ngram_freq,ngram_freq_total)
+    elif isinstance(corpus,sqlalchemy.engine.result.ResultProxy):
+        corpus_chunk = corpus.fetchmany(chunksize)
+        while corpus_chunk != []:
+            ngram_freq = _process_corpus_chunk(corpus_chunk)
+            ngram_freq_total = union_word_freq(ngram_freq, ngram_freq_total)
+            corpus_chunk = corpus.fetchmany(chunksize)
     for k in ngram_keys:
         ngram_keys[k] = ngram_keys[k] & ngram_freq_total.keys()
     return ngram_freq_total,ngram_keys
@@ -134,6 +142,7 @@ def _calc_ngram_entropy(ngram_freq,
         ## TODO 多进程计算
         pass
 
+
 def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
     """
     计算 Pointwise Mutual Information
@@ -158,7 +167,6 @@ def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
         ami = pmi/len(target_ngram)                 #average mutual information
         mi[target_ngram] = (pmi,ami)
     return mi
-
 
 
 def get_scores(corpus,
@@ -191,7 +199,6 @@ def get_scores(corpus,
 #
 # corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
 # ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
-#
 # print(get_scores(corpus))
 #
 # print(get_scores(corpus_iterator(corpus),chunk_size=1))
