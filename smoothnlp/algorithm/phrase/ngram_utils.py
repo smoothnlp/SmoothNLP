@@ -10,6 +10,7 @@ from operator import mul
 from functools import reduce
 from pygtrie import Trie
 
+
 CPU_COUNT = 1
 
 def union_word_freq(dic1,dic2):
@@ -28,7 +29,7 @@ def union_word_freq(dic1,dic2):
 def sentence_split_by_punc(corpus:str):
     return re.split(r'[;；.。，,！\n!?？]',corpus)
 
-def remove_irregular_chars(corpus):
+def remove_irregular_chars(corpus:str):
     return re.sub(u"([^\u4e00-\u9fa5\u0030-\u0039\u0041-\u005a\u0061-\u007a])", "", corpus)
 
 def generate_ngram(corpus,n:int=2):
@@ -45,7 +46,7 @@ def generate_ngram(corpus,n:int=2):
     if isinstance(corpus,str):
         for ngram in generate_ngram_str(corpus,n):
             yield ngram
-    elif isinstance(corpus,list) or isinstance(corpus,types.GeneratorType):
+    elif isinstance(corpus, (list, types.GeneratorType)):
         for text in corpus:
             for ngram in generate_ngram_str(text,n):
                 yield ngram
@@ -66,7 +67,7 @@ def get_ngram_freq_info(corpus, ## list or generator
             nigram_freq = dict(Counter(ngram_generator))
             ngram_keys[ni] = (ngram_keys[ni] | nigram_freq.keys())
             ngram_freq = {**nigram_freq, **ngram_freq}
-        ngram_freq = {k: v for k, v in ngram_freq.items() if v >= min_freq}  ## 每个chunk的ngram频率统计
+        ngram_freq = {word: count for word, count in ngram_freq.items() if count >= min_freq}  ## 每个chunk的ngram频率统计
         return ngram_freq
 
     if isinstance(corpus,types.GeneratorType):
@@ -134,6 +135,7 @@ def _calc_ngram_entropy(ngram_freq,
         ## TODO 多进程计算
         pass
 
+
 def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
     """
     计算 Pointwise Mutual Information
@@ -154,14 +156,15 @@ def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
         target_ngrams_freq = ngram_freq[target_ngram]
         joint_proba = target_ngrams_freq/target_n_total_count
         indep_proba = reduce(mul,[ngram_freq[char] for char in target_ngram])/((n1_totalcount)**n)
-        mi[target_ngram] = math.log(joint_proba/indep_proba,2)
+        pmi = math.log(joint_proba/indep_proba,2)   #point-wise mutual information
+        ami = pmi/len(target_ngram)                 #average mutual information
+        mi[target_ngram] = (pmi,ami)
     return mi
 
 
-
 def get_scores(corpus,
+               max_n: int = 4,
                chunk_size:int=5000,
-               max_n:int=4,
                min_freq:int=0):
     ngram_freq, ngram_keys = get_ngram_freq_info(corpus,max_n,
                                                  chunk_size=chunk_size,
@@ -169,12 +172,17 @@ def get_scores(corpus,
     left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(2,max_n+1))
     mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(2,max_n+1))
     joint_phrase = mi.keys() & left_right_entropy.keys()
-    scores = {k:(mi[k],
-                 left_right_entropy[k][0],
-                 left_right_entropy[k][1]
-                 )
-              for k in joint_phrase}
-    return scores
+    word_liberalization = lambda le,re: math.log((le * 2 ** re + re * 2 ** le+0.00001)/(abs(le - re)+1),1.5)
+    word_info_scores = {word: (mi[word][0],     #point-wise mutual information
+                 mi[word][1],                   #average mutual information
+                 left_right_entropy[word][0],   #left_entropy
+                 left_right_entropy[word][1],   #right_entropy
+                 min(left_right_entropy[word][0],left_right_entropy[word][1]),    #branch entropy  BE=min{left_entropy,right_entropy}
+                 word_liberalization(left_right_entropy[word][0],left_right_entropy[word][1])+mi[word][1]   #our score
+                     )
+              for word in joint_phrase}
+
+    return word_info_scores
 
 
 # print(sentence_split_by_punc("你好,我叫Victor"))
@@ -184,7 +192,6 @@ def get_scores(corpus,
 #
 # corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
 # ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
-#
 # print(get_scores(corpus))
 #
 # print(get_scores(corpus_iterator(corpus),chunk_size=1))
