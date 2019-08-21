@@ -30,7 +30,7 @@ def union_word_freq(dic1,dic2):
 def sentence_split_by_punc(corpus:str):
     return re.split(r'[;；.。，,！\n!?？]',corpus)
 
-def remove_irregular_chars(corpus):
+def remove_irregular_chars(corpus:str):
     return re.sub(u"([^\u4e00-\u9fa5\u0030-\u0039\u0041-\u005a\u0061-\u007a])", "", corpus)
 
 def generate_ngram(corpus,n:int=2):
@@ -81,12 +81,6 @@ def get_ngram_freq_info(corpus, ## list or generator
             corpus_chunk = corpus[i:min(len_corpus,i+chunk_size)]
             ngram_freq = _process_corpus_chunk(corpus_chunk)
             ngram_freq_total = union_word_freq(ngram_freq,ngram_freq_total)
-    elif isinstance(corpus,sqlalchemy.engine.result.ResultProxy):
-        corpus_chunk = corpus.fetchmany(chunksize)
-        while corpus_chunk != []:
-            ngram_freq = _process_corpus_chunk(corpus_chunk)
-            ngram_freq_total = union_word_freq(ngram_freq, ngram_freq_total)
-            corpus_chunk = corpus.fetchmany(chunksize)
     for k in ngram_keys:
         ngram_keys[k] = ngram_keys[k] & ngram_freq_total.keys()
     return ngram_freq_total,ngram_keys
@@ -170,8 +164,8 @@ def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
 
 
 def get_scores(corpus,
+               max_n: int = 4,
                chunk_size:int=5000,
-               max_n:int=4,
                min_freq:int=0):
     ngram_freq, ngram_keys = get_ngram_freq_info(corpus,max_n,
                                                  chunk_size=chunk_size,
