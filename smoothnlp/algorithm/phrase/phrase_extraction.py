@@ -18,15 +18,13 @@ def chunk_generator_adapter(obj, chunk_size):
             if isinstance(obj,
                           sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
                 obj_adapter = list(obj.fetchmany(chunk_size))
-                corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
-                                sentence_split_by_punc(str(r)) if remove_irregular_chars(sent) != 0]
             elif isinstance(obj, _io.TextIOWrapper):  # 输入object = open(file_name, 'r', encoding='utf-8')
                 obj_adapter = obj.readlines(chunk_size)# list
-                corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
-                                sentence_split_by_punc(str(r)) if remove_irregular_chars(sent) != 0]
             elif isinstance(obj, list):  # 输入list
                 obj_adapter = obj
-                corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
+            else:
+                raise ValueError('Input not supported!')
+            corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
                                 sentence_split_by_punc(str(r)) if remove_irregular_chars(sent) != 0]
             yield corpus_chunk
             corpus_chunk = []

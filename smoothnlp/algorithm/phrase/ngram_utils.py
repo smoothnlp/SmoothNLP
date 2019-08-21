@@ -9,7 +9,6 @@ from collections.abc import Iterable
 from operator import mul
 from functools import reduce
 from pygtrie import Trie
-import sqlalchemy
 
 
 CPU_COUNT = 1
