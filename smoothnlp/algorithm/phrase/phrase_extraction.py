@@ -11,30 +11,26 @@ def chunk_generator_adapter(obj, chunk_size):
     :param chunk_size:
     :return:
     '''
-    corpus_chunk = []
     while True:
-        try:
-            if isinstance(obj,
+        if isinstance(obj,
                           sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
-                obj_adapter = list(obj.fetchmany(chunk_size))
-            elif isinstance(obj, _io.TextIOWrapper):  # 输入object = open(file_name, 'r', encoding='utf-8')
-                obj_adapter = obj.readlines(chunk_size)# list
-            elif isinstance(obj, list):  # 输入list
-                obj_adapter = obj
-            else:
-                raise ValueError('Input not supported!')
+            obj_adapter = list(obj.fetchmany(chunk_size))
+        elif isinstance(obj, _io.TextIOWrapper):  # 输入object = open(file_name, 'r', encoding='utf-8')
+            obj_adapter = obj.readlines(chunk_size)# list
+        elif isinstance(obj, list):  # 输入list
+            obj_adapter = obj
+        else:
+            raise ValueError('Input not supported!')
+        if obj_adapter != []:
             corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
                                 sentence_split_by_punc(str(r)) if remove_irregular_chars(sent) != 0]
             yield corpus_chunk
-            corpus_chunk = []
-            break
-        except TypeError:
-            yield corpus_chunk
+        else:
             break
 
 
 def extract_phrase(corpus,
-                   top_k: float = 0.05,
+                   top_k: float = 20,
                    chunk_size: int = 5000,
                    max_n:int=4,
                    min_freq:int = 0):
