@@ -8,8 +8,7 @@ import platform
 import jpype
 from jpype import JClass,startJVM, getDefaultJVMPath, isThreadAttachedToJVM, attachThreadToJVM
 from smoothnlp.server import smoothNlpRequest, smoothnlpDateRange
-from smoothnlp.algorithm import phrase
-from smoothnlp.algorithm.phrase import phrase_extraction
+import smoothnlp.algorithm
 
 from functools import wraps
 import requests

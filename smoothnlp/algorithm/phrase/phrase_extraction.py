@@ -1,6 +1,5 @@
 from smoothnlp import logger
 from smoothnlp.algorithm.phrase.ngram_utils import sentence_split_by_punc,remove_irregular_chars,get_scores
-from ngram_utils import sentence_split_by_punc,remove_irregular_chars,get_scores
 import sqlalchemy
 import _io
 
