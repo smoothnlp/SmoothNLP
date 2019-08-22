@@ -13,20 +13,18 @@ def chunk_generator_adapter(obj, chunk_size):
     :return:
     '''
     while True:
-        if isinstance(obj,
-                          sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
+        if isinstance(obj,sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
             obj_adapter = list(obj.fetchmany(chunk_size))
-        elif isinstance(obj, _io.TextIOWrapper):  # 输入object = open(file_name, 'r', encoding='utf-8')
-            obj_adapter = obj.readlines(chunk_size)# list
-        elif isinstance(obj, list):  # 输入list
-            obj_adapter = obj
+        elif isinstance(obj, _io.TextIOWrapper):     # 输入object = open(file_name, 'r', encoding='utf-8')
+            obj_adapter = obj.readlines(chunk_size)  # list of str
         else:
             raise ValueError('Input not supported!')
-        if obj_adapter != []:
+        if obj_adapter != None and obj_adapter != []:
             corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
                                 sentence_split_by_punc(str(r)) if remove_irregular_chars(sent) != 0]
             yield corpus_chunk
         else:
+            print('data preprocessing done！')
             break
 
 
@@ -46,13 +44,16 @@ def extract_phrase(corpus,
     '''
     if isinstance(corpus,str):
         corpus_splits = [remove_irregular_chars(sent) for sent in sentence_split_by_punc(corpus)]
+    elif isinstance(corpus,list):
+        corpus_splits = [remove_irregular_chars(sent) for news in corpus for sent in
+                                sentence_split_by_punc(str(news)) if remove_irregular_chars(sent) != 0]
     else:
         corpus_splits = chunk_generator_adapter(corpus, chunk_size)
     word_info_scores = get_scores(corpus_splits,max_n,chunk_size,min_freq)
     new_words = [item[0] for item in sorted(word_info_scores.items(),key=lambda item:item[1][-1],reverse = True)]
-    if top_k >1:              #输出前k个词
+    if top_k > 1:              #输出前k个词
         return new_words[:top_k]
-    elif top_k <1:            #输出前k%的词
+    elif top_k < 1:            #输出前k%的词
         return new_words[:int(top_k*len(new_words))]
 
 
