@@ -1,9 +1,8 @@
 from smoothnlp import logger
 from collections import Counter
-import io
 import re
 import types
-from multiprocessing import cpu_count,Pool
+# from multiprocessing import cpu_count,Pool
 import math
 from collections.abc import Iterable
 from operator import mul
@@ -56,9 +55,17 @@ def get_ngram_freq_info(corpus, ## list or generator
                          chunk_size:int=5000,
                          min_freq:int=2,
                          ):
+    """
 
+    :param corpus: 接受list或者generator
+                   如果corpus是generator, 默认该generator每次yield一段长度为chunk_size的corpus_chunk
+    :param max_n:
+    :param chunk_size:
+    :param min_freq:
+    :return:
+    """
     ngram_freq_total = {}  ## 记录词频
-    ngram_keys = {i: set() for i in range(1, max_n + 2)}  ## 用来存储N=?时, 都有哪些词
+    ngram_keys = {i: set() for i in range(1, max_n + 2)}  ## 用来存储N=时, 都有哪些词
 
     def _process_corpus_chunk(corpus_chunk):
         ngram_freq = {}
@@ -71,6 +78,7 @@ def get_ngram_freq_info(corpus, ## list or generator
         return ngram_freq
 
     if isinstance(corpus,types.GeneratorType):
+        ## 注意: 如果corpus是generator, 该function对chunk_size无感知
         for corpus_chunk in corpus:
             ngram_freq = _process_corpus_chunk(corpus_chunk)
             ngram_freq_total = union_word_freq(ngram_freq, ngram_freq_total)
@@ -86,7 +94,7 @@ def get_ngram_freq_info(corpus, ## list or generator
 
 def _ngram_entropy_scorer(parent_ngrams_freq):
     """
-    根据一个candidate的neighbor的出现频率, 计算Entropy
+    根据一个candidate的neighbor的出现频率, 计算Entropy具体值
     :param parent_ngrams_freq:
     :return:
     """
@@ -99,7 +107,14 @@ def _calc_ngram_entropy(ngram_freq,
                         ngram_keys,
                         n,
                         dir:int=1):
-
+    """
+    基于ngram频率信息计算熵信息
+    :param ngram_freq:
+    :param ngram_keys:
+    :param n:
+    :param dir:
+    :return:
+    """
     if isinstance(n,Iterable): ## 一次性计算 len(N)>1 的 ngram
         entropy = {}
         for ni in n:
@@ -114,12 +129,16 @@ def _calc_ngram_entropy(ngram_freq,
         ## 对 n+1 gram 进行建Trie处理
         left_neighbors = Trie()
         right_neighbors = Trie()
+
         for parent_candidate in parent_candidates:
             right_neighbors[parent_candidate] = ngram_freq[parent_candidate]
             left_neighbors[parent_candidate[1:]+parent_candidate[0]] = ngram_freq[parent_candidate]
+
+        ## TODO 对在candidate ngram中, 首字或者尾字出现次数特别多的进行筛选, 如"XX的,美丽的,漂亮的"剔出字典
+
         ## 计算
         for target_ngram in target_ngrams:
-            try:
+            try:  ## 一定情况下, 一个candidate ngram 没有左右neighbor
                 right_neighbor_counts = (right_neighbors.values(target_ngram))
                 right_entropy = _ngram_entropy_scorer(right_neighbor_counts)
             except KeyError:
@@ -138,7 +157,7 @@ def _calc_ngram_entropy(ngram_freq,
 
 def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
     """
-    计算 Pointwise Mutual Information
+    计算 Pointwise Mutual Information 与 Average Mutual Information
     :param ngram_freq:
     :param ngram_keys:
     :param n:
@@ -166,6 +185,14 @@ def get_scores(corpus,
                max_n: int = 4,
                chunk_size:int=5000,
                min_freq:int=0):
+    """
+    基于corpus, 计算所有候选词汇的相关评分.
+    :param corpus:
+    :param max_n:
+    :param chunk_size:
+    :param min_freq:
+    :return: 为节省内存, 每个候选词的分数以tuble的形式返回.
+    """
     ngram_freq, ngram_keys = get_ngram_freq_info(corpus,max_n,
                                                  chunk_size=chunk_size,
                                                  min_freq=min_freq)
