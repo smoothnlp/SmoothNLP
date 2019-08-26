@@ -104,7 +104,7 @@ list = [str1,str2,...]
 
 * 词语的score计算通过内部的get_scores函数实现，score公式如下：
 
-![](https://latex.codecogs.com/png.latex?AMI=\frac{1}{n}%20\log_{%20}{\frac{p(W%29}{p(c_{1}%29%20\cdots%20p(c_{n}%29}})
+![](https://latex.codecogs.com/png.latex?AMI=\frac{1}{n}%20\log_{%20}{\frac{p%28W%29}{p%28c_{1}%29%20\cdots%20p%28c_{n}%29}})
 
 ![](https://latex.codecogs.com/png.latex?L(W)=\log_{%20}{\frac{LE%20\cdot%20e^{RE}+RE%20\cdot%20e^{LE}}{|LE-RE|}})
 
