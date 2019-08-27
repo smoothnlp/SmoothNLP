@@ -1,6 +1,6 @@
 import re
 import types
-# from multiprocessing import cpu_count,Pool
+from multiprocessing import cpu_count,Pool
 import math
 from collections.abc import Iterable
 from collections import Counter
@@ -23,7 +23,7 @@ def union_word_freq(dic1,dic2):
     keys = (dic1.keys()) | (dic2.keys())
     total = {}
     for key in keys:
-        total[key] = sum([dic.get(key, 0) for dic in [dic1, dic2]])
+        total[key] = dic1.get(key, 0) + dic2.get(key, 0)
     return total
 
 def sentence_split_by_punc(corpus:str):
@@ -106,20 +106,18 @@ def _ngram_entropy_scorer(parent_ngrams_freq):
 
 def _calc_ngram_entropy(ngram_freq,
                         ngram_keys,
-                        n,
-                        dir:int=1):
+                        n):
     """
     基于ngram频率信息计算熵信息
     :param ngram_freq:
     :param ngram_keys:
     :param n:
-    :param dir:
     :return:
     """
     if isinstance(n,Iterable): ## 一次性计算 len(N)>1 的 ngram
         entropy = {}
         for ni in n:
-            entropy = {**entropy,**_calc_ngram_entropy(ngram_freq,ngram_keys,ni,dir)}
+            entropy = {**entropy,**_calc_ngram_entropy(ngram_freq,ngram_keys,ni)}
         return entropy
 
     ngram_entropy = {}

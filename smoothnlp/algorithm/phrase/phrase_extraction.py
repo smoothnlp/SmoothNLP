@@ -34,7 +34,7 @@ def chunk_generator_adapter(obj, chunk_size):
 
 def extract_phrase(corpus,
                    top_k: float = 200,
-                   chunk_size: int = 5000,
+                   chunk_size: int = 1000000,
                    max_n:int=4,
                    min_freq:int = 5):
     '''
