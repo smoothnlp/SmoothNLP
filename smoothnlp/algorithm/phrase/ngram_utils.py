@@ -200,7 +200,7 @@ def get_scores(corpus,
     target_ngrams = ngram_freq.keys()
     start_chars = Counter([n[0] for n in target_ngrams])
     end_chars = Counter([n[-1] for n in target_ngrams])
-    threshold = min(2000, int(len(target_ngrams) * 0.0001))
+    threshold = min(2000, int(len(target_ngrams) * 0.001))
     threshold = max(50,threshold)
     print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
@@ -208,7 +208,10 @@ def get_scores(corpus,
     print("~~~ 不合法的开始和结束词汇 ~~~~~")
     print(invalid_start_chars)
     print(invalid_end_chars)
+    invalid_end_chars = set(['的'])
+    invalid_start_chars = set(['的'])
     invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars or n[-1] in invalid_end_chars)])
+    print(invalid_target_ngrams)
     for n in range(2,max_n+1):
         ngram_keys[n] = ngram_keys[n] - invalid_target_ngrams
     # for n in invalid_target_ngrams:
