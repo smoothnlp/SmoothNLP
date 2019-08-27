@@ -205,7 +205,7 @@ def get_scores(corpus,
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
     invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars and n[-1] in invalid_end_chars)])
-    for n in ngram_keys.keys():
+    for n in range(2,max_n+1):
         ngram_keys[n] = ngram_keys[n] - invalid_target_ngrams
     # for n in invalid_target_ngrams:
     #     ngram_freq.pop(n)
