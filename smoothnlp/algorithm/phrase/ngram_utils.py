@@ -200,17 +200,21 @@ def get_scores(corpus,
     target_ngrams = ngram_freq.keys()
     start_chars = Counter([n[0] for n in target_ngrams])
     end_chars = Counter([n[-1] for n in target_ngrams])
-    threshold = min(2000, len(target_ngrams) * 0.0001)
+    threshold = min(2000, int(len(target_ngrams) * 0.0001))
+    threshold = max(50,threshold)
     print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
+    print("~~~ 不合法的开始和结束词汇 ~~~~~")
+    print(invalid_start_chars)
+    print(invalid_end_chars)
     invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars and n[-1] in invalid_end_chars)])
     for n in range(2,max_n+1):
         ngram_keys[n] = ngram_keys[n] - invalid_target_ngrams
     # for n in invalid_target_ngrams:
     #     ngram_freq.pop(n)
     print("length of removed target ngrams: {}".format(len(invalid_target_ngrams)))
-    print(invalid_target_ngrams)
+
 
     left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(2,max_n+1))
     mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(2,max_n+1))
@@ -224,6 +228,8 @@ def get_scores(corpus,
                  word_liberalization(left_right_entropy[word][0],left_right_entropy[word][1])+mi[word][1]   #our score
                      )
               for word in joint_phrase}
+
+    print("确认为0: ",len(word_info_scores.keys()&invalid_target_ngrams))
 
     return word_info_scores
 
