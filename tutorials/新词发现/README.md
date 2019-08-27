@@ -12,7 +12,7 @@
 * 函数调用方式:  
 
 ```python
-from smoothnlp.algorithm.phrase.phrase_extraction import extract_phrase
+from smoothnlp.algorithm.phrase import extract_phrase
 extract_phrase(corpus,top_k,chunk_size,max_n,min_freq)
 ``` 
 
