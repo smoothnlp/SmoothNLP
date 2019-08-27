@@ -5,6 +5,7 @@ import types
 # from multiprocessing import cpu_count,Pool
 import math
 from collections.abc import Iterable
+from collections import Counter
 from operator import mul
 from functools import reduce
 from pygtrie import Trie
@@ -135,6 +136,14 @@ def _calc_ngram_entropy(ngram_freq,
             left_neighbors[parent_candidate[1:]+parent_candidate[0]] = ngram_freq[parent_candidate]
 
         ## TODO 对在candidate ngram中, 首字或者尾字出现次数特别多的进行筛选, 如"XX的,美丽的,漂亮的"剔出字典
+        ## 对target_ngrams 建Trie
+        start_chars = Counter([n[0] for n in target_ngrams])
+        end_chars = Counter([n[-1] for n in target_ngrams])
+        threshold = min(2000,len(target_ngrams)*0.00001)
+        # print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
+        invalid_start_chars = set([char for char,count in start_chars.items() if count>threshold])
+        invalid_end_chars = set([char for char,count in end_chars.items() if count>threshold])
+        target_ngrams = [n for n in target_ngrams if (n[0] not in invalid_start_chars and n[-1] not in invalid_end_chars)]
 
         ## 计算
         for target_ngram in target_ngrams:
@@ -220,5 +229,5 @@ def get_scores(corpus,
 # corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
 # ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
 # print(get_scores(corpus))
-#
+
 # print(get_scores(corpus_iterator(corpus),chunk_size=1))
