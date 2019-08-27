@@ -135,16 +135,6 @@ def _calc_ngram_entropy(ngram_freq,
             right_neighbors[parent_candidate] = ngram_freq[parent_candidate]
             left_neighbors[parent_candidate[1:]+parent_candidate[0]] = ngram_freq[parent_candidate]
 
-        ## TODO 对在candidate ngram中, 首字或者尾字出现次数特别多的进行筛选, 如"XX的,美丽的,漂亮的"剔出字典
-        ## 对target_ngrams 建Trie
-        start_chars = Counter([n[0] for n in target_ngrams])
-        end_chars = Counter([n[-1] for n in target_ngrams])
-        threshold = min(2000,len(target_ngrams)*0.00001)
-        # print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
-        invalid_start_chars = set([char for char,count in start_chars.items() if count>threshold])
-        invalid_end_chars = set([char for char,count in end_chars.items() if count>threshold])
-        target_ngrams = [n for n in target_ngrams if (n[0] not in invalid_start_chars and n[-1] not in invalid_end_chars)]
-
         ## 计算
         for target_ngram in target_ngrams:
             try:  ## 一定情况下, 一个candidate ngram 没有左右neighbor
@@ -205,6 +195,23 @@ def get_scores(corpus,
     ngram_freq, ngram_keys = get_ngram_freq_info(corpus,max_n,
                                                  chunk_size=chunk_size,
                                                  min_freq=min_freq)
+
+    ## TODO 对在candidate ngram中, 首字或者尾字出现次数特别多的进行筛选, 如"XX的,美丽的,漂亮的"剔出字典
+    target_ngrams = ngram_freq.keys()
+    start_chars = Counter([n[0] for n in target_ngrams])
+    end_chars = Counter([n[-1] for n in target_ngrams])
+    threshold = min(2000, len(target_ngrams) * 0.00001)
+    print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
+    invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
+    invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
+    invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars and n[-1] in invalid_end_chars)])
+    for n in ngram_keys.keys():
+        ngram_keys[n] = ngram_keys[n] - invalid_target_ngrams
+    for n in invalid_target_ngrams:
+        ngram_freq.pop(n)
+    print("length of removed target ngrams: {}".format(len(invalid_target_ngrams)))
+    print(invalid_target_ngrams)
+
     left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(2,max_n+1))
     mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(2,max_n+1))
     joint_phrase = mi.keys() & left_right_entropy.keys()
