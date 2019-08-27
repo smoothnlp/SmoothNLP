@@ -217,10 +217,11 @@ def get_scores(corpus,
     threshold = min(2000, int(len(target_ngrams) * 0.001))
     threshold = max(50, threshold)
     logger.info("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
-    print(start_chars)
-    print(end_chars)
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
+    print(invalid_start_chars)
+    print(invalid_end_chars)
+
     invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars or n[-1] in invalid_end_chars)])
 
     for n in invalid_target_ngrams:  ## 按照不合适的字头字尾信息删除一些
