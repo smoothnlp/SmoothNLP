@@ -20,7 +20,7 @@ def chunk_generator_adapter(obj, chunk_size):
             raise ValueError('Input not supported!')
         if obj_adapter != None and obj_adapter != []:
             corpus_chunk = [remove_irregular_chars(sent) for r in obj_adapter for sent in
-                                sentence_split_by_punc(str(r)) if remove_irregular_chars(sent) != 0]
+                                sentence_split_by_punc(r)]
             yield corpus_chunk
         else:
             print('data preprocessing done！')

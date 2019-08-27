@@ -207,8 +207,8 @@ def get_scores(corpus,
     invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars and n[-1] in invalid_end_chars)])
     for n in ngram_keys.keys():
         ngram_keys[n] = ngram_keys[n] - invalid_target_ngrams
-    for n in invalid_target_ngrams:
-        ngram_freq.pop(n)
+    # for n in invalid_target_ngrams:
+    #     ngram_freq.pop(n)
     print("length of removed target ngrams: {}".format(len(invalid_target_ngrams)))
     print(invalid_target_ngrams)
 
