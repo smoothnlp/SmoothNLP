@@ -200,7 +200,7 @@ def get_scores(corpus,
     target_ngrams = ngram_freq.keys()
     start_chars = Counter([n[0] for n in target_ngrams])
     end_chars = Counter([n[-1] for n in target_ngrams])
-    threshold = min(2000, len(target_ngrams) * 0.00001)
+    threshold = min(2000, len(target_ngrams) * 0.0001)
     print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
