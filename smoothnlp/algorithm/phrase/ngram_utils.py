@@ -1,5 +1,3 @@
-from smoothnlp import logger
-from collections import Counter
 import re
 import types
 # from multiprocessing import cpu_count,Pool
@@ -9,6 +7,8 @@ from collections import Counter
 from operator import mul
 from functools import reduce
 from pygtrie import Trie
+from smoothnlp import logger
+
 
 
 CPU_COUNT = 1
@@ -210,28 +210,19 @@ def get_scores(corpus,
                      )
               for word in joint_phrase}
 
-    ## TODO 对在candidate ngram中, 首字或者尾字出现次数特别多的进行筛选, 如"XX的,美丽的,漂亮的"剔出字典
+    ## DONE 对在candidate ngram中, 首字或者尾字出现次数特别多的进行筛选, 如"XX的,美丽的,漂亮的"剔出字典
     target_ngrams = word_info_scores.keys()
     start_chars = Counter([n[0] for n in target_ngrams])
     end_chars = Counter([n[-1] for n in target_ngrams])
     threshold = min(2000, int(len(target_ngrams) * 0.001))
     threshold = max(50, threshold)
-    print("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
+    logger.debug("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
-    print("~~~ 不合法的开始和结束词汇 ~~~~~")
-    print(invalid_start_chars)
-    print(invalid_end_chars)
-    # invalid_end_chars = set(['的'])
-    # invalid_start_chars = set(['的'])
-    invalid_target_ngrams = set(
-        [n for n in target_ngrams if (n[0] in invalid_start_chars or n[-1] in invalid_end_chars)])
+    invalid_target_ngrams = set([n for n in target_ngrams if (n[0] in invalid_start_chars or n[-1] in invalid_end_chars)])
 
-    for n in invalid_target_ngrams:
+    for n in invalid_target_ngrams:  ## 按照不合适的字头字尾信息删除一些
         word_info_scores.pop(n)
-    print("length of removed target ngrams: {}".format(len(invalid_target_ngrams)))
-
-    print("确认为0: ",len(word_info_scores.keys()&invalid_target_ngrams))
 
     return word_info_scores
 

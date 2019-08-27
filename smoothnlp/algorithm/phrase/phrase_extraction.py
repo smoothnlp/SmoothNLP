@@ -1,7 +1,9 @@
 from smoothnlp import logger
 from smoothnlp.algorithm.phrase.ngram_utils import sentence_split_by_punc,remove_irregular_chars,get_scores
+from datetime import datetime
 import sqlalchemy
 import _io
+from smoothnlp import logger
 
 
 def chunk_generator_adapter(obj, chunk_size):
@@ -11,6 +13,7 @@ def chunk_generator_adapter(obj, chunk_size):
     :param chunk_size:
     :return:
     '''
+    tstart = datetime.now()
     while True:
         if isinstance(obj,sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
             obj_adapter = list(obj.fetchmany(chunk_size))
@@ -23,15 +26,17 @@ def chunk_generator_adapter(obj, chunk_size):
                                 sentence_split_by_punc(r)]
             yield corpus_chunk
         else:
-            print('data preprocessing done！')
+            tend = datetime.now()
+            sec_used = (tend-tstart).seconds
+            logger.info('~~~ Time used for data processing: {} seconds'.format(sec_used))
             break
 
 
 def extract_phrase(corpus,
-                   top_k: float = 20,
+                   top_k: float = 200,
                    chunk_size: int = 5000,
                    max_n:int=4,
-                   min_freq:int = 0):
+                   min_freq:int = 2):
     '''
     取前k个new words或前k%的new words
     :param corpus:

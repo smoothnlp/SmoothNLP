@@ -17,7 +17,9 @@ setuptools.setup(
     install_requires=[
         'numpy',
         "jpype1>=0.6.2",
-        "requests"
+        "requests",
+        "sqlalchemy",
+        "pygtrie"
       ],
     classifiers=[
         "Programming Language :: Python :: 3",
