@@ -36,7 +36,7 @@ def extract_phrase(corpus,
                    top_k: float = 200,
                    chunk_size: int = 5000,
                    max_n:int=4,
-                   min_freq:int = 2):
+                   min_freq:int = 5):
     '''
     取前k个new words或前k%的new words
     :param corpus:
