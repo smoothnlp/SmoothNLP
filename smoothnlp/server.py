@@ -2,11 +2,7 @@ import requests
 
 class smoothNlpRequest(object):
     def __init__(self):
-        try:
-            url = "http://localhost:8080/query"
-            requests.get(url)
-        except Exception:
-            url = "http://api.smoothnlp.com/query"
+        url = "http://data.service.nlp.smoothnlp.com/"
         self.url = url
 
     def set_url(self,url):
