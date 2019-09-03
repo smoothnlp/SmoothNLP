@@ -32,13 +32,14 @@ min_freq:   int,抽取目标的最低词频
 
 ```python
 ## 利用数据库内容作为输入
-cursor = conn.execute(query)
+conn = create_engine("Your DB Configuration").connect()
+corpus = conn.execute(query)
 
 ## 输入文件
-file = open(file_name, 'r')
+corpus = open(file_name, 'r')
 
 ## 输入文本列表
-list = [str1,str2,...]
+corpus = [str1,str2,...]
 ```
 
 ## 效果展示
