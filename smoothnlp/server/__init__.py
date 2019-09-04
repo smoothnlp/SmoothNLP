@@ -31,6 +31,16 @@ class smoothNlpRequest(object):
                 numbers.append(entity)
         return numbers
 
+    def money_recognize(self,text):
+        entities = self.ner(text)
+        if entities is None :
+            return
+        money = []
+        for entity in entities:
+            if entity['nerTag'].lower() == "money":
+                money.append(entity)
+        return money
+
     def company_recognize(self, text):
         entities = self.ner(text)
         if entities is None:
