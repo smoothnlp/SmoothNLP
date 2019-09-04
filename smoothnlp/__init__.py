@@ -72,6 +72,10 @@ def number_recognize(text):
     return nlp.number_recognize(text)
 
 @localSupportCatch
+def money_recognize(text):
+    return nlp.money_recognize(text)
+
+@localSupportCatch
 def parse_date(givendate,pubdate=None):
     return nlp.parse_date(givendate,pubdate)
 
