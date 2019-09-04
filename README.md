@@ -1,15 +1,19 @@
 # [SmoothNLP](http://www.smoothnlp.com)
 [![GitHub release](https://img.shields.io/badge/Version-0.2-green.svg)](https://github.com/zhangruinan/SmoothNLP/releases)
 ****	
-|Author|Victor|Yinjun|haizhe
-|---|---|----|----
-|E-mail|zhangruinan@smoothnlp.com|yinjun@smoothnlp.com|yuzhe_wang@smoothnlp.com
+
+| Author | Email | 
+| ----- | ------ | 
+| Victor | zhangruinan@smoothnlp.com |
+| Yinjun | yinjun@smoothnlp.com |
+| 海蜇 | yuzhe_wang@smoothnlp.com | 
+
 ****
     
 
 ### Install 安装
 ```shell
-pip install smoothnlp>=0.2.15
+pip install smoothnlp>=0.2.16
 ```
 
 

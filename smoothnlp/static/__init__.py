@@ -10,6 +10,7 @@ import urllib.request as urllib
 import errno
 import time
 import glob
+from smoothnlp.static import jvm
 
 release_url = "https://api.github.com/repos/smoothnlp/SmoothNLP/releases"
 download_jar_url = "http://datashare.smoothnlp.com/data/smoothnlp-{}-jar-with-dependencies.jar"

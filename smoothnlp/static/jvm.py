@@ -1,8 +1,11 @@
 import os
 import jpype
 import platform
+import glob
+import sys
 from jpype import JClass,startJVM, getDefaultJVMPath, isThreadAttachedToJVM, attachThreadToJVM
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
 
 def _start_jvm_for_smoothnlp():
     global STATIC_ROOT, SMOOTHNLP_JAR_PATH, PATH_CONFIG, SMOOTHNLP_JAR_VERSION
