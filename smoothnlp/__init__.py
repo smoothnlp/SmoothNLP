@@ -25,7 +25,6 @@ class Smoothnlp(object):
             self.nlp = SafeJClass('com.smoothnlp.nlp.SmoothNLP')
         else:
             self.nlp= smoothNlpRequest()
-            self.daterange =smoothnlpDateRange()
 
     def set_mode(self,mode):
         self = Smoothnlp(mode)
