@@ -73,6 +73,6 @@ def number_recognize(text):
     return nlp.number_recognize(text)
 
 @localSupportCatch
-def parseDateRange(pubdate, givendate):
+def parseDateRange(givendate,pubdate=None):
     return nlp.daterange.getDateRange(pubdate, givendate)
 

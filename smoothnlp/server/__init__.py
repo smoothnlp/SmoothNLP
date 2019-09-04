@@ -59,6 +59,8 @@ class smoothnlpDateRange(object):
 
     def __call__(self, pubdate:str="", givendate:str=""):
         content = {"givendate":givendate}
+        if pubdate is not None or pubdate!="":
+            content['pubdate'] = pubdate
         r = requests.get(self.url, params=content)
         self.result = r.json()['payload']['response']
 
