@@ -53,17 +53,10 @@ class smoothNlpRequest(object):
         self.__call__(text)
         return self.result
 
-class smoothnlpDateRange(object):
-    def __init__(self):
-        self.url = HOST_URL + "/querydate"
-
-    def __call__(self, pubdate:str="", givendate:str=""):
-        parameters = {"givendate":givendate}
-        if pubdate is not None or pubdate!="":
+    def parse_date(self,givendate,pubdate=None):
+        parameters = {"givendate": givendate}
+        if pubdate is not None or pubdate != "":
             parameters['pubdate'] = pubdate
         r = requests.get(self.url, params=parameters)
-        self.result = r.json()['payload']['response']
+        return r.json()['payload']['response']
 
-    def getDateRange(self,pubdate,givendate):
-        self.__call__(pubdate,givendate)
-        return self.result

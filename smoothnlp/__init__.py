@@ -6,7 +6,7 @@ MODE = 'server'
 HOST_URL = "http://data.service.nlp.smoothnlp.com"
 logger = logging.getLogger()
 
-from smoothnlp.server import smoothNlpRequest, smoothnlpDateRange
+from smoothnlp.server import smoothNlpRequest
 import smoothnlp.algorithm
 
 
@@ -73,6 +73,6 @@ def number_recognize(text):
     return nlp.number_recognize(text)
 
 @localSupportCatch
-def parseDateRange(givendate,pubdate=None):
-    return nlp.daterange.getDateRange(pubdate, givendate)
+def parse_date(givendate,pubdate=None):
+    return nlp.parse_date(pubdate, givendate)
 

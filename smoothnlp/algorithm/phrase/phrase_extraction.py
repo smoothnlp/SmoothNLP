@@ -1,7 +1,6 @@
 from smoothnlp import logger
 from smoothnlp.algorithm.phrase.ngram_utils import sentence_split_by_punc,remove_irregular_chars,get_scores
 from datetime import datetime
-import sqlalchemy
 import _io
 from smoothnlp import logger
 
@@ -15,6 +14,7 @@ def chunk_generator_adapter(obj, chunk_size):
     '''
     tstart = datetime.now()
     while True:
+        import sqlalchemy
         if isinstance(obj,sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
             obj_adapter = list(obj.fetchmany(chunk_size))
         elif isinstance(obj, _io.TextIOWrapper):     # 输入object = open(file_name, 'r', encoding='utf-8')
