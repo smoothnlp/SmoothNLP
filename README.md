@@ -39,20 +39,11 @@ pip install smoothnlp>=0.2.16
 
 #### 3.NER 实体识别
 ```python
->> smoothnlp.ner("中国平安2019年度长期服务计划于2019年5月7日至5月14日通过二级市场完成购股，" \
-              "共购得本公司A股股票5429.47万股，占总股本的比例为0.297%，" \
-              "成交金额合计42.96亿元（含费用），成交均价约为79.10元/股")
-[{'charEnd': 4, 'charStart': 0, 'nerTag': 'financial_agency', 'normalizedEntityValue': '中国平安', 'sTokenList': None, 'text': '中国平安'},
- {'charEnd': 9, 'charStart': 4, 'nerTag': 'datetime', 'normalizedEntityValue': '2019年', 'sTokenList': None, 'text': '2019年'}, 
- {'charEnd': 26, 'charStart': 17, 'nerTag': 'datetime', 'normalizedEntityValue': '2019年5月7日', 'sTokenList': None, 'text': '2019年5月7日'},
- {'charEnd': 29, 'charStart': 27, 'nerTag': 'datetime', 'normalizedEntityValue': '5月', 'sTokenList': None, 'text': '5月'}, 
- {'charEnd': 51, 'charStart': 49, 'nerTag': 'financial_metric', 'normalizedEntityValue': 'A股', 'sTokenList': None, 'text': 'A股'}, 
- {'charEnd': 53, 'charStart': 51, 'nerTag': 'financial_metric', 'normalizedEntityValue': '股票', 'sTokenList': None, 'text': '股票'}, 
- {'charEnd': 61, 'charStart': 53, 'nerTag': 'NUMBER', 'normalizedEntityValue': '54294700', 'sTokenList': {'25': {'postag': 'NN', 'token': '5429.47万'}}, 'text': '5429.47万'}, 
- {'charEnd': 67, 'charStart': 64, 'nerTag': 'organization_metric', 'normalizedEntityValue': '总股本', 'sTokenList': None, 'text': '总股本'}, 
- {'charEnd': 77, 'charStart': 71, 'nerTag': 'PERCENT', 'normalizedEntityValue': '0.297%', 'sTokenList': {'33': {'postag': 'NN', 'token': '0.297%'}}, 'text': '0.297%'}, 
- {'charEnd': 91, 'charStart': 84, 'nerTag': 'MONEY', 'normalizedEntityValue': '¥4296000000', 'sTokenList': {'38': {'postag': 'CD', 'token': '42.96亿'}, '39': {'postag': 'M', 'token': '元'}}, 'text': '42.96亿元'}, 
- {'charEnd': 109, 'charStart': 103, 'nerTag': 'MONEY', 'normalizedEntityValue': '¥79.1', 'sTokenList': {'49': {'postag': 'CD', 'token': '79.10'}, '50': {'postag': 'M', 'token': '元'}}, 'text': '79.10元'}]
+>> smoothnlp.ner("中国平安2019年度长期服务计划于2019年5月7日至5月14日通过二级市场完成购股" )
+[{'charStart': 0, 'charEnd': 4, 'text': '中国平安', 'nerTag': 'COMPANY_NAME', 'sTokenList': {'1': {'token': '中国平安', 'postag': None}}, 'normalizedEntityValue': '中国平安'},
+{'charStart': 4, 'charEnd': 9, 'text': '2019年', 'nerTag': 'NUMBER', 'sTokenList': {'2': {'token': '2019年', 'postag': 'CD'}}, 'normalizedEntityValue': '2019年'},
+{'charStart': 17, 'charEnd': 26, 'text': '2019年5月7日', 'nerTag': 'DATETIME', 'sTokenList': {'8': {'token': '2019年5月', 'postag': None}, '9': {'token': '7日', 'postag': None}}, 'normalizedEntityValue': '2019年5月7日'},
+{'charStart': 27, 'charEnd': 32, 'text': '5月14日', 'nerTag': 'DATETIME', 'sTokenList': {'11': {'token': '5月', 'postag': None}, '12': {'token': '14日', 'postag': None}}, 'normalizedEntityValue': '5月14日'}]
 ```
 
 
@@ -77,6 +68,24 @@ pip install smoothnlp>=0.2.16
   'nerTag': 'NUMBER',
   'sTokenList': {'9': {'token': '11亿', 'postag': 'm'}},
   'normalizedEntityValue': '1100000000'}]
+```
+
+#### 6. 金额识别与结构化
+```python
+>> smoothnlp.money_recognize("百度市值跌破400亿美元")
+[{'charStart': 6,
+  'charEnd': 12,
+  'text': '400亿美元',
+  'nerTag': 'MONEY',
+  'sTokenList': {'4': {'token': '400亿', 'postag': 'm'},
+   '5': {'token': '美元', 'postag': 'M'}},
+  'normalizedEntityValue': '$40000000000'}]
+```
+
+#### 7. 日期描述结构化
+```python
+>> smoothnlp.parse_date("2018年一季度")
+{'startDate': '2018-01-01', 'endDate': '2018-03-31'}
 ```
 
 ----------
