@@ -73,5 +73,5 @@ def number_recognize(text):
 
 @localSupportCatch
 def parse_date(givendate,pubdate=None):
-    return nlp.parse_date(pubdate, givendate)
+    return nlp.parse_date(givendate,pubdate)
 
