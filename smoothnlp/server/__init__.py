@@ -57,6 +57,6 @@ class smoothNlpRequest(object):
         parameters = {"givendate": givendate}
         if pubdate is not None or pubdate != "":
             parameters['pubdate'] = pubdate
-        r = requests.get(self.url, params=parameters)
+        r = requests.get(self.url+'/parsedate', params=parameters)
         return r.json()['payload']['response']
 
