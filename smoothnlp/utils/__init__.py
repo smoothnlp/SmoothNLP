@@ -3,6 +3,8 @@ import requests
 import json
 
 from smoothnlp import logger
+from smoothnlp import MODE
+from smoothnlp import set_mode
 
 
 ########################
@@ -11,10 +13,10 @@ from smoothnlp import logger
 def localSupportCatch(func):
     @wraps(func)
     def trycatch(text):
-        try:
-            return func(text)
-        except AttributeError:
+        if MODE !="server":
             logger.error("This function does not support local mode : %s " % func.__name__)
+            raise AttributeError("This function does not support local mode : %s ")
+        return func(text)
     return trycatch
 
 def requestTimeout(func):

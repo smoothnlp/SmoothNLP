@@ -58,10 +58,10 @@ class smoothnlpDateRange(object):
         self.url = HOST_URL + "/querydate"
 
     def __call__(self, pubdate:str="", givendate:str=""):
-        content = {"givendate":givendate}
+        parameters = {"givendate":givendate}
         if pubdate is not None or pubdate!="":
-            content['pubdate'] = pubdate
-        r = requests.get(self.url, params=content)
+            parameters['pubdate'] = pubdate
+        r = requests.get(self.url, params=parameters)
         self.result = r.json()['payload']['response']
 
     def getDateRange(self,pubdate,givendate):
