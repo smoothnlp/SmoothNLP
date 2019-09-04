@@ -1,6 +1,11 @@
 import sys
 import logging
 
+global MODE, nlp
+MODE = 'server'
+HOST_URL = "http://data.service.nlp.smoothnlp.com"
+logger = logging.getLogger()
+
 from smoothnlp.server import smoothNlpRequest, smoothnlpDateRange
 import smoothnlp.algorithm
 
@@ -34,11 +39,8 @@ def set_mode(mode):
     MODE = mode
     nlp = Smoothnlp(MODE).nlp
 
-global MODE, nlp
-MODE = 'server'
-HOST_URL = "http://data.service.nlp.smoothnlp.com"
+
 nlp = Smoothnlp(MODE).nlp
-logger = logging.getLogger()
 
 
 ################################
