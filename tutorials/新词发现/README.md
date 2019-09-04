@@ -32,13 +32,14 @@ min_freq:   int,抽取目标的最低词频
 
 ```python
 ## 利用数据库内容作为输入
-cursor = conn.execute(query)
+conn = create_engine("Your DB Configuration").connect()
+corpus = conn.execute(query)
 
 ## 输入文件
-file = open(file_name, 'r')
+corpus = open(file_name, 'r')
 
 ## 输入文本列表
-list = [str1,str2,...]
+corpus = [str1,str2,...]
 ```
 
 ## 效果展示
@@ -49,7 +50,7 @@ list = [str1,str2,...]
 |专栏资讯数据集|10,000条|28,129,311|金融|https://github.com/smoothnlp/FinancialDatasets |
 |金融新闻数据集|20,000条|25,295,513|金融|https://github.com/smoothnlp/FinancialDatasets |
 |36氪新闻数据集| 111,935条 | 196,288,902 |金融|  https://github.com/smoothnlp/FinancialDatasets|
-|医疗行业数据集|1000条| 49,466 |医疗|http://www.sdspeople.fudan.edu.cn/zywei/DATA130006/final-project/index.html |
+|医疗行业数据集|1000条| 49,466 |医疗|http://www.sdspeople.fudan.edu.cn/zywei/DATA130006/final-project/6_symptom_dataset.zip |
 
 
 * 专栏资讯数据集top100 ,短语抽取用时1min 47s
