@@ -1,5 +1,7 @@
 # [SmoothNLP](http://www.smoothnlp.com)
 [![GitHub release](https://img.shields.io/badge/Version-0.2-green.svg)](https://github.com/zhangruinan/SmoothNLP/releases)
+| [接口服务](https://market.cloud.tencent.com/products/16368)
+
 ****	
 
 | Author | Email | 
