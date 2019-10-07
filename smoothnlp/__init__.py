@@ -79,3 +79,7 @@ def money_recognize(text):
 def parse_date(givendate,pubdate=None):
     return nlp.parse_date(givendate,pubdate)
 
+@localSupportCatch
+def split2sentences(text:str):
+    return nlp.split2sentences(text);
+

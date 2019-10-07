@@ -70,3 +70,9 @@ class smoothNlpRequest(object):
         r = requests.get(self.url+'/parsedate', params=parameters)
         return r.json()['payload']['response']
 
+    def split2sentences(self,text:str):
+        parameters = {"text": text}
+        r = requests.get(self.url + '/split2sentences', params=parameters)
+        return r.json()['payload']['response']
+
+
