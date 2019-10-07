@@ -15,7 +15,7 @@
 
 ### Install 安装
 ```shell
-pip install smoothnlp>=0.2.16
+pip install smoothnlp>=0.2.17
 ```
 
 
