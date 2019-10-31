@@ -10,8 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SegmentCRFPP extends CRFModel{
 
@@ -24,6 +23,7 @@ public class SegmentCRFPP extends CRFModel{
     public SegmentCRFPP(){
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_SEGMENT_MODEL,0,0,1.0);
+
     }
 
     public void setActiveDictionaries(List<String> libraryNames){
@@ -33,6 +33,9 @@ public class SegmentCRFPP extends CRFModel{
     public List<SToken> process(List<SToken> tokens){return tokens;}
 
     public List<SToken> process(String input){
+
+        System.out.println(" RUN SEGMENT: "+input);
+
         Tagger tagger = this.model.createTagger();
         if (tagger==null){
             SmoothNLP.LOGGER.severe(String.format("CRF segment model is not properly read"));
@@ -57,13 +60,20 @@ public class SegmentCRFPP extends CRFModel{
         }
 
         // get stop/blank tags by matching keywords
+
         List<IDictionary.MatchResult> matchedRanges = SmoothNLP.DICTIONARIES.find(input,libraryNames);
 
+        Collections.sort(matchedRanges);  // 按照match 到token的长度进行排序
+
         for (SDictionary.MatchResult match: matchedRanges){
+
             int start = match.start;
             int end = match.end;
             for (int j = start; j<end; j++){
                 ytags[j] = BLANK_LABEL;
+            }
+            if (start > 0){
+                ytags[start-1] = STOP_LABEL;
             }
             ytags[end-1] = STOP_LABEL;
         }

@@ -26,10 +26,10 @@ public class TrieDictionary implements IDictionary{
         long start,end;
         start = System.currentTimeMillis();
 
-
         TreeMap<String, String> map = new TreeMap<String, String>();
         for (String label: libraryMaps.keySet()){
             String fileName = libraryMaps.get(label);
+            System.out.println("processing file name "+fileName);
             try {
                 InputStream is = SmoothNLP.IOAdaptor.open(fileName);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -80,12 +80,12 @@ public class TrieDictionary implements IDictionary{
             {
                 put("COMPANY_NAME", "financial_agencies.txt");
                 put("FINANCE_METRIX", "financial_metrics.txt");
-                put("TENCENT","text.txt");
+                put("COMMON","common.txt");
             }
         });
 
         System.out.println(UtilFns.toJson(td.find("国泰君安与阿里巴巴过去三年的营收")));
-        System.out.println(UtilFns.toJson(td.find("腾讯云")));
+        System.out.println(UtilFns.toJson(td.find("大屏手机")));
 
     }
 

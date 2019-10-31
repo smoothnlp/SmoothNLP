@@ -1,9 +1,6 @@
 package com.smoothnlp.nlp;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.logging.Logger;
 
 
@@ -32,6 +29,8 @@ public class SmoothNLP{
             put("FINANCE_METRIX", "financial_metrics.txt");
             put("METRIX_ACTION", "metric_action.txt");
             put("COMPANY_METRIX","organization_metrics.txt");
+            put("COMMON","common_tokens.txt");
+            put("COMMON_FINANCE","common_finance_tokens.txt");
         }
     };
 
@@ -57,9 +56,12 @@ public class SmoothNLP{
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
+
+
     public static BaseSequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
     public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
+
     public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
     public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER});
     public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
@@ -68,12 +70,20 @@ public class SmoothNLP{
 
 
     public static SmoothNLPResult process(String inputText) throws Exception{
+        LinkedList<String> activeLibraries = new LinkedList<String>() {
+            {
+                add("common");
+            }
+        };
+        SEGMENT_PIPELINE.setActiveDictionaries(activeLibraries);
+
         SmoothNLPResult res = new SmoothNLPResult();
+
         List<SToken> sTokensPOS = POSTAG_PIPELINE.process(inputText);
         res.tokens = sTokensPOS;
-        List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(inputText);
+        List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
         res.dependencyRelationships = dependencyRelationships;
-        res.entities = NER_PIPELINE.process(inputText);
+        res.entities = NER_PIPELINE.process(res.tokens);
         return res;
     }
 
@@ -117,11 +127,24 @@ public class SmoothNLP{
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；").dependencyRelationships));
 
 
-         System.out.println(UtilFns.toJson(DICTIONARIES.find("腾讯云在去年5月实现营收达到3亿元")));
+//         System.out.println(UtilFns.toJson(DICTIONARIES.find("腾讯云在去年5月实现营收达到3亿元")));
 
          System.out.println("test normalized ner: ");
 
-         System.out.println(UtilFns.toJson(SmoothNLP.process("生动态,第四范式获三大国有银行共同战略投资")));
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("玩手机")));
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
+
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("A轮融资")));
+
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("PreA轮")));
+
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("第四范式9月25日")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("9月25日,第四范式")));
+
 
      }
 }
