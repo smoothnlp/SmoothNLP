@@ -34,8 +34,6 @@ public class SegmentCRFPP extends CRFModel{
 
     public List<SToken> process(String input){
 
-        System.out.println(" RUN SEGMENT: "+input);
-
         Tagger tagger = this.model.createTagger();
         if (tagger==null){
             SmoothNLP.LOGGER.severe(String.format("CRF segment model is not properly read"));
