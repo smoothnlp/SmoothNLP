@@ -75,4 +75,10 @@ class smoothNlpRequest(object):
         r = requests.get(self.url + '/split2sentences', params=parameters)
         return r.json()['payload']['response']
 
+    def processcorpus(self,url:str,text):
+        parameters = {"text": text}
+        r = requests.get(url + '/split2sentences', params=parameters)
+        return r.json()['payload']['response']
+
+
 
