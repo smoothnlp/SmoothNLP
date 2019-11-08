@@ -5,6 +5,7 @@ import json
 from smoothnlp import logger
 from smoothnlp import MODE
 from smoothnlp import set_mode
+import re
 
 
 ########################
@@ -71,5 +72,7 @@ def to_sql_update(df, engine, schema, table, id_cols = None, chunksize=100):
             sql = ''' DELETE FROM {schema}.{table} WHERE 0 '''.format(schema=schema, table=table)
             counter = 0
     engine.execute(sql)
-
     df.to_sql(table, engine, schema=schema, if_exists='append', index=False)
+
+def remove_nonchinese(text):
+    return " ".join(re.findall(r'[\u4e00-\u9fff]+', text))

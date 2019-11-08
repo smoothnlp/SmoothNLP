@@ -83,18 +83,6 @@ public class RegexNER extends BaseEntityRecognizer {
             return entityList;
         }
 
-//        for (int i = 0; i<sTokenList.size(); i++){
-//            String token = sTokenList.get(i).getToken();  // 对每一个token进行match
-//            List<SDictionary.MatchResult> matches = SmoothNLP.DICTIONARIES.find(token,this.libraryNames);
-//            if (matches.size()==1){
-//                SDictionary.MatchResult match = matches.get(0);
-//                if (match.end - match.start==token.length()){
-//                    entityList.add(new SEntity(charCounter,charCounter+token.length(),token,match.label));
-//                }
-//            }
-//            charCounter+=token.length();
-//        }
-//        return entityList;
     };
 
     public List<SEntity> process(String inputText){
