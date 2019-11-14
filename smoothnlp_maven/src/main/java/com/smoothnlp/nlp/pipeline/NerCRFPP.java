@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NerCRFPP implements IEntityRecognizer{
+public class NerCRFPP extends BaseEntityRecognizer{
 
     protected ModelImpl model;
     protected ISequenceTagger segment_pipeline;

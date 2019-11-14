@@ -62,6 +62,7 @@ public class SmoothNLP{
     public static BaseSequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
     public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
+    public static BaseEntityRecognizer CRF_NER = new NerCRFPP();
 
     public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
     public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER});
