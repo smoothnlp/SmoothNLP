@@ -29,6 +29,9 @@ public abstract class CRFModel extends BaseSequenceTagger {
         }
     }
 
+
+
+
 //    public static void main(String[] args){
 //        System.out.println(join("\t",new String[]{"haha"}));
 //    }

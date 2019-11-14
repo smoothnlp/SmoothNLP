@@ -297,16 +297,16 @@ public class EncoderFeatureIndex extends FeatureIndex {
 
     public static void main(String[] args) {
 
-        EncoderFeatureIndex featureIndex = new EncoderFeatureIndex(6);
-        featureIndex.convert("segment_crf.bin.txt","segment_crf.bin");
+//        EncoderFeatureIndex featureIndex = new EncoderFeatureIndex(6);
+//        featureIndex.convert("ner_crfpp_3gram.bin.txt","ner_crf.bin");
 
-//        if (args.length < 2) {
-//            return;
-//        } else {
-//            EncoderFeatureIndex featureIndex = new EncoderFeatureIndex(1);
-//            if (!featureIndex.convert(args[0], args[1])) {
-//                System.err.println("Fail to convert text model");
-//            }
-//        }
+        if (args.length < 2) {
+            return;
+        } else {
+            EncoderFeatureIndex featureIndex = new EncoderFeatureIndex(1);
+            if (!featureIndex.convert(args[0], args[1])) {
+                System.err.println("Fail to convert text model");
+            }
+        }
     }
 }

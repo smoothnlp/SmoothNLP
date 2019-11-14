@@ -51,6 +51,7 @@ public class SmoothNLP{
     // static model files
     public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
     public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
+    public static String CRF_NER_MODEL = "model/ner_crfpp_3gram_linux.bin";
     public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_full_500_e10.bin";
     public static String WordEmbedding_MODEL = "embedding/wordembedding.txt";
 

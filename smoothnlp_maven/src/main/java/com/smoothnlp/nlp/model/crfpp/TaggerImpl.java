@@ -1,4 +1,6 @@
 package com.smoothnlp.nlp.model.crfpp;
+import com.smoothnlp.nlp.basic.UtilFns;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -137,6 +139,15 @@ public class TaggerImpl extends Tagger {
         for (Node n = best; n != null; n = n.prev) {
             result_.set(n.x, n.y);
         }
+
+//        System.out.print("verterbi: ");
+//        System.out.println(x_.size());
+//        System.out.println(result_.get(x_.size() - 1));
+//
+//        System.out.print("verterbi node get result: ");
+//        System.out.println(x_.size() - 1);
+//        System.out.println(node_.get(x_.size() - 1));
+
         cost_ = -node_.get(x_.size() - 1).get(result_.get(x_.size() - 1)).bestCost;
     }
 
@@ -416,6 +427,9 @@ public class TaggerImpl extends Tagger {
     public boolean add(String line) {
         int xsize = feature_index_.getXsize_();
         String[] cols = line.split("[\t ]", -1);
+
+
+
         int size = cols.length;
         if ((mode_ == Mode.LEARN && cols.length < xsize + 1) ||
             (mode_ == Mode.TEST && cols.length < xsize)) {
@@ -423,10 +437,13 @@ public class TaggerImpl extends Tagger {
             return false;
         }
         List<String> tmpX = Arrays.asList(cols);
+
         x_.add(tmpX);
+
         result_.add(0);
         int tmpAnswer = 0;
         if (mode_ == Mode.LEARN) {
+
             int r = ysize_;
             for (int i = 0; i < ysize_; i++) {
                 if (cols[xsize].equals(yname(i))) {
@@ -440,8 +457,11 @@ public class TaggerImpl extends Tagger {
             tmpAnswer = r;
         }
         answer_.add(tmpAnswer);
+
+
         List<Node> l = Arrays.asList(new Node[ysize_]);
         node_.add(l);
+
         return true;
     }
 
@@ -651,6 +671,7 @@ public class TaggerImpl extends Tagger {
         feature_index_ = featureIndex;
         feature_index_.setCostFactor_(costFactor);
         ysize_ = feature_index_.ysize();
+
         return true;
     }
 

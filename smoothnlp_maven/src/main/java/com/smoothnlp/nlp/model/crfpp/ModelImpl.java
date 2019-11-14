@@ -61,6 +61,7 @@ public class ModelImpl extends Model {
     }
 
     public boolean open(String model, int nbest, int vlevel, double costFactor) {
+
         featureIndex_ = new DecoderFeatureIndex();
         nbest_ = nbest;
         vlevel_ = vlevel;

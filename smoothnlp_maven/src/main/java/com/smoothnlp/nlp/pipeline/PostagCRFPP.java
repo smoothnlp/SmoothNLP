@@ -63,6 +63,13 @@ public class PostagCRFPP extends CRFModel{
 
                 String ytag = tagger.yname(tagger.y(i));  // predict的t
 
+                // 打印预测出的tag 和他们的概率, 用于debug
+//                System.out.print(stokens.get(i).token);
+//                System.out.print("\t");
+//                System.out.print(ytag);
+//                System.out.print("\t");
+//                System.out.println(tagger.prob(i));
+
                 // 对于字符串为"空格" 或者其他中文标点, 如"丨"的token, 强行改写postag = "PU"
                 Matcher pumatcher = this.pupattern.matcher(stokens.get(i).token);
                 while (pumatcher.find()){
