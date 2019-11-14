@@ -21,12 +21,16 @@ public class CoNLLDependencyGraph {
     public CoNLLToken[] tokens;
     private int nodeSize;
     public float[][] edgeScores;
-    private int posNegSampleRate = 4;
+    private int posNegSampleRate = 2;
     private LinkedList<int[]> selectedIndexes = null;
 
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
         this.tokens = tokens;
         this.nodeSize = this.tokens.length;
+    }
+
+    public void setPosNegSampleRate(int rate){
+        this.posNegSampleRate = rate;
     }
 
     public CoNLLDependencyGraph(List<SToken> stokens){

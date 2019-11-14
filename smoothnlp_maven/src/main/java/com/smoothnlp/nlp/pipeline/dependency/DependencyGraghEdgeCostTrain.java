@@ -23,7 +23,7 @@ public class DependencyGraghEdgeCostTrain {
 
     }
 
-    public static DMatrix readCoNLL2DMatrix(String CoNLLFile) throws IOException {
+    public static DMatrix readCoNLL2DMatrix(String CoNLLFile,int negSampleRate) throws IOException {
         InputStream in = SmoothNLP.IOAdaptor.open(CoNLLFile);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         String line = null;
@@ -46,6 +46,7 @@ public class DependencyGraghEdgeCostTrain {
         for (String[] cdoc: conll_docs){
             try{
                 CoNLLDependencyGraph conllGraph =CoNLLDependencyGraph.parseLines2Graph(cdoc);
+                conllGraph.setPosNegSampleRate(negSampleRate);
                 conllGraph.selectIndex();
                 labelCollection.add(conllGraph.getAllLabel());
                 ftrCollection.add(conllGraph.buildAllFtrs());
@@ -102,14 +103,14 @@ public class DependencyGraghEdgeCostTrain {
 
     }
 
-    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround) throws IOException{
-        final DMatrix trainMatrix = readCoNLL2DMatrix(trainFile);
-        final DMatrix devMatrix = readCoNLL2DMatrix(devFile);
+    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround, int negSampleRate, int earlyStop) throws IOException{
+        final DMatrix trainMatrix = readCoNLL2DMatrix(trainFile,negSampleRate);
+        final DMatrix devMatrix = readCoNLL2DMatrix(devFile,negSampleRate);
         try{
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
                     put("eta", 1.0);
-                    put("max_depth", 3);
+                    put("max_depth", 4);
                     put("silent", 0);
                     put("objective", "binary:logistic");
                     put("eval_metric", "logloss");
@@ -122,7 +123,7 @@ public class DependencyGraghEdgeCostTrain {
                     put("dev",devMatrix);
                 }
             };
-            Booster booster = XGBoost.train(trainMatrix, params, nround, watches, null, null);
+            Booster booster = XGBoost.train(trainMatrix, params, nround, watches, null, null,null,earlyStop);
             OutputStream outstream = SmoothNLP.IOAdaptor.create(modelAddr);
             booster.saveModel(outstream);
         }catch(XGBoostError e){
@@ -135,9 +136,9 @@ public class DependencyGraghEdgeCostTrain {
         // put in train, valid, model destinationß
 //        trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin",1);
         if (args.length==3){
-            trainXgbModel(args[0],args[1],args[2],20);
+            trainXgbModel(args[0],args[1],args[2],20,1,10);
         }else{
-            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]));
+            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
         }
 
     }

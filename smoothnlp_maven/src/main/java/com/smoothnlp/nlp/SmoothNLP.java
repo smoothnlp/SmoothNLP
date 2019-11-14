@@ -50,8 +50,8 @@ public class SmoothNLP{
 
     // static model files
     public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
-    public static String CRF_POSTAG_MODEL = "model/ctb_3gram_postag_f5_c1.bin";
-    public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_500.bin";
+    public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_full_500_e10.bin";
     public static String WordEmbedding_MODEL = "embedding/wordembedding.txt";
 
     // static Pipelines
@@ -123,22 +123,19 @@ public class SmoothNLP{
 
 //         System.out.println(UtilFns.toJson(WORDEMBEDDING_PIPELINE.process("的")));
 //
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿").dependencyRelationships));
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；").dependencyRelationships));
-
+         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("微信app日活达到1.3亿")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；")));
 
 //         System.out.println(UtilFns.toJson(DICTIONARIES.find("腾讯云在去年5月实现营收达到3亿元")));
 
-         System.out.println("test normalized ner: ");
-
+//         System.out.println("test normalized ner: ");
 
          System.out.println(UtilFns.toJson(SmoothNLP.process("玩手机")));
 
          System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
 
-
          System.out.println(UtilFns.toJson(SmoothNLP.process("A轮融资")));
-
 
          System.out.println(UtilFns.toJson(SmoothNLP.process("PreA轮")));
 

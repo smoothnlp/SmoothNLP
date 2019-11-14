@@ -58,9 +58,15 @@ public class SegmentCRFPP extends CRFModel{
         // 1. 遇到空格切开
         // 2. 中英文相连切开, (特殊情况会被字典Overwrite, 如: "A轮"出现在字典中)
         // 3. 其他字符(标点等)和英文等没有分开
-        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[ ]+|[0-9|,|.|%|个|十|百|千|万|亿]+");
+        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]+|[+——！，。？、~@#￥%……&*（）》《丨]+");
         Matcher matcher =  pattern.matcher(input);
         while (matcher.find()) {
+//            System.out.println(matcher.toString());
+//            System.out.println(matcher.start());
+//            System.out.println(matcher.end());
+            if (matcher.start()-1>=0){
+                ytags[matcher.start()-1]=STOP_LABEL;
+            }
             for (int i = matcher.start();i< matcher.end()-1;i++){
                 ytags[i]= BLANK_LABEL;
             }
@@ -101,7 +107,11 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("Gucci母公司开云集团2017财年销售额破150亿欧元"));
         System.out.println(s.process("广发证券:震荡中加大对港股配置 关注超跌低估值板块  ##\"关注\"前的空格被保留"));
         System.out.println(s.process("维达国际(03331.HK)第三季度折旧摊销前溢利大增82.7%至6.45亿..."));
-        System.out.println(s.process("文磨完成A轮融资"));
+        System.out.println(s.process("2019年双十一销售额达到2800亿元"));
+        System.out.println(s.process("传AMD女掌门人"));
+        System.out.println(s.process("首席出行要闻丨多家车企签署战略合作协议"));
+        System.out.println(s.process("京东与格力开展战略合作丨家居要闻点评"));
+        System.out.println(s.process("中国跨境电商Club Factory完成1亿美元融资"));
     }
 
 }
