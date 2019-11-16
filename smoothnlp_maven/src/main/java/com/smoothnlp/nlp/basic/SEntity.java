@@ -69,7 +69,8 @@ public class SEntity implements Comparable<SEntity>{
     }
 
     public int compareTo(SEntity target){
-        return (this.charEnd-this.charStart) - (target.charEnd - charStart);
+//        System.out.println(this.text+" compare entity:"+target.text);
+        return -(this.charEnd-this.charStart) + (target.charEnd - target.charStart);
     }
 
 }
