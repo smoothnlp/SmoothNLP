@@ -19,6 +19,8 @@ def chunk_generator_adapter(obj, chunk_size):
             obj_adapter = list(obj.fetchmany(chunk_size))
         elif isinstance(obj, _io.TextIOWrapper):     # 输入object = open(file_name, 'r', encoding='utf-8')
             obj_adapter = obj.readlines(chunk_size)  # list of str
+        elif isinstance(obj,types.GeneratorType):
+            obj_adapter = list(next(obj,''))
         else:
             raise ValueError('Input not supported!')
         if obj_adapter != None and obj_adapter != []:

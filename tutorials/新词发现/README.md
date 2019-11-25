@@ -13,7 +13,7 @@
 
 ```python
 from smoothnlp.algorithm.phrase import extract_phrase
-extract_phrase(corpus,top_k,chunk_size,max_n,min_freq)
+extract_phrase(corpus,top_k,chunk_size,min_n,max_n,min_freq)
 ``` 
 
 * 参数说明：
@@ -24,6 +24,7 @@ corpus:     必需，file open()、database connection或list
                     corpus = list(***)
 top_k:      float or int,表示短语抽取的比例或个数
 chunk_size: int,用chunksize分块大小来读取文件
+min_n:      int,抽取ngram及以上
 max_n:      int,抽取ngram及以下
 min_freq:   int,抽取目标的最低词频
 ```
