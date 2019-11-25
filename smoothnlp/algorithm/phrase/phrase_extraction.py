@@ -35,6 +35,7 @@ def chunk_generator_adapter(obj, chunk_size):
 def extract_phrase(corpus,
                    top_k: float = 200,
                    chunk_size: int = 1000000,
+                   min_n:int = 2,
                    max_n:int=4,
                    min_freq:int = 5):
     '''
@@ -53,7 +54,7 @@ def extract_phrase(corpus,
                                 sentence_split_by_punc(str(news)) if remove_irregular_chars(sent) != 0]
     else:
         corpus_splits = chunk_generator_adapter(corpus, chunk_size)
-    word_info_scores = get_scores(corpus_splits,max_n,chunk_size,min_freq)
+    word_info_scores = get_scores(corpus_splits,min_n,max_n,chunk_size,min_freq)
     new_words = [item[0] for item in sorted(word_info_scores.items(),key=lambda item:item[1][-1],reverse = True)]
     if top_k > 1:              #输出前k个词
         return new_words[:top_k]
