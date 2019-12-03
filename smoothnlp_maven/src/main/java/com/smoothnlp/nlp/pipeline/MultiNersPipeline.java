@@ -39,14 +39,11 @@ public class MultiNersPipeline extends BaseEntityRecognizer {
         List<SEntity> deDupledList = new LinkedList<>();
         PriorityQueue<SEntity> pqEntities = new PriorityQueue<>();
         for (SEntity entity : entities){
-            System.out.println("add to queue: "+entity.text);
             pqEntities.add(entity);
         }
         List<int[]> trackedRanges = new LinkedList<>();
         while(!pqEntities.isEmpty()){
             SEntity en = pqEntities.poll();
-            System.out.print("Entity: ");
-            System.out.println(en);
             boolean entityOverlaped = false;
             for (int[] range: trackedRanges){
                 if (en.charStart>=range[0] & en.charEnd<=range[1]){

@@ -58,7 +58,7 @@ public class SegmentCRFPP extends CRFModel{
         // 1. 遇到空格切开
         // 2. 中英文相连切开, (特殊情况会被字典Overwrite, 如: "A轮"出现在字典中)
         // 3. 其他字符(标点等)和英文等没有分开
-        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]+|[+——！，。？、~@#￥%……&*（）》《丨]+");
+        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]+|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
         Matcher matcher =  pattern.matcher(input);
         while (matcher.find()) {
 //            System.out.println(matcher.toString());

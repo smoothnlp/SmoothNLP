@@ -48,7 +48,8 @@ public class NerCRFPP extends BaseEntityRecognizer{
         }
 
         for (SToken stoken: stokens){
-            String ftr = this.buildFtrs(stoken.getToken(),stoken.getPostag());
+            // 注意坑: crf_test 中默认将空格转化为空(""); 为了和crf模型效果保持一致, 这里采用了hardcode
+            String ftr = this.buildFtrs(stoken.getToken().replaceAll("\\s",""),stoken.getPostag(),Integer.toString(stoken.token.length()));
             tagger.add(ftr);
 
         }
@@ -105,9 +106,14 @@ public class NerCRFPP extends BaseEntityRecognizer{
         System.out.println(UtilFns.toJson(s.process("嗅问与腾讯科技达成战略合作")));
         System.out.println(UtilFns.toJson(s.process("上海文磨与阿里巴巴达成战略合作")));
         System.out.println(UtilFns.toJson(s.process("上海文磨获得有成创投的天使轮融资")));
-        System.out.println(UtilFns.toJson(s.process("嗅问上线一个月后日活突破3000万")));
+        System.out.println(UtilFns.toJson(s.process("嗅问知道上线一个月后日活突破3000万")));
+        System.out.println(UtilFns.toJson(s.process("中国石油在非洲开辟新油田")));
 
-//        System.out.println(UtilFns.toJson(s.process("广汽集团上月利润达到5万")));
+        System.out.println(UtilFns.toJson(s.process("[期货]国际油价收市涨1.1% 美联储宣布推出QE4")));
+        System.out.println(UtilFns.toJson(s.process("新定价机制 有望6月推出")));
+
+        System.out.println(UtilFns.toJson(s.process("我国最大的服装行业展会明年起将移师上海 拓展商贸和服务功能")));
+        System.out.println(UtilFns.toJson(s.process("放大物流通道功能 开启对俄合作新篇章")));
     }
 
 }

@@ -119,21 +119,6 @@ public class CoNLLDependencyGraph {
         return ftrs.toArray(new Float[ftrs.size()]);
     }
 
-//    public List<Float> getTopN(float[] a, int topn){
-//        float[] tempa = a.clone();
-//        Arrays.sort(tempa);
-//        LinkedList<Float> resultIndexes = new LinkedList<>();
-//        for (int i=0;i<topn;i++){
-//            float target_value = tempa[i];
-//            for (int j = 0; j<a.length;j++){
-//                if (target_value == a[j]){
-//                    resultIndexes.add((float) j);
-//                    break;
-//                }
-//            }
-//        }
-//        return resultIndexes;
-//    }
 
     public Float getLabel(int dependentIndex, int targetIndex){
         float label = this.tokens[targetIndex].getDependentIndex()==dependentIndex ? 1.0f : 0.0f ;
@@ -145,7 +130,6 @@ public class CoNLLDependencyGraph {
          * build features for all token pair
          */
         int ftr_size = buildFtrs(0,0).length;
-
 
         if (selectedIndexes==null){
             Float[][] all_ftrs = new Float[(this.nodeSize)*(this.nodeSize)][ftr_size];
@@ -166,8 +150,6 @@ public class CoNLLDependencyGraph {
             }
             return all_ftrs;
         }
-
-
     }
 
     /**
@@ -194,11 +176,30 @@ public class CoNLLDependencyGraph {
         }
     }
 
+    /**
+     * 仅选择跳转 label=1 的 token-pair, 用于训练dependency parsing 具体 tag 的模型
+     */
+    public void selectTagIndex(){
+        this.selectedIndexes = new LinkedList<>();
+        for (CoNLLToken token: this.tokens){
+            this.selectedIndexes.add(new int[]{token.dependentIndex,token.selfIndex});
+        }
+    }
+
+    public String[] getAllTagLabel(){
+        String[] labels = new String[this.tokens.length];
+        for (int i = 0; i <= labels.length; i++){
+            labels[i] = this.tokens[i].relationship;
+        }
+        return labels;
+    }
+
+
+
     public Float[] getAllLabel(){
         /**
          * return dependency connection labels for all token pairs
          */
-
 
         if (selectedIndexes==null){
             Float[] labels = new Float[(this.nodeSize)*(this.nodeSize)];
@@ -219,8 +220,6 @@ public class CoNLLDependencyGraph {
             }
             return labels;
         }
-
-
     }
 
     public static CoNLLDependencyGraph parseLines2Graph(String[] conllLines){
@@ -255,18 +254,20 @@ public class CoNLLDependencyGraph {
 
         CoNLLDependencyGraph g = parseLines2Graph(doc);
 
-        g.selectIndex();
-        System.out.println(UtilFns.toJson(g.selectedIndexes));
+        System.out.println(UtilFns.toJson(g.tokens));
 
-//        System.out.println(g);
-        System.out.println(g.buildAllFtrs().length);
-        System.out.println(g.buildAllFtrs()[0].length);
-        System.out.println(g.getAllLabel().length);
-
-        System.out.println(g.buildFtrs(0,1).length);
-        System.out.println(Arrays.toString(g.buildFtrs(0,1)));
-        System.out.println(UtilFns.toJson(g.buildAllFtrs()));
-        System.out.println(Arrays.toString(g.getAllLabel()));
+//        g.selectIndex();
+//        System.out.println(UtilFns.toJson(g.selectedIndexes));
+//
+////        System.out.println(g);
+//        System.out.println(g.buildAllFtrs().length);
+//        System.out.println(g.buildAllFtrs()[0].length);
+//        System.out.println(g.getAllLabel().length);
+//
+//        System.out.println(g.buildFtrs(0,1).length);
+//        System.out.println(Arrays.toString(g.buildFtrs(0,1)));
+//        System.out.println(UtilFns.toJson(g.buildAllFtrs()));
+//        System.out.println(Arrays.toString(g.getAllLabel()));
 
 //        PriorityQueue<ScoreEdge> pqSE = new PriorityQueue<ScoreEdge>();
 //        pqSE.add(new ScoreEdge(0,0,1.0f));

@@ -428,8 +428,6 @@ public class TaggerImpl extends Tagger {
         int xsize = feature_index_.getXsize_();
         String[] cols = line.split("[\t ]", -1);
 
-
-
         int size = cols.length;
         if ((mode_ == Mode.LEARN && cols.length < xsize + 1) ||
             (mode_ == Mode.TEST && cols.length < xsize)) {

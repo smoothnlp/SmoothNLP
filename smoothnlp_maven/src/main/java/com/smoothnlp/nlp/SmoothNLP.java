@@ -51,7 +51,7 @@ public class SmoothNLP{
     // static model files
     public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
     public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
-    public static String CRF_NER_MODEL = "model/ner_crfpp_3gram_linux.bin";
+    public static String CRF_NER_MODEL = "model/ner_crfpp_4gram_x00_linux_2test.bin";
     public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_full_500_e10.bin";
     public static String WordEmbedding_MODEL = "embedding/wordembedding.txt";
 
@@ -83,8 +83,8 @@ public class SmoothNLP{
 
         List<SToken> sTokensPOS = POSTAG_PIPELINE.process(inputText);
         res.tokens = sTokensPOS;
-        List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
-        res.dependencyRelationships = dependencyRelationships;
+//        List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
+//        res.dependencyRelationships = dependencyRelationships;
         res.entities = NER_PIPELINE.process(res.tokens);
         return res;
     }
@@ -125,21 +125,21 @@ public class SmoothNLP{
 
 //         System.out.println(UtilFns.toJson(WORDEMBEDDING_PIPELINE.process("的")));
 //
-         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("微信app日活达到1.3亿")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("腾讯和京东三季度营收分别是30亿与40亿")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("微信app日活达到1.3亿")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("华为作为手机制造企业代表，今年一季度生产手机842.55万台，产值达45.29亿元，同比增长3.8%；")));
+//
+////         System.out.println(UtilFns.toJson(DICTIONARIES.find("腾讯云在去年5月实现营收达到3亿元")));
+//
+////         System.out.println("test normalized ner: ");
+//
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("玩手机")));
+//
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
+//
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("A轮融资")));
 
-//         System.out.println(UtilFns.toJson(DICTIONARIES.find("腾讯云在去年5月实现营收达到3亿元")));
-
-//         System.out.println("test normalized ner: ");
-
-         System.out.println(UtilFns.toJson(SmoothNLP.process("玩手机")));
-
-         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
-
-         System.out.println(UtilFns.toJson(SmoothNLP.process("A轮融资")));
-
-         System.out.println(UtilFns.toJson(SmoothNLP.process("PreA轮")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("上海文磨发布新产品嗅问")));
 
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("第四范式9月25日")));
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("9月25日,第四范式")));
