@@ -52,6 +52,7 @@ def generate_ngram(corpus,n:int=2):
                 yield ngram
 
 def get_ngram_freq_info(corpus, ## list or generator
+                        min_n:int=2,
                          max_n:int=4,
                          chunk_size:int=5000,
                          min_freq:int=2,
@@ -70,7 +71,7 @@ def get_ngram_freq_info(corpus, ## list or generator
 
     def _process_corpus_chunk(corpus_chunk):
         ngram_freq = {}
-        for ni in range(1, max_n + 2):
+        for ni in [1]+list(range(min_n,max_n+2)):
             ngram_generator = generate_ngram(corpus_chunk, ni)
             nigram_freq = dict(Counter(ngram_generator))
             ngram_keys[ni] = (ngram_keys[ni] | nigram_freq.keys())
@@ -179,6 +180,7 @@ def _calc_ngram_pmi(ngram_freq,ngram_keys,n):
 
 
 def get_scores(corpus,
+               min_n:int = 2,
                max_n: int = 4,
                chunk_size:int=5000,
                min_freq:int=0):
@@ -190,13 +192,13 @@ def get_scores(corpus,
     :param min_freq:
     :return: 为节省内存, 每个候选词的分数以tuble的形式返回.
     """
-    ngram_freq, ngram_keys = get_ngram_freq_info(corpus,max_n,
+    ngram_freq, ngram_keys = get_ngram_freq_info(corpus,min_n,max_n,
                                                  chunk_size=chunk_size,
                                                  min_freq=min_freq)
 
 
-    left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(2,max_n+1))
-    mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(2,max_n+1))
+    left_right_entropy = _calc_ngram_entropy(ngram_freq,ngram_keys,range(min_n,max_n+1))
+    mi = _calc_ngram_pmi(ngram_freq,ngram_keys,range(min_n,max_n+1))
     joint_phrase = mi.keys() & left_right_entropy.keys()
     word_liberalization = lambda le,re: math.log((le * 2 ** re + re * 2 ** le+0.00001)/(abs(le - re)+1),1.5)
     word_info_scores = {word: (mi[word][0],     #point-wise mutual information
