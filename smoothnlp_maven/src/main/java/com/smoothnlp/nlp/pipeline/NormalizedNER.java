@@ -139,9 +139,6 @@ public class NormalizedNER extends BaseEntityRecognizer{
                 if (PERCENT_WORD_PATTERN1.matcher(me.token).matches() || PERCENT_WORD_PATTERN2.matcher(me.token).matches()){
                     entity.nerTag = PERCENT_TAG;
                 }else if(rightScanFindsMoneyWord(paddingList, i)){
-
-                    System.out.println("~~~ hit in right scan");
-
                     entity.nerTag = MONEY_TAG;
                 }else if(me.token.length() == 2 && CHINESE_AND_ARABIC_NUMERALS_PATTERN.matcher(me.token).matches() && DATE_AGE_LOCALIZER.equals(next.token)){
                     entity.nerTag = DATE_TAG;
