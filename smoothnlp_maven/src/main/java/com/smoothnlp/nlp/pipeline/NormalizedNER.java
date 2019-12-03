@@ -139,6 +139,9 @@ public class NormalizedNER extends BaseEntityRecognizer{
                 if (PERCENT_WORD_PATTERN1.matcher(me.token).matches() || PERCENT_WORD_PATTERN2.matcher(me.token).matches()){
                     entity.nerTag = PERCENT_TAG;
                 }else if(rightScanFindsMoneyWord(paddingList, i)){
+
+                    System.out.println("~~~ hit in right scan");
+
                     entity.nerTag = MONEY_TAG;
                 }else if(me.token.length() == 2 && CHINESE_AND_ARABIC_NUMERALS_PATTERN.matcher(me.token).matches() && DATE_AGE_LOCALIZER.equals(next.token)){
                     entity.nerTag = DATE_TAG;
@@ -160,7 +163,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
     private static boolean rightScanFindsMoneyWord(List<SToken> pl, int i ){
         int j = i ;
         int sz = pl.size();
-        while (j<sz & j<i+5){
+        while (j<sz & j<i+4){
             String word = pl.get(j).token;
             j++;
             if (CURRENCY_WORD_PATTERN.matcher(word).matches()){
@@ -614,13 +617,12 @@ public class NormalizedNER extends BaseEntityRecognizer{
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
-        inputText = "广汽集团上月利润达到5万元";
+        inputText = "江山控股(00295)拟11.66元出售10个太阳能项目";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
         System.out.println(UtilFns.toJson(ner.process(inputText)));
 
-        System.out.println(ner.analyze("元六鸿远首次公开发行A股网上路演公告"));
 
 
     }
