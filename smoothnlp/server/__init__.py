@@ -10,7 +10,7 @@ class smoothNlpRequest(object):
 
     def __call__(self,text):
         content = {"text":text}
-        r = requests.get(self.url, params=content)
+        r = requests.get(self.url+"/query", params=content)
         self.result = r.json()['payload']['response']
 
     def dependencyrelationships(self,text):
@@ -67,7 +67,7 @@ class smoothNlpRequest(object):
         parameters = {"givendate": givendate}
         if pubdate is not None or pubdate != "":
             parameters['pubdate'] = pubdate
-        r = requests.get(self.url+'/parsedate', params=parameters)
+        r = requests.get(self.url+'/querydate', params=parameters)
         return r.json()['payload']['response']
 
     def split2sentences(self,text:str):

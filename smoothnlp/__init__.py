@@ -3,7 +3,7 @@ import logging
 
 global MODE, nlp
 MODE = 'server'
-HOST_URL = "http://data.service.nlp.smoothnlp.com"
+HOST_URL = "http://kong.smoothnlp.com/nlp"
 logger = logging.getLogger()
 
 from smoothnlp.server import smoothNlpRequest
