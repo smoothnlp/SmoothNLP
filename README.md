@@ -15,9 +15,18 @@
 
 ### Install 安装
 ```shell
-pip install smoothnlp>=0.2.17
+pip install smoothnlp>=0.2.20
 ```
 
+### NLP基础Pipelines
+> 注意, 在0.2.20版本调整后, 以下基础Pipeline功能仅对字符串长度做出了限制(不超过200). 如对较长corpus进行处理, 请先试用`smoothnlp.split2sentences` 进行切句预处理
+
+示例:
+```python
+import smoothnlp
+smoothnlp.split2sentences("句子1!句子2!")
+> ['句子1!', '句子2!']
+```
 
 #### 1.Tokenize分词
 ```python
@@ -25,7 +34,6 @@ pip install smoothnlp>=0.2.17
 >> smoothnlp.segment('欢迎在Python中使用SmoothNLP')
 ['欢迎', '在', 'Python', '中', '使用', 'SmoothNLP']
 ```
-
 
 #### 2.Postag词性标注
 ```python
