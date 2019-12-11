@@ -24,6 +24,15 @@ public class DependencyRelationship {
         this.target = target;
     }
 
+    public DependencyRelationship(int dependentIndex, int targetIndex, SToken dependent, SToken target, String relationship){
+        this.dependentIndex = dependentIndex;
+        this.targetIndex = targetIndex;
+        this.relationship = relationship;
+        this.dependent = dependent;
+        this.target = target;
+    }
+
+
     public String toString(){
         if (this.dependent==null | this.target ==null){
             return String.valueOf(this.dependentIndex) + String.format("  --(%s)-->  ",this.relationship)+String.valueOf(this.targetIndex);

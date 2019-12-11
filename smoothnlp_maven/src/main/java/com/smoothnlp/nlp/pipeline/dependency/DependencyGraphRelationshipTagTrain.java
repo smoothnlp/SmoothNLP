@@ -20,11 +20,64 @@ import ml.dmlc.xgboost4j.java.XGBoost;
 
 public class DependencyGraphRelationshipTagTrain {
 
+
+    public static Map<String, Float> tag2float;
+    static {
+        tag2float = new HashMap<>();
+        tag2float.put("UNKNOWN", 0.0f);
+        tag2float.put("dep", 1.0f);
+        tag2float.put("punct", 2.0f);
+        tag2float.put("nsubj", 3.0f);
+        tag2float.put("advmod", 4.0f);
+        tag2float.put("root", 5.0f);
+        tag2float.put("det", 6.0f);
+        tag2float.put("clf", 7.0f);
+        tag2float.put("prep", 8.0f);
+        tag2float.put("pobj", 9.0f);
+        tag2float.put("nn", 10.0f);
+        tag2float.put("lobj", 11.0f);
+        tag2float.put("dobj", 12.0f);
+        tag2float.put("nummod", 13.0f);
+        tag2float.put("range", 14.0f);
+        tag2float.put("conj", 15.0f);
+        tag2float.put("rcmod", 16.0f);
+        tag2float.put("assmod", 17.0f);
+        tag2float.put("assm", 18.0f);
+        tag2float.put("asp", 19.0f);
+        tag2float.put("cc", 20.0f);
+        tag2float.put("cpm", 21.0f);
+        tag2float.put("tmod", 22.0f);
+        tag2float.put("etc", 23.0f);
+        tag2float.put("prtmod", 24.0f);
+        tag2float.put("amod", 25.0f);
+        tag2float.put("attr", 26.0f);
+        tag2float.put("ordmod", 27.0f);
+        tag2float.put("top", 28.0f);
+        tag2float.put("ccomp", 29.0f);
+        tag2float.put("prnmod", 30.0f);
+        tag2float.put("loc", 31.0f);
+        tag2float.put("vmod", 32.0f);
+        tag2float.put("rcomp", 33.0f);
+        tag2float.put("pccomp", 34.0f);
+        tag2float.put("lccomp", 35.0f);
+        tag2float.put("nsubjpass", 36.0f);
+        tag2float.put("pass", 37.0f);
+        tag2float.put("xsubj", 38.0f);
+        tag2float.put("mmod", 39.0f);
+        tag2float.put("dvpmod", 40.0f);
+        tag2float.put("dvpm", 41.0f);
+        tag2float.put("ba", 42.0f);
+        tag2float.put("comod", 43.0f);
+        tag2float.put("neg", 44.0f);
+        tag2float.put("cop", 45.0f);
+    }
+
+
     public DependencyGraphRelationshipTagTrain(){
 
     }
 
-    public static DMatrix readCoNLL2DMatrix(String CoNLLFile,int negSampleRate) throws IOException {
+    public static List<String[]> file2lines(String CoNLLFile) throws IOException{
         InputStream in = SmoothNLP.IOAdaptor.open(CoNLLFile);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         String line = null;
@@ -40,29 +93,34 @@ public class DependencyGraphRelationshipTagTrain {
         }
         conll_docs.add(conll_document.toArray(new String[conll_document.size()]));
 
+        return conll_docs;
+    }
+
+    public static DMatrix readCoNLL2DMatrix(String CoNLLFile) throws IOException {
+
+        List<String[]> conll_docs = file2lines(CoNLLFile);
+
         System.out.println(String.format("~~~ Done with reading all CoNLL documents %d ~~~", conll_docs.size()));
 
         ArrayList<Float[][]> ftrCollection = new ArrayList<Float[][]>();
         ArrayList<String[]> labelCollection = new ArrayList<String[]>();
 
 
-
         for (String[] cdoc: conll_docs){
-            try{
-                CoNLLDependencyGraph conllGraph =CoNLLDependencyGraph.parseLines2Graph(cdoc);
-//                conllGraph.setPosNegSampleRate(negSampleRate);
-//                conllGraph.selectIndex();
 
-                conllGraph.selectTagIndex();
-                labelCollection.add(conllGraph.getAllTagLabel());
+            // 建立dependency Graph 并且 生成对应的特征与label
+            CoNLLDependencyGraph conllGraph =CoNLLDependencyGraph.parseLines2Graph(cdoc);
+            labelCollection.add(conllGraph.getAllTagLabel());
+            ftrCollection.add(conllGraph.buildAllTagFtrs());
 
-                labelCollection.add(conllGraph.getAllTagLabel());
-                ftrCollection.add(conllGraph.buildAllFtrs());
-            }catch (Exception e){
-                System.out.println(Arrays.toString(cdoc));
-                System.out.println(e);
-                break;
-            }
+            // 4 debug only, 检查feature 和 label添加是否正确
+//            System.out.print("graph size: ");
+//            System.out.println(conllGraph.size());
+//            System.out.print("label size: ");
+//            System.out.println(conllGraph.getAllTagLabel().length);
+//            System.out.print("feature size: ");
+//            System.out.println(conllGraph.buildAllTagFtrs().length);
+
         }
 
         int record_counter= 0;
@@ -75,15 +133,39 @@ public class DependencyGraphRelationshipTagTrain {
         int counter=0;
         for (String[] labelc: labelCollection){
             for (String f: labelc){
+                if (f== null){
+                    System.out.println("label is null!");
+                }
                 labels_array[counter] = f;
                 counter+=1;
             }
         }
 
+//        String[] unique = Arrays.stream(labels_array).distinct().toArray(String[]::new);
+//        System.out.println(unique);
+//        for (String s : unique){
+//            System.out.println(s);
+//        }
+
+        float[] labels_float= new float[labels_array.length];
+        for (int i = 0;i < labels_array.length; i++){
+
+            if (tag2float.containsKey(labels_array[i])){
+                labels_float[i] = tag2float.get(labels_array[i]);
+            }else{
+//                System.out.println("unknown label");
+//                System.out.println(labels_array[i]);
+                labels_float[i] = 0.0f;
+            }
+            // 4 debug only; 检查 标签tag -> 对应label(float)对应情况
+//            System.out.print("label value: ");
+//            System.out.print(labels_array[i]);
+//            System.out.println(labels_float[i]);
+        }
+
         System.out.println(String.format("~~ Flattened labels: %d ~~",counter));
 
         int ftr_size = ftrCollection.get(0)[0].length;
-
         float[] ftrs_array = new float[record_counter*ftr_size];
         counter = 0;
 
@@ -102,13 +184,75 @@ public class DependencyGraphRelationshipTagTrain {
         System.out.println(String.format("~~ Ftr Size: %d ~~",ftr_size));
         try{
             final DMatrix dmatrix = new DMatrix(ftrs_array,record_counter,ftr_size,Float.NaN);
-//            dmatrix.setLabel(labels_array);
+            dmatrix.setLabel(labels_float);
             return dmatrix;
         }catch(XGBoostError e){
             System.out.println(e);
         }
         return null;
+    }
+
+    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround, int earlyStop) throws IOException{
+        final DMatrix trainMatrix = readCoNLL2DMatrix(trainFile);
+        final DMatrix devMatrix = readCoNLL2DMatrix(devFile);
+        try{
+            Map<String, Object> params = new HashMap<String, Object>() {
+                {
+                    put("eta", 1.0);
+                    put("max_depth", 6);
+                    put("silent", 0);
+                    put("objective", "multi:softmax");
+                    put("colsample_bytree",0.8);
+                    put("colsample_bylevel",0.9);
+                    put("eta",0.1);
+                    put("subsample",0.8);
+                    put("lambda",0.5);
+
+                    // other parameters
+                    // "objective" -> "multi:softmax", "num_class" -> "6"
+
+                    put("eval_metric", "merror");
+                    put("tree_method","approx");
+                    put("num_class",tag2float.size());
+                }
+            };
+            Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
+                {
+                    put("train", trainMatrix);
+                    put("dev",devMatrix);
+                }
+            };
+            Booster booster = XGBoost.train(trainMatrix, params, nround, watches, null, null,null,earlyStop);
+            OutputStream outstream = SmoothNLP.IOAdaptor.create(modelAddr);
+            booster.saveModel(outstream);
+        }catch(XGBoostError e){
+            System.out.println(e);
+        }
+    }
+
+
+
+    public static void main (String[] args) throws IOException {
+//        readCoNLL2DMatrix("dev_sample.conllx");
+
+        if (args.length==3){
+            trainXgbModel(args[0],args[1],args[2],20,10);
+        }else{
+            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]));
+        }
+
+//        trainXgbModel("dev.conllx","dev.conllx","dp_tagmodel.bin",10,10);
+
+        // put in train, valid, model destination
+//        trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin",1);
+//        if (args.length==3){
+//            trainXgbModel(args[0],args[1],args[2],20,1,10);
+//        }else{
+//            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
+//        }
 
     }
+
+
 
 }

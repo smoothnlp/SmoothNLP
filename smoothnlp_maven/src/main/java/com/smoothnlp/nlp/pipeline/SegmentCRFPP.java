@@ -58,7 +58,7 @@ public class SegmentCRFPP extends CRFModel{
         // 1. 遇到空格切开
         // 2. 中英文相连切开, (特殊情况会被字典Overwrite, 如: "A轮"出现在字典中)
         // 3. 其他字符(标点等)和英文等没有分开
-        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]+|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
+        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
         Matcher matcher =  pattern.matcher(input);
         while (matcher.find()) {
 //            System.out.println(matcher.toString());
@@ -104,6 +104,7 @@ public class SegmentCRFPP extends CRFModel{
     public static void main(String[] args){
         SegmentCRFPP s = new SegmentCRFPP();
         System.out.println(s.process("腾讯云是一家云服务提供商"));
+        System.out.println(s.process("AI创业公司“一览群智”完成1.5亿元融资"));
         System.out.println(s.process("Gucci母公司开云集团2017财年销售额破150亿欧元"));
         System.out.println(s.process("广发证券:震荡中加大对港股配置 关注超跌低估值板块  ##\"关注\"前的空格被保留"));
         System.out.println(s.process("维达国际(03331.HK)第三季度折旧摊销前溢利大增82.7%至6.45亿..."));

@@ -24,6 +24,57 @@ public class CoNLLDependencyGraph {
     private int posNegSampleRate = 2;
     private LinkedList<int[]> selectedIndexes = null;
 
+    public static Map<Float,String> float2tag;
+    static {
+        float2tag = new HashMap<>();
+        float2tag.put(0.0f, "UNKOWN");
+        float2tag.put(1.0f, "dep");
+        float2tag.put(2.0f, "punct");
+        float2tag.put(3.0f, "nsubj");
+        float2tag.put(4.0f, "advmod");
+        float2tag.put(5.0f, "root");
+        float2tag.put(6.0f, "det");
+        float2tag.put(7.0f, "clf");
+        float2tag.put(8.0f, "prep");
+        float2tag.put(9.0f, "pobj");
+        float2tag.put(10.0f,"nn");
+        float2tag.put(11.0f, "lobj");
+        float2tag.put(12.0f, "dobj");
+        float2tag.put(13.0f, "nummod");
+        float2tag.put(14.0f, "range");
+        float2tag.put(15.0f, "conj");
+        float2tag.put(16.0f, "rcmod");
+        float2tag.put(17.0f, "assmod");
+        float2tag.put(18.0f, "assm");
+        float2tag.put(19.0f, "asp");
+        float2tag.put(20.0f, "cc");
+        float2tag.put(21.0f, "cpm");
+        float2tag.put(22.0f, "tmod");
+        float2tag.put(23.0f, "etc");
+        float2tag.put(24.0f, "prtmod");
+        float2tag.put(25.0f, "amod");
+        float2tag.put(26.0f, "attr");
+        float2tag.put(27.0f, "ordmod");
+        float2tag.put(28.0f, "top");
+        float2tag.put(29.0f, "ccomp");
+        float2tag.put(30.0f, "prnmod");
+        float2tag.put(31.0f, "loc");
+        float2tag.put(32.0f, "vmod");
+        float2tag.put(33.0f, "rcomp");
+        float2tag.put(34.0f, "pccomp");
+        float2tag.put(35.0f, "lccomp");
+        float2tag.put(36.0f, "nsubjpass");
+        float2tag.put(37.0f, "pass");
+        float2tag.put(38.0f, "xsubj");
+        float2tag.put(39.0f, "mmod");
+        float2tag.put(40.0f, "dvpmod");
+        float2tag.put(41.0f, "dvpm");
+        float2tag.put(42.0f, "ba");
+        float2tag.put(43.0f, "comod");
+        float2tag.put(44.0f, "neg");
+        float2tag.put(45.0f, "cop");
+    }
+
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
         this.tokens = tokens;
         this.nodeSize = this.tokens.length;
@@ -33,7 +84,7 @@ public class CoNLLDependencyGraph {
         this.posNegSampleRate = rate;
     }
 
-    public CoNLLDependencyGraph(List<SToken> stokens){
+    public  CoNLLDependencyGraph(List<SToken> stokens){
         CoNLLToken[] ctokens = new CoNLLToken[stokens.size()+1];
         ctokens[0] = CoNLLToken.ROOT; // Please REMEMBER to add dummy ROOT for constructing CoNLLGraph
         for (int i = 0; i<stokens.size(); i++){
@@ -53,7 +104,7 @@ public class CoNLLDependencyGraph {
     }
 
 
-    public List<DependencyRelationship> parseDependencyRelationships(){
+    public List<DependencyRelationship>  parseDependencyRelationships(Booster edgeTagModel){
         /**
          * figure out dependency using "maximal spanning tree" algorithm.
          * Implemented with a PriorityQuee
@@ -75,10 +126,32 @@ public class CoNLLDependencyGraph {
         while (!unreachedIndexes.isEmpty()){
             ScoreEdge selectedEdge = edgePQ.poll();
             if (unreachedIndexes.contains(selectedEdge.target)){
+                // 计算tag model需要的特征+模型
+
                 relationships.add(new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]));
+                // 对CoNLLToken进行dependentIndex的更新
+                this.tokens[selectedEdge.target].dependentIndex= selectedEdge.source;
+                // track 连接到的token
                 unreachedIndexes.remove(selectedEdge.target);
             }
         }
+
+        Float[][] allftrs = this.buildAllTagFtrs();
+
+        try{
+            DMatrix dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
+            float[][] predictScores = edgeTagModel.predict(dmatrix);
+            float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
+            for (int i=1 ; i< this.tokens.length; i++){
+                this.tokens[i].relationship = float2tag.get(predictScoresFlatten[i-1]);
+                relationships.get(i-1).relationship = float2tag.get(predictScoresFlatten[i-1]);
+            }
+
+        }catch(XGBoostError e){
+            System.out.println(e);
+        }
+
+
 
         return relationships;
     }
@@ -111,6 +184,7 @@ public class CoNLLDependencyGraph {
 
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
         float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[targetIndex].getToken());
+
 //        ftrs.addAll(getTopN(dependent_vec,5));
 //        ftrs.addAll(getTopN(target_vec,5));
 
@@ -124,6 +198,41 @@ public class CoNLLDependencyGraph {
         float label = this.tokens[targetIndex].getDependentIndex()==dependentIndex ? 1.0f : 0.0f ;
         return label;
     }
+
+    public Float[][] buildAllTagFtrs(){
+
+        LinkedList<int[]> postiveIndexes = new LinkedList<>();
+        for (int j = 0; j< this.nodeSize;j++){
+            for (int i =0; i< this.nodeSize; i++){
+                if (getLabel(i,j)==1.0f) {
+                    postiveIndexes.add(new int[]{i, j});
+                }
+            }
+        }
+        int ftr_size = buildFtrs(0,0).length;
+
+        Float[][] all_ftrs = new Float[postiveIndexes.size()][ftr_size];
+        int count = 0;
+
+//        System.out.println(" ~~~~~~~~ProcessFtr4Sentence~~~~~~~  ");
+
+        for (int[] index : postiveIndexes){
+            int i = index[0];
+            int j = index[1];
+            // 4 debug only' 验证添加特征顺序是否正确
+//            System.out.print("ftr dependent index: ");
+//            System.out.print(i);
+//            System.out.print("  ;;;  ftr target index: ");
+//            System.out.println(j);
+
+            all_ftrs[count] = buildFtrs(i,j);
+            count+=1;
+        }
+//        System.out.println(" ~~~~~~~~ProcessFtr4Sentence~~~~~~~  ");
+        return all_ftrs;
+
+    }
+
 
     public Float[][] buildAllFtrs(){
         /**
@@ -187,10 +296,21 @@ public class CoNLLDependencyGraph {
     }
 
     public String[] getAllTagLabel(){
-        String[] labels = new String[this.tokens.length];
-        for (int i = 0; i <= labels.length; i++){
-            labels[i] = this.tokens[i].relationship;
+        // 注意root 作为第0个Token没有tag label
+        String[] labels = new String[this.tokens.length-1];
+//        System.out.print("token size: ");
+//        System.out.println(this.tokens.length);
+
+//        System.out.println(" ~~~~~~~~ProcessTag4Sentence~~~~~~~  ");
+
+        for (int i = 1; i < this.tokens.length; i++){
+//            System.out.print("token value: ");
+//            System.out.print(this.tokens[i].token);
+//            System.out.print("  ;;;  token tag: ");
+//            System.out.println(this.tokens[i].relationship);
+            labels[i-1] = this.tokens[i].relationship;
         }
+//        System.out.println(" ~~~~~~~~ProcessTag4Sentence~~~~~~~  ");
         return labels;
     }
 

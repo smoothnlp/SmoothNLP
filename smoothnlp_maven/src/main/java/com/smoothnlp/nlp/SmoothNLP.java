@@ -53,7 +53,11 @@ public class SmoothNLP{
     public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
     public static String CRF_NER_MODEL = "model/ner_crfpp_4gram_x00_linux_2test.bin";
     public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_full_500_e10.bin";
+    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model.bin";
+
+
     public static String WordEmbedding_MODEL = "embedding/wordembedding.txt";
+
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();

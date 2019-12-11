@@ -55,7 +55,7 @@ public class WordEmbedding implements IEmbedding{
 
             }
             this.embedding_size = dimen;
-            //System.out.println("Embedding 读入条数" + index + ", 耗时" + (System.currentTimeMillis()-start) + "ms");
+            System.out.println("Embedding 读入条数" + index + ", 耗时" + (System.currentTimeMillis()-start) + "ms");
         }catch (IOException e){
             SmoothNLP.LOGGER.severe(e.getMessage());
         }
