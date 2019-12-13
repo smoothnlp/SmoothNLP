@@ -81,5 +81,10 @@ def parse_date(givendate,pubdate=None):
 
 @localSupportCatch
 def split2sentences(text:str):
-    return nlp.split2sentences(text);
+    return nlp.split2sentences(text)
+
+@localSupportCatch
+def dep_parsing(text:str):
+    return nlp.dependencyrelationships(text)
+
 
