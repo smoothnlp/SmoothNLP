@@ -1,0 +1,97 @@
+package com.smoothnlp.nlp.model.crfagu;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+
+public class EmbeddingImpl {
+
+    public HashMap<String,float[]> embeddingVector;
+    private String splitRegex = "\t";
+    private int vsize;
+
+    public EmbeddingImpl(){
+        embeddingVector = new HashMap<>();
+    }
+    public EmbeddingImpl(String inputFile){
+        this();
+        loadEmbedding(inputFile);
+    }
+    public EmbeddingImpl(String inputFile,String splitRegex){
+        this();
+        setSplitRegex(splitRegex);
+        loadEmbedding(inputFile);
+    }
+
+    public void setSplitRegex(String splitRegex){
+        this.splitRegex = splitRegex;
+    }
+    public int getVsize(){
+        return vsize;
+    }
+
+    public void loadEmbedding(String inputFile){
+        try{
+            InputStreamReader ifs = new InputStreamReader(new FileInputStream(inputFile));
+            BufferedReader br = new BufferedReader(ifs);
+            loadEmbedding(br);
+            br.close();
+        }catch (Exception e ){
+            e.printStackTrace();
+            System.err.println("br error");
+        }
+    }
+
+    public void loadEmbedding(BufferedReader br){
+        try{
+            String line;
+            line = br.readLine();
+            String [] cols = line.split(splitRegex);
+            int xsize = cols.length -1 ;
+            vsize = xsize;
+            while(true){
+                add(line);
+                line = br.readLine();
+                if(line == null){
+                    break;
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.err.println("Error reading stream");
+        }
+    }
+
+    public boolean add(String line){
+        String [] cols = line.split(splitRegex);
+        if (vsize != cols.length -1){
+            System.err.println("# x is small: size=" + cols.length+" and xsize=" + vsize);
+            return false;
+        }
+        String key = cols[0];
+        if(embeddingVector.containsKey(key)){
+            System.err.println(key + " is repeat");
+            return false;
+        }
+        float [] embedding = new float[vsize];
+        for (int i =0; i <vsize; i++){
+            embedding[0] = Float.parseFloat(cols[i+1]);
+        }
+        embeddingVector.put(key,embedding);
+        return true;
+    }
+
+
+    public static void main(String[]args){
+        String file = "test.txt";
+        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"\t");
+        for(String key:embeddingImpl.embeddingVector.keySet()){
+            System.out.println(key);
+            float[] value = embeddingImpl.embeddingVector.get(key);
+            for(int i=0;i<value.length;i++)
+                System.out.println(value[i]);
+        }
+    }
+
+}
