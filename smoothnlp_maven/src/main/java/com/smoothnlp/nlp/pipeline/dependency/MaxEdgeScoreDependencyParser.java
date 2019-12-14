@@ -33,12 +33,12 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
         this.edgeTagModel = loadXgbModel(edgeTagModel);
     }
 
-    public List<DependencyRelationship> parse(String input) throws XGBoostError{
+    public DependencyRelationship[] parse(String input) throws XGBoostError{
         List<SToken> stokens = SmoothNLP.POSTAG_PIPELINE.process(input);
         return parse(stokens);
     }
 
-    public List<DependencyRelationship> parse(List<SToken> stokens) throws XGBoostError{
+    public DependencyRelationship[] parse(List<SToken> stokens) throws XGBoostError{
         CoNLLDependencyGraph cgraph = new CoNLLDependencyGraph(stokens);
         // build ftrs
         Float[][] pairFtrs = cgraph.buildAllFtrs();
@@ -78,8 +78,10 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 
     public static void main(String[] args) throws XGBoostError{
         MaxEdgeScoreDependencyParser dparser = new MaxEdgeScoreDependencyParser();
-        System.out.println(dparser.parse("AI创业公司“一览群智”完成1.5亿元融资，经纬中国、策源资本投资"));
-        System.out.println(dparser.parse("中共中央政治局召开会议,分析研究2019年经济工作"));
+        System.out.println(UtilFns.toJson(dparser.parse("AI创业公司“一览群智”完成1.5亿元融资，经纬中国、策源资本投资")));
+        System.out.println(UtilFns.toJson(dparser.parse("中共中央政治局召开会议,分析研究2019年经济工作")));
+        System.out.println(UtilFns.toJson(dparser.parse("阿里与腾讯达成合作协议")));
+        System.out.println(UtilFns.toJson(dparser.parse("文磨获得天使轮融资")));
 
     }
 

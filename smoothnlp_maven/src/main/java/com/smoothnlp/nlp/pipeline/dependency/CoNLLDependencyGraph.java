@@ -5,6 +5,7 @@ import com.smoothnlp.nlp.basic.CoNLLToken;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
 
+import java.awt.datatransfer.SystemFlavorMap;
 import java.util.*;
 
 import ml.dmlc.xgboost4j.java.DMatrix;
@@ -104,7 +105,7 @@ public class CoNLLDependencyGraph {
     }
 
 
-    public List<DependencyRelationship>  parseDependencyRelationships(Booster edgeTagModel){
+    public DependencyRelationship[]  parseDependencyRelationships(Booster edgeTagModel){
         /**
          * figure out dependency using "maximal spanning tree" algorithm.
          * Implemented with a PriorityQuee
@@ -119,28 +120,45 @@ public class CoNLLDependencyGraph {
         // 重复这一动作，直到所有 1-X的index 都被cover
         
         PriorityQueue<ScoreEdge> edgePQ = new PriorityQueue<ScoreEdge>();
-        for (int i = 0; i<this.nodeSize; i++){
-            for (int j = 1; j<this.nodeSize; j++){
-                edgePQ.add(new ScoreEdge(i,j,this.edgeScores[i][j]));
-            }
+        for (int j = 1; j<this.nodeSize; j++){
+            edgePQ.add(new ScoreEdge(0,j,this.edgeScores[0][j]));
         }
+//        for (int i = 0; i<this.nodeSize; i++){
+//            for (int j = 1; j<this.nodeSize; j++){
+//                edgePQ.add(new ScoreEdge(i,j,this.edgeScores[i][j]));
+//            }
+//        }
 
         // construct a set to keep track of unreached indexes
         HashSet<Integer> unreachedIndexes = new HashSet<Integer>();
         for (int i = 1; i<this.nodeSize; i++) { unreachedIndexes.add(i);};
 
-        List<DependencyRelationship> relationships = new ArrayList<DependencyRelationship>();
+//        List<DependencyRelationship> relationships = new ArrayList<DependencyRelationship>();
+
+        DependencyRelationship[] relationships = new DependencyRelationship[this.tokens.length-1];
 
         while (!unreachedIndexes.isEmpty()){
             ScoreEdge selectedEdge = edgePQ.poll();
             if (unreachedIndexes.contains(selectedEdge.target)){
-                // 计算tag model需要的特征+模型
 
-                relationships.add(new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]));
+                // 计算tag model需要的特征+模型
+//                relationships.add(new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]));
+                relationships[selectedEdge.target-1] = new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]);
                 // 对CoNLLToken进行dependentIndex的更新
                 this.tokens[selectedEdge.target].dependentIndex= selectedEdge.source;
                 // track 连接到的token
                 unreachedIndexes.remove(selectedEdge.target);
+
+                // 基于 selectedEdge.target 添加下一轮的candidate 放入 priority queue
+
+                if (selectedEdge.source==0){
+                    edgePQ =  new PriorityQueue<ScoreEdge>();
+                }
+
+                for (int j = 1; j<this.nodeSize; j++){
+                    edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
+                }
+
             }
         }
 
@@ -150,9 +168,16 @@ public class CoNLLDependencyGraph {
             DMatrix dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
             float[][] predictScores = edgeTagModel.predict(dmatrix);
             float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
+//            System.out.println("score size");
+//            System.out.println(predictScores.length);
+//            System.out.println("token size");
+//            System.out.println(this.tokens.length);
+//            System.out.println("relation size");
+//            System.out.println(relationships.size());
             for (int i=1 ; i< this.tokens.length; i++){
                 this.tokens[i].relationship = float2tag.get(predictScoresFlatten[i-1]);
-                relationships.get(i-1).relationship = float2tag.get(predictScoresFlatten[i-1]);
+                relationships[i-1].relationship = float2tag.get(predictScoresFlatten[i-1]);
+//                relationships.get(i-1).relationship = float2tag.get(predictScoresFlatten[i-1]);
             }
 
         }catch(XGBoostError e){

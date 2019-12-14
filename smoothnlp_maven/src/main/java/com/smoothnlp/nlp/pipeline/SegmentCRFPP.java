@@ -58,7 +58,7 @@ public class SegmentCRFPP extends CRFModel{
         // 1. 遇到空格切开
         // 2. 中英文相连切开, (特殊情况会被字典Overwrite, 如: "A轮"出现在字典中)
         // 3. 其他字符(标点等)和英文等没有分开
-        Pattern pattern  = Pattern.compile("[a-zA-Z]+|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
+        Pattern pattern  = Pattern.compile("[a-zA-Z0-9]{2,10}|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
         Matcher matcher =  pattern.matcher(input);
         while (matcher.find()) {
 //            System.out.println(matcher.toString());
@@ -112,7 +112,8 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("传AMD女掌门人"));
         System.out.println(s.process("首席出行要闻丨多家车企签署战略合作协议"));
         System.out.println(s.process("京东与格力开展战略合作丨家居要闻点评"));
-        System.out.println(s.process("中国跨境电商Club Factory完成1亿美元融资"));
+        System.out.println(s.process("SOHO3Q甩卖11个项目 孵化器公司筑梦之星接盘"));
+        System.out.println(s.process("1号店宣布彻底破产"));
     }
 
 }

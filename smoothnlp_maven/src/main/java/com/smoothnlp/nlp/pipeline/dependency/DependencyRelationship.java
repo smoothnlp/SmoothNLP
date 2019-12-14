@@ -5,7 +5,7 @@ import com.smoothnlp.nlp.basic.SToken;
 public class DependencyRelationship {
 
     public String relationship;
-    public SToken dependent,target;
+    private transient SToken dependent,target;
     public int dependentIndex,targetIndex;
 
     public static String UnknownRelationship = "UNKNOWN";

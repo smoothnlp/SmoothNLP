@@ -51,12 +51,12 @@ public class SmoothNLP{
     // static model files
     public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
     public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
-    public static String CRF_NER_MODEL = "model/ner_crfpp_4gram_x00_linux_2test.bin";
-    public static String DP_EDGE_SCORE_XGBOOST = "model/dpmodel_full_500_e10.bin";
+    public static String CRF_NER_MODEL = "model/ner_crfpp_4gram_x00_linux.bin";
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model.bin";
     public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model.bin";
 
 
-    public static String WordEmbedding_MODEL = "embedding/wordembedding.txt";
+    public static String WordEmbedding_MODEL = "embedding/vectors_dim64_window15.txt";
 
 
     // static Pipelines
@@ -69,7 +69,7 @@ public class SmoothNLP{
     public static BaseEntityRecognizer CRF_NER = new NerCRFPP();
 
     public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
-    public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER});
+    public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER,CRF_NER});
     public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
@@ -87,8 +87,8 @@ public class SmoothNLP{
 
         List<SToken> sTokensPOS = POSTAG_PIPELINE.process(inputText);
         res.tokens = sTokensPOS;
-//        List<DependencyRelationship> dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
-//        res.dependencyRelationships = dependencyRelationships;
+        DependencyRelationship[] dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
+        res.dependencyRelationships = dependencyRelationships;
         res.entities = NER_PIPELINE.process(res.tokens);
         return res;
     }
@@ -143,7 +143,7 @@ public class SmoothNLP{
 //
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("A轮融资")));
 
-         System.out.println(UtilFns.toJson(SmoothNLP.process("上海文磨发布新产品嗅问")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("上海文磨获得腾讯科技投资")));
 
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("第四范式9月25日")));
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("9月25日,第四范式")));
