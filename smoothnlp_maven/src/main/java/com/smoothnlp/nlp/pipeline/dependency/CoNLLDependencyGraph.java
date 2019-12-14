@@ -110,6 +110,14 @@ public class CoNLLDependencyGraph {
          * Implemented with a PriorityQuee
          */
 
+        // TODO
+        // 发现dependency parsing 存在逻辑错误，待修改； 目前情况：root-x 的edge可能不存在， edge之间相互link
+        // priority queue init 的时候不应该塞入全部edge score，而是应该仅仅塞入 0->X1 的所有edge score
+        // 依据edge_score 判断X1 
+        // 再将 X1-X? 的所有 edge score 放入 priority queue
+        // pop 下一个最高的edge(且target_index是还没被cover的)
+        // 重复这一动作，直到所有 1-X的index 都被cover
+        
         PriorityQueue<ScoreEdge> edgePQ = new PriorityQueue<ScoreEdge>();
         for (int i = 0; i<this.nodeSize; i++){
             for (int j = 1; j<this.nodeSize; j++){
