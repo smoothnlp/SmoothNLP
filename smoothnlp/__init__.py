@@ -6,8 +6,10 @@ MODE = 'server'
 HOST_URL = "http://kong.smoothnlp.com/nlp"
 logger = logging.getLogger()
 
-from smoothnlp.server import smoothNlpRequest
+
+from .server import smoothNlpRequest
 import smoothnlp.algorithm
+from .algorithm import dp
 
 
 if sys.version_info[0] != 3:
@@ -46,7 +48,7 @@ nlp = Smoothnlp(MODE).nlp
 ## smoothnlp support function ##
 ################################
 
-from smoothnlp.utils import requestTimeout,convert,localSupportCatch
+from .utils import requestTimeout,convert,localSupportCatch
 
 @requestTimeout
 @convert
