@@ -1,13 +1,9 @@
 import sys
 import logging
 
-global MODE, nlp
-MODE = 'server'
 HOST_URL = "http://kong.smoothnlp.com/nlp"
 logger = logging.getLogger()
 
-
-from .server import smoothNlpRequest
 import smoothnlp.algorithm
 from .algorithm import dp
 
@@ -17,31 +13,6 @@ if sys.version_info[0] != 3:
     raise EnvironmentError("~~ SmoothNLP supports Python3 ONLY for now ~~~")
 
 
-class Smoothnlp(object):
-    def __init__(self, mode: str = 'server'):
-        self.mode = mode
-        if self.mode == 'local':
-            from smoothnlp.static.jvm import _start_jvm_for_smoothnlp
-            from smoothnlp.static.jvm import SafeJClass
-            _start_jvm_for_smoothnlp()
-            self.nlp = SafeJClass('com.smoothnlp.nlp.SmoothNLP')
-        else:
-            self.nlp= smoothNlpRequest()
-
-    def set_mode(self,mode):
-        self = Smoothnlp(mode)
-
-def set_mode(mode):
-    """
-    This Will be decrete
-    :param mode:
-    :return:
-    """
-    MODE = mode
-    nlp = Smoothnlp(MODE).nlp
-
-
-nlp = Smoothnlp(MODE).nlp
 
 
 ################################
@@ -49,6 +20,7 @@ nlp = Smoothnlp(MODE).nlp
 ################################
 
 from .utils import requestTimeout,convert,localSupportCatch
+from .nlp import nlp
 
 @requestTimeout
 @convert

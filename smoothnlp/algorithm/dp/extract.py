@@ -8,22 +8,17 @@ def _get_rel_map(struct,start):
             rel_map[rel['dependentIndex']].append(rel)
         else:
             rel_map[rel['dependentIndex']] = [rel]
-    return rel_map
 
-def extract_noun_phrase(text: str = None, struct: dict = None, multi_token_only=True, pretty=False):
-    """
-    抽取名词短语
-    :param text:
-    :param struct:
-    :param multi_token_only:
-    :param pretty:
-    :return:
-    """
+
+def extract_phrase(text: str = None, struct: dict = None,
+                   multi_token_only=True,
+                   pretty=False,
+                   valid_postags={"NN", "NR", "LOC", "DT", "JJ"},
+                   invalid_postags={"PU", "CD", "M", "VV"},
+                   valid_rels={'nn', "dobj", "dep"},
+                   rm_one_char: bool = True, ):
     if struct is None:
         struct = nlp.analyze(text)
-    valid_postags = {"NN", "NR", "LOC"}
-    invalid_postags = {"PU", "CD", "M", "VV"}
-    valid_rels = {'nn', "dobj", "dep"}
     tokens = struct['tokens']
 
     rel_map = _get_rel_map(struct)
@@ -46,6 +41,11 @@ def extract_noun_phrase(text: str = None, struct: dict = None, multi_token_only=
         direct_rel_condition2 = index - 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index - 1] if
                                                                    rel['relationship'] in valid_rels]
 
+        #         print(index)
+        #         print(valid_postag_condition,invalid_postag_condition)
+        #         print(reverse_rel_condition1,reverse_rel_condition2)
+        #         print(direct_rel_condition1,direct_rel_condition2)
+
         token['index'] = index
         if (valid_postag_condition
             or reverse_rel_condition1 or reverse_rel_condition2
@@ -64,10 +64,28 @@ def extract_noun_phrase(text: str = None, struct: dict = None, multi_token_only=
     if phrase:
         if (multi_token_only and len(phrase) > 1) or not multi_token_only:
             phrases.append(phrase)
+
+    if rm_one_char:
+        phrases = [phrase for phrase in phrases if len(phrase) > 1 or len(phrase[0]['token']) > 1]
+
     if not pretty:
         return phrases
     else:
         return ["".join([p['token'] for p in phrase]) for phrase in phrases]
+
+
+def extract_noun_phrase(text: str = None, struct: dict = None, multi_token_only=True, pretty=False):
+    return extract_phrase(text, struct, multi_token_only, pretty, valid_postags={"NN", "NR", "LOC", "DT", "JJ"},
+                          invalid_postags={"PU", "CD", "M", "VV"},
+                          valid_rels={'nn', "dobj", "dep"})
+
+
+def extract_describer_phrase(text: str = None, struct: dict = None, multi_token_only=True, pretty=False):
+    return extract_phrase(text, struct, multi_token_only, pretty,
+                          valid_postags={"DEC", "AD", "DEG", "DEV", "DER", "AS", "SP", "ETC", "MSP", "LOC"},
+                          invalid_postags={"NR", "VC", "M"},
+                          valid_rels={'dep', "advmod", "dobj", "attr", "neg", "amod"})
+
 
 def get_dp_rel(text:str=None,struct:dict=None,rel:str="nsubj"):
     """
@@ -100,7 +118,7 @@ def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
     if struct is None:
         struct = nlp.analyze(text)
     phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False)
-    subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")
+    subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")+get_dp_rel(struct=struct,rel = "top")
     subject_phrase = set()
     for index in [t['index'] for t in subject_tokens]:
         for phrase in phrases:
