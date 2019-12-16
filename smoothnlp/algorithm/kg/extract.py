@@ -1,6 +1,6 @@
 from ...nlp import nlp
 
-def _get_rel_map(struct,start):
+def _get_rel_map(struct):
     rel_map = {}
     rels = struct['dependencyRelationships']
     for rel in rels:
