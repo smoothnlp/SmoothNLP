@@ -5,7 +5,7 @@ HOST_URL = "http://kong.smoothnlp.com/nlp"
 logger = logging.getLogger()
 
 import smoothnlp.algorithm
-from .algorithm import dp
+from .algorithm import kg
 
 
 if sys.version_info[0] != 3:

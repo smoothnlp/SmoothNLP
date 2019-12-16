@@ -1,15 +1,6 @@
-from .extract import extract_noun_phrase,extract_subject
+from .extract import extract_noun_phrase,extract_subject,extract_describer_phrase,_get_rel_map
 from ...nlp import nlp
 
-def _get_rel_map(struct,start):
-    rel_map = {}
-    rels = struct['dependencyRelationships']
-    for rel in rels:
-        if rel['dependentIndex'] in rel_map:
-            rel_map[rel['dependentIndex']].append(rel)
-        else:
-            rel_map[rel['dependentIndex']] = [rel]
-    return rel_map
 
 def get_paths(text:str=None,struct:dict=None):
     if struct is None:
