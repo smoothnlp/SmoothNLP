@@ -1,4 +1,4 @@
-from ... import nlp
+from ...nlp import nlp
 
 def _get_rel_map(struct,start):
     rel_map = {}

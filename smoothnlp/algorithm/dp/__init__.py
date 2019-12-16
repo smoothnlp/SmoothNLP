@@ -1,5 +1,5 @@
 from .extract import extract_noun_phrase,extract_subject
-from ... import nlp
+from ...nlp import nlp
 
 def _get_rel_map(struct,start):
     rel_map = {}

@@ -3,8 +3,8 @@ import requests
 import json
 
 from smoothnlp import logger
-from smoothnlp import MODE
-from smoothnlp import set_mode
+from ..nlp import MODE
+from ..nlp import set_mode
 import re
 
 
