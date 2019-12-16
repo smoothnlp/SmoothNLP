@@ -8,6 +8,7 @@ def _get_rel_map(struct):
             rel_map[rel['dependentIndex']].append(rel)
         else:
             rel_map[rel['dependentIndex']] = [rel]
+    return rel_map
 
 
 def extract_phrase(text: str = None, struct: dict = None,
