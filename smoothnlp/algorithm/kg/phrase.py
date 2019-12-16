@@ -1,5 +1,7 @@
 from ...nlp import nlp
 
+prettify = lambda l: "".join([t['token'] for t in l])
+
 def _get_rel_map(struct):
     rel_map = {}
     rels = struct['dependencyRelationships']
@@ -125,4 +127,29 @@ def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
         for phrase in phrases:
             if index in [t['index'] for t in phrase]:
                 subject_phrase.add("".join([p['token'] for p in phrase]))
+    return  subject_phrase
+
+def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
+    """
+    返回一段句子中的主语
+    :param text:
+    :param struct:
+    :param pretty:
+    :return:
+    """
+    if struct is None:
+        struct = nlp.analyze(text)
+    phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False)
+    subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")+get_dp_rel(struct=struct,rel = "top")
+    subject_phrase = list()
+    added_phrase_index = set()
+    for index in [t['index'] for t in subject_tokens]:
+        for j in range(len(phrases)):
+            phrase = phrases[j]
+            if index in [t['index'] for t in phrase] and j not in added_phrase_index:
+                added_phrase_index.add(j)
+                if pretty:
+                    subject_phrase.append("".join([p['token'] for p in phrase]))
+                else:
+                    subject_phrase.append(phrase)
     return  subject_phrase
