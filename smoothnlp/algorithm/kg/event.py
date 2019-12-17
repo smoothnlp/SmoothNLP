@@ -16,7 +16,10 @@ def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
     first_index = rel_map[0][0]["targetIndex"]
     verb_token = tokens[first_index - 1]
 
-    verb_indexes = [first_index]    ## 解决多动词句子
+    verb_indexes = []    ## 解决多动词句子
+    if verb_token['postag'] in valid_verb_postags:
+        verb_indexes.append(first_index)
+
     while len(verb_indexes)<1:
         for index in verb_indexes:
             for rel in rel_map[index]:
