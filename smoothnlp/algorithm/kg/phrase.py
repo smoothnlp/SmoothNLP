@@ -16,9 +16,9 @@ def adapt_struct(func):
     @wraps(func)
     def tostruct(text,*arg,**kargs):
         if isinstance(text,str):
-            return func(nlp.analyze(text),*arg,**kargs)
+            return func(struct = nlp.analyze(text),*arg,**kargs)
         else:
-            return func(text,*arg,**kargs)
+            return func(struct = text,*arg,**kargs)
     return tostruct
 
 @adapt_struct
