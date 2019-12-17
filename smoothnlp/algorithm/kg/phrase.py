@@ -153,11 +153,19 @@ def extract_noun_phrase(text: str = None,
 
 def extract_describer_phrase(text: str = None, struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
-    return extract_phrase(text, struct, multi_token_only, pretty,
-                          valid_postags={"DEC", "AD", "DEV", "DER", "AS", "SP", "ETC", "MSP", "LOC"},
-                          invalid_postags={"NR", "VC", "M", "VV", "VE", "NN", "JJ"},
-                          valid_rels={'dep', "advmod", "attr", "neg", "amod", "dobj", "cpm"},
-                          rm_one_char=rm_one_char)
+    """
+    目前主要支持抓取以形容词为代表的描述性短语, 如: "最高的". 对"组合形容词"效果不好, 如: "最具创新力的"
+    :param text:
+    :param struct:
+    :param multi_token_only:
+    :param pretty:
+    :param rm_one_char:
+    :return:
+    """
+    return extract_phrase(text,struct,multi_token_only,pretty,valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
+                        invalid_postags = {"NR","VC","M","VV","VE","NN","JJ","CD"},
+                        valid_rels = {'dep',"advmod","attr","neg","amod","dobj","cpm"},
+                         rm_one_char = rm_one_char)
 
 def get_dp_rel(text:str=None,struct:dict=None,rel:str="nsubj"):
     if struct is None:
@@ -182,7 +190,7 @@ def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
     """
     if struct is None:
         struct = nlp.analyze(text)
-    phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False)
+    phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=False)
     subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")+get_dp_rel(struct=struct,rel = "top")
     subject_phrase = list()
     added_phrase_index = set()
