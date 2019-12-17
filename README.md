@@ -24,7 +24,8 @@
         - [5. 数字实体识别](#5-数字实体识别)
         - [6. 金额识别与结构化](#6-金额识别与结构化)
         - [7. 日期描述结构化](#7-日期描述结构化)
-        - [8. 切句](#8-切句)
+        - [8. 依存句法分析](#8-依存句法分析)
+        - [9. 切句](#9-切句)
     - [知识图谱](#知识图谱)
         - [1. 事件抽取](#1-事件抽取)
         - [2. 短语抽取](#2-短语抽取)
@@ -58,6 +59,9 @@ pip install smoothnlp>=0.2.20
 ```
 
 ### 2.Postag词性标注
+
+[词性标注标签解释wiki](https://github.com/smoothnlp/SmoothNLP/wiki/%E8%AF%8D%E6%80%A7%E6%A0%87%E6%B3%A8%E8%A7%A3%E9%87%8A%E6%96%87%E6%A1%A3)
+
 ```python
 >> smoothnlp.postag('欢迎使用smoothnlp的Python接口')
 [{'token': '欢迎', 'postag': 'VV'},
@@ -120,7 +124,26 @@ pip install smoothnlp>=0.2.20
 {'startDate': '2018-01-01', 'endDate': '2018-03-31'}
 ```
 
-### 8. 切句
+### 8. 依存句法分析
+> 注意, `smoothnlp.dep_parsing`返回的`Index=0` 为 dummy的`root`token.
+
+[依存句法分析标签解释wiki](https://github.com/smoothnlp/SmoothNLP/wiki/%E4%BE%9D%E5%AD%98%E5%8F%A5%E6%B3%95%E5%88%86%E6%9E%90%E8%A7%A3%E9%87%8A%E6%96%87%E6%A1%A3)
+
+```python
+smoothnlp.dep_parsing("特斯拉是全球最大的电动汽车制造商。")
+> [{'relationship': 'top', 'dependentIndex': 2, 'targetIndex': 1},
+  {'relationship': 'root', 'dependentIndex': 0, 'targetIndex': 2},
+  {'relationship': 'dep', 'dependentIndex': 5, 'targetIndex': 3},
+  {'relationship': 'advmod', 'dependentIndex': 5, 'targetIndex': 4},
+  {'relationship': 'ccomp', 'dependentIndex': 2, 'targetIndex': 5},
+  {'relationship': 'cpm', 'dependentIndex': 5, 'targetIndex': 6},
+  {'relationship': 'amod', 'dependentIndex': 8, 'targetIndex': 7},
+  {'relationship': 'attr', 'dependentIndex': 2, 'targetIndex': 8},
+  {'relationship': 'attr', 'dependentIndex': 2, 'targetIndex': 9},
+  {'relationship': 'punct', 'dependentIndex': 2, 'targetIndex': 10}]
+```
+
+### 9. 切句
 ```python
 smoothnlp.split2sentences("句子1!句子2!")
 > ['句子1!', '句子2!']
