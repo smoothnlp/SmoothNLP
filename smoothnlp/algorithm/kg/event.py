@@ -48,6 +48,8 @@ def extract_event(struct: dict = None, pretty: bool = True,
         for subject_candidate in subject_candidates:
             subject_candidate_indexes = set([t['index'] for t in subject_candidate])
             subject = None
+            if verb_index not in rel_map:
+                continue
             for rel in rel_map[verb_index]:
                 if rel['relationship'] in valid_subject_rel and rel['targetIndex'] in subject_candidate_indexes:
                     subject = subject_candidate
