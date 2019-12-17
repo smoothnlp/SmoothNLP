@@ -5,6 +5,7 @@ import java.util.*;
 
 /**
  * Created by zhifac on 2017/3/19.
+ * attribute feature_index_ : 存储feature_index_
  */
 public class TaggerImpl extends Tagger {
     class QueueElement {
@@ -21,20 +22,24 @@ public class TaggerImpl extends Tagger {
     Mode mode_ = Mode.TEST;
     int vlevel_ = 0;
     int nbest_ = 0;
-    int ysize_;
+    int ysize_;  // 有效label 的大小，如分词即为（B、E、M、O） = 4
     double cost_;
     double Z_;
     int feature_id_;
     int thread_id_;
     FeatureIndex feature_index_;
-    List<List<String>> x_;
-    List<List<Node>> node_;
-    List<Integer> answer_;
+    List<List<String>> x_;  // 重要，存储一个句子的特征，内部的list<String> 表示一行的特征数据即一行的每列； 外部的list表示多行（多个词）
+    List<List<Node>> node_; // 重要，存储 node_[i][j]
+    List<Integer> answer_;  // 重要，存储一个句子的每个词对应的label的编码；
     List<Integer> result_;
     String lastError;
     PriorityQueue<QueueElement> agenda_;
     List<List<Double>> penalty_;
     List<List<Integer>> featureCache_;
+
+    //support embedding;
+    List<String> featureEmbeddingStrsCache_;
+    List<Integer> featureEmbeddingIdsCache_;
 
     public TaggerImpl(Mode mode) {
         mode_ = mode;
@@ -53,6 +58,10 @@ public class TaggerImpl extends Tagger {
         agenda_ = null;
         penalty_ = new ArrayList<List<Double>>();
         featureCache_ = new ArrayList<List<Integer>>();
+
+
+        featureEmbeddingStrsCache_ = new ArrayList<String>();
+        featureEmbeddingIdsCache_ = new ArrayList<Integer>();
     }
 
     public void clearNodes() {
@@ -147,10 +156,10 @@ public class TaggerImpl extends Tagger {
             feature_index_.rebuildFeatures(this);
             for (int i = 0; i < x_.size(); i++) {
                 for (int j = 0; j < ysize_; j++) {
-                    feature_index_.calcCost(node_.get(i).get(j));
+                    feature_index_.calcCost(node_.get(i).get(j)); //计算节点代价
                     List<Path> lpath = node_.get(i).get(j).lpath;
                     for (Path p : lpath) {
-                        feature_index_.calcCost(p);
+                        feature_index_.calcCost(p); //计算边的代价
                     }
                 }
             }
@@ -165,6 +174,22 @@ public class TaggerImpl extends Tagger {
             }
         }
     }
+
+    public void buildLatticeWithEmbedding(){
+        if(!x_.isEmpty()){
+            feature_index_.rebuildEmbeddingFeatures(this);
+            for (int i = 0; i < x_.size(); i++) {
+                for (int j = 0; j < ysize_; j++) {
+                    feature_index_.calcCostWithEmbedding(node_.get(i).get(j)); //计算节点代价 , node_[i][j] 表示一个节点；第i个词是第j个label 的点；
+                    List<Path> lpath = node_.get(i).get(j).lpath;
+                    for (Path p : lpath) {
+                        feature_index_.calcCost(p); //计算边的代价 ,由于不支持转移矩阵特征，所以不影响；
+                    }
+                }
+            }
+        }
+    }
+
 
     public boolean initNbest() {
         if (agenda_ == null) {
@@ -205,6 +230,11 @@ public class TaggerImpl extends Tagger {
         return err;
     }
 
+    /**
+     * 计算梯度
+     * @param expected
+     * @return
+     */
     public double gradient(double[] expected) {
         if (x_.isEmpty()) {
             return 0.0;
@@ -241,6 +271,61 @@ public class TaggerImpl extends Tagger {
         viterbi();
         return Z_ - s;
     }
+
+    /**
+     *
+     * @param expected
+     * @return
+     */
+
+    public double gradientWithEmbedding(double[] expected, double [] expectedEmbedding){
+        if(x_.isEmpty()){
+            return 0.0;
+        }
+        buildLatticeWithEmbedding();
+        forwardbackward();  // 前向-后向算法
+
+        double s = 0.0;
+        //计算期望
+        for(int i = 0 ; i< x_.size(); i++){
+            for (int j = 0 ; j< ysize_; j++){
+                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, Z_ ,ysize_);
+            }
+        }
+
+        for(int i = 0; i < x_.size(); i++){
+            List<Integer> fvector = node_.get(i).get(answer_.get(i)).fVector;
+            for(int j = 0 ; fvector.get(j) != -1 ; j++){
+                int idx = fvector.get(j) + answer_.get(i);
+                expected[idx] -- ;
+            }
+
+            int id = node_.get(i).get(answer_.get(i)).emID;
+            int idxEmbedding = id + answer_.get(i);
+            expectedEmbedding[idxEmbedding] -- ;
+
+            s += node_.get(i).get(answer_.get(i)).cost; //UNIGRAM COST
+
+            List<Path> lpath = node_.get(i).get(answer_.get(i)).lpath;
+            for (Path p : lpath) {
+                if (p.lnode.y == answer_.get(p.lnode.x)) {
+                    for (int k = 0; p.fvector.get(k) != -1; k++) {
+                        int idx = p.fvector.get(k) + p.lnode.y * ysize_ + p.rnode.y;
+                        expected[idx]--;
+                    }
+                    s += p.cost;  // BIGRAM COST
+                    break;
+                }
+            }
+        }
+
+        viterbi();
+
+        return Z_ - s;
+
+    }
+
+
 
     public double collins(List<Double> collins) {
         if (x_.isEmpty()) {
@@ -304,6 +389,10 @@ public class TaggerImpl extends Tagger {
         return -s;
     }
 
+    /**
+     * FeatureIndex
+     * @return
+     */
     public boolean shrink() {
         if (!feature_index_.buildFeatures(this)) {
             System.err.println("build features failed");
@@ -312,18 +401,19 @@ public class TaggerImpl extends Tagger {
         return true;
     }
 
+    // 读取一句话的内容，用一个空白行表示一个sentence的截止；crf++中提到用一个空白行将俩个sentence隔开；
     public ReadStatus read(BufferedReader br) {
         clear();
         ReadStatus status = ReadStatus.SUCCESS;
         try {
             String line;
             while (true) {
-                if ((line = br.readLine()) == null) {
+                if ((line = br.readLine()) == null) { //读到空白行，表示当前sentence结束，返回ReadStatus.EOF;
                     return ReadStatus.EOF;
                 } else if (line.length() == 0) {
                     break;
                 }
-                if (!add(line)) {
+                if (!add(line)) {  //在行内时，将该行信息加入
                     System.err.println("fail to add line: " + line);
                     return ReadStatus.ERROR;
                 }
@@ -415,8 +505,16 @@ public class TaggerImpl extends Tagger {
     public void close() {
     }
 
+    /**
+     *  对于单行数据进行处理，
+     *  并在x_ 中存储一个句子的特征，内部的list<String> 表示一行的特征数据即一行的每列； 外部的list表示多行（多个词）
+     *  在answer_ 中存储一个句子中每个词的label
+     *
+     * @param line
+     * @return
+     */
     public boolean add(String line) {
-        int xsize = feature_index_.getXsize_();
+        int xsize = feature_index_.getXsize_();  // xsize 即每行的cols.length -1
         String[] cols = line.split("[\t ]", -1);
 
         int size = cols.length;
@@ -432,7 +530,7 @@ public class TaggerImpl extends Tagger {
         result_.add(0);
         int tmpAnswer = 0;
         if (mode_ == Mode.LEARN) {
-
+            //找到该行label 对饮的序列编码
             int r = ysize_;
             for (int i = 0; i < ysize_; i++) {
                 if (cols[xsize].equals(yname(i))) {
@@ -445,10 +543,10 @@ public class TaggerImpl extends Tagger {
             }
             tmpAnswer = r;
         }
-        answer_.add(tmpAnswer);
+        answer_.add(tmpAnswer); //顺序至该句的所有的label序列中
 
 
-        List<Node> l = Arrays.asList(new Node[ysize_]);
+        List<Node> l = Arrays.asList(new Node[ysize_]); //初始node list,每个行对应有|label|个node, 并将其添加进入node_
         node_.add(l);
 
         return true;
@@ -461,6 +559,23 @@ public class TaggerImpl extends Tagger {
     public void setFeatureCache_(List<List<Integer>> featureCache_) {
         this.featureCache_ = featureCache_;
     }
+
+
+    public List<String> getFeatureEmbeddingStrsCache_(){
+        return featureEmbeddingStrsCache_;
+    }
+
+    public void setFeatureEmbeddingStrsCache_(List<String> featureEmbeddingStrsCache_){
+        this.featureEmbeddingStrsCache_ = featureEmbeddingStrsCache_;
+    }
+
+    public List<Integer> getFeatureEmbeddingIdsCache_(){
+        return featureEmbeddingIdsCache_;
+    }
+    public void setFeatureEmbeddingIdsCache_(List<Integer> featureEmbeddingIdsCache_){
+        this.featureEmbeddingIdsCache_ = featureEmbeddingIdsCache_;
+    }
+
 
     public int size() {
         return x_.size();
@@ -600,6 +715,8 @@ public class TaggerImpl extends Tagger {
         answer_.clear();
         result_.clear();
         featureCache_.clear();
+        featureEmbeddingStrsCache_.clear();
+        featureEmbeddingIdsCache_.clear();;
         Z_ = cost_ = 0.0;
         return true;
     }
