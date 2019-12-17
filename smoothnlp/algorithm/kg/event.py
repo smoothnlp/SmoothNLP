@@ -1,18 +1,16 @@
 from ...nlp import nlp
 
-from .phrase import extract_describer_phrase,extract_subject,extract_noun_phrase,extract_phrase,_get_rel_map
+from .phrase import extract_describer_phrase,extract_subject,extract_noun_phrase,extract_phrase,_get_rel_map,adapt_struct
 
-
-
-def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
+@adapt_struct
+def extract_event(struct: dict = None, pretty: bool = True,
                   valid_subject_rel={"nsubj", "top"},
                   valid_object_rel={"dobj"},
                   allow_multiple_verb: bool = True,
                   event_type:str = ""):
     events = []
     valid_verb_postags = {"VV", "VC"}
-    if struct is None:
-        struct = nlp.analyze(text)
+
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
     first_index = rel_map[0][0]["targetIndex"]
@@ -76,22 +74,25 @@ def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
 
     return events
 
-
-def extract_action_event(text: str = None, struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
-    return extract_event(text=text, struct=struct, pretty=pretty,
+@adapt_struct
+def extract_action_event(struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
+    return extract_event( struct=struct, pretty=pretty,
                          valid_subject_rel={"nsubj", "top"},
                          valid_object_rel={"dobj"},
                          allow_multiple_verb=allow_multiple_verb,
                          event_type="action")
 
-
-def extract_state_event(text: str = None, struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
-    return extract_event(text=text, struct=struct, pretty=pretty,
+@adapt_struct
+def extract_state_event(struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
+    return extract_event( struct=struct, pretty=pretty,
                          valid_subject_rel={"nsubj", "top"},
                          valid_object_rel={"attr"}, allow_multiple_verb=allow_multiple_verb,
                          event_type="state")
 
 
-def extract_all_event(text: str = None, struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
-    return extract_action_event(text, struct, pretty, allow_multiple_verb) + extract_state_event(text, struct, pretty,
-                                                                                                 allow_multiple_verb)
+def extract_all_event( struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
+    ea = extract_action_event(struct =  struct,
+                                pretty = pretty,
+                                allow_multiple_verb = allow_multiple_verb)
+    es =  extract_state_event( struct=struct, pretty=pretty,allow_multiple_verb=allow_multiple_verb)
+    return ea+es

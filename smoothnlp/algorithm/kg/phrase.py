@@ -134,15 +134,15 @@ def extract_noun_phrase(struct: dict = None,
                         with_describer: bool = True):  ## 如果with_desciber 为true, pretty 必须=False
 
     if not with_describer:
-        noun_phrases = extract_phrase(struct, multi_token_only, pretty,
+        noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
                                       valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY"},
                                       invalid_postags={"PU", "CD", "M", "VV", "VC", "DEG", "DEV", "DER", "AS", "SP"},
                                       valid_rels={'nn', "dobj", "dep"})
         return noun_phrases
     else:
-        noun_phrases = extract_noun_phrase(struct, multi_token_only=False, pretty=False, with_describer=False)
+        noun_phrases = extract_noun_phrase(struct = struct, multi_token_only=False, pretty=False, with_describer=False)
         noun_phrases_indexes = set([token['index'] for p in noun_phrases for token in p if len(p) > 1])
-        describer_phrases = extract_describer_phrase( struct, multi_token_only=False, pretty=False,
+        describer_phrases = extract_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
                                                      rm_one_char=False)
 
         #         cc_phrases = extract_cc_phrase(text,struct,multi_token_only=False,pretty=False)
@@ -173,7 +173,7 @@ def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=
     :param rm_one_char:
     :return:
     """
-    return extract_phrase(struct,multi_token_only,pretty,valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
+    return extract_phrase(struct = struct,multi_token_only = multi_token_only,pretty = pretty,valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
                         invalid_postags = {"NR","VC","M","VV","VE","NN","JJ","CD"},
                         valid_rels = {'dep',"advmod","attr","neg","amod","dobj","cpm"},
                          rm_one_char = rm_one_char)
