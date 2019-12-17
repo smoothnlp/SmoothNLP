@@ -2,6 +2,8 @@ from ...nlp import nlp
 
 from .phrase import extract_describer_phrase,extract_subject,extract_noun_phrase,extract_phrase,_get_rel_map
 
+
+
 def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
                   valid_subject_rel={"nsubj", "top"},
                   valid_object_rel={"dobj"},

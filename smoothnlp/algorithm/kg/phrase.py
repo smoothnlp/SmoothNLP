@@ -1,5 +1,5 @@
 from ...nlp import nlp
-
+from functools import wraps
 prettify = lambda l: "".join([t['token'] for t in l])
 
 def _get_rel_map(struct):
@@ -11,6 +11,15 @@ def _get_rel_map(struct):
         else:
             rel_map[rel['dependentIndex']] = [rel]
     return rel_map
+
+def adapt_struct(func):
+    @wraps(func)
+    def tostruct(text,*arg,**kargs):
+        if isinstance(text,str):
+            return func(nlp.analyze(text),*arg,**kargs)
+        else:
+            return func(text,*arg,**kargs)
+    return tostruct
 
 
 def extract_phrase(text: str = None, struct: dict = None,
@@ -180,7 +189,8 @@ def get_dp_rel(text:str=None,struct:dict=None,rel:str="nsubj"):
             target_tokens.append(tokens[target_index-1])
     return target_tokens
 
-def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
+@adapt_struct
+def extract_subject(struct:dict=None,pretty:bool = True):
     """
     返回一段句子中的主语
     :param text:
@@ -188,8 +198,8 @@ def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
     :param pretty:
     :return:
     """
-    if struct is None:
-        struct = nlp.analyze(text)
+    # if struct is None:
+    #     struct = nlp.analyze(text)
     phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=False)
     subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")+get_dp_rel(struct=struct,rel = "top")
     subject_phrase = list()
@@ -203,4 +213,4 @@ def extract_subject(text:str=None,struct:dict=None,pretty:bool = True):
                     subject_phrase.append("".join([p['token'] for p in phrase]))
                 else:
                     subject_phrase.append(phrase)
-    return  subject_phrase
+    return subject_phrase
