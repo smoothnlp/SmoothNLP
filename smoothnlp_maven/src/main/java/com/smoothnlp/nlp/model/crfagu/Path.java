@@ -29,6 +29,11 @@ public class Path {
         }
     }
 
+    /**
+     * 设置该条边的左右节点，并将对应自己设置为左节点的右连接边，和右节点的左连接边
+     * @param _lnode
+     * @param _rnode
+     */
     public void add(Node _lnode, Node _rnode) {
         lnode = _lnode;
         rnode = _rnode;
