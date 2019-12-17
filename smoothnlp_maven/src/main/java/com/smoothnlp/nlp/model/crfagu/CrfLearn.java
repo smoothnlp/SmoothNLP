@@ -7,6 +7,7 @@ import org.apache.commons.cli.*;
  */
 public class CrfLearn {
     public static boolean run(String[] args) {
+        // to-do  embedding file ;
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
         options.addOption("f", "freq", true, "use features that occuer no less than INT(default 1)");
@@ -75,7 +76,7 @@ public class CrfLearn {
             }
         } else {
             Encoder encoder = new Encoder();
-            if (!encoder.learn(restArgs[0], restArgs[1], restArgs[2],
+            if (!encoder.learn(restArgs[0], restArgs[1], restArgs[2], restArgs[3],
                 textmodel, maxiter, freq, eta, C, threadNum, shrinkingSize, algo)) {
                 System.err.println("fail to learn model");
                 return false;
