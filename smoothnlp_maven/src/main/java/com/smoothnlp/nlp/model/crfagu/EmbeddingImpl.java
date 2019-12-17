@@ -82,6 +82,18 @@ public class EmbeddingImpl {
         return true;
     }
 
+    public float[] getStrEmbedding(String key){
+        if(embeddingVector.containsKey(key)){
+            return embeddingVector.get(key);
+        }else{
+            float[] vector = new float[vsize];
+            for(int i = 0; i<vsize;i++){
+                vector[i]=0;
+            }
+            return vector;
+        }
+    }
+
 
     public static void main(String[]args){
         String file = "test.txt";
