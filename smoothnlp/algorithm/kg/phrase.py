@@ -21,16 +21,15 @@ def adapt_struct(func):
             return func(text,*arg,**kargs)
     return tostruct
 
-
-def extract_phrase(text: str = None, struct: dict = None,
+@adapt_struct
+def extract_phrase(struct: dict = None,
                    multi_token_only=True,
                    pretty=False,
                    valid_postags={},
                    invalid_postags={},
                    valid_rels={},
                    rm_one_char: bool = True, ):
-    if struct is None:
-        struct = nlp.analyze(text)
+
     tokens = struct['tokens']
 
     rel_map = _get_rel_map(struct)
@@ -124,23 +123,22 @@ prettify = lambda l: "".join([t['token'] for t in l])
 #                         invalid_postags = {"NR","VC","M","VV","VE"},
 #                         valid_rels = {"cc","ccomp"},
 #                          rm_one_char = True)
-
-def extract_noun_phrase(text: str = None,
-                        struct: dict = None,
+@adapt_struct
+def extract_noun_phrase(struct: dict = None,
                         multi_token_only=True,
                         pretty=False,
                         with_describer: bool = True):  ## 如果with_desciber 为true, pretty 必须=False
 
     if not with_describer:
-        noun_phrases = extract_phrase(text, struct, multi_token_only, pretty,
+        noun_phrases = extract_phrase(struct, multi_token_only, pretty,
                                       valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY"},
                                       invalid_postags={"PU", "CD", "M", "VV", "VC", "DEG", "DEV", "DER", "AS", "SP"},
                                       valid_rels={'nn', "dobj", "dep"})
         return noun_phrases
     else:
-        noun_phrases = extract_noun_phrase(text, struct, multi_token_only=False, pretty=False, with_describer=False)
+        noun_phrases = extract_noun_phrase(struct, multi_token_only=False, pretty=False, with_describer=False)
         noun_phrases_indexes = set([token['index'] for p in noun_phrases for token in p if len(p) > 1])
-        describer_phrases = extract_describer_phrase(text, struct, multi_token_only=False, pretty=False,
+        describer_phrases = extract_describer_phrase( struct, multi_token_only=False, pretty=False,
                                                      rm_one_char=False)
 
         #         cc_phrases = extract_cc_phrase(text,struct,multi_token_only=False,pretty=False)
@@ -159,8 +157,8 @@ def extract_noun_phrase(text: str = None,
             phrases = [prettify(p) for p in phrases]
         return phrases
 
-
-def extract_describer_phrase(text: str = None, struct: dict = None, multi_token_only=True, pretty=False,
+@adapt_struct
+def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
     """
     目前主要支持抓取以形容词为代表的描述性短语, 如: "最高的". 对"组合形容词"效果不好, 如: "最具创新力的"
@@ -171,14 +169,13 @@ def extract_describer_phrase(text: str = None, struct: dict = None, multi_token_
     :param rm_one_char:
     :return:
     """
-    return extract_phrase(text,struct,multi_token_only,pretty,valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
+    return extract_phrase(struct,multi_token_only,pretty,valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
                         invalid_postags = {"NR","VC","M","VV","VE","NN","JJ","CD"},
                         valid_rels = {'dep',"advmod","attr","neg","amod","dobj","cpm"},
                          rm_one_char = rm_one_char)
 
-def get_dp_rel(text:str=None,struct:dict=None,rel:str="nsubj"):
-    if struct is None:
-        struct = nlp.analyze(text)
+@adapt_struct
+def get_dp_rel(struct:dict=None,rel:str="nsubj"):
     tokens = struct['tokens']
     dprelations = struct['dependencyRelationships']
     target_tokens = []
