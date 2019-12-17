@@ -14,11 +14,11 @@ def _get_rel_map(struct):
 
 def adapt_struct(func):
     @wraps(func)
-    def tostruct(text,*arg,**kargs):
-        if isinstance(text,str):
-            return func(struct = nlp.analyze(text),*arg,**kargs)
+    def tostruct(struct,*arg,**kargs):
+        if isinstance(struct,str):
+            return func(struct = nlp.analyze(struct),*arg,**kargs)
         else:
-            return func(struct = text,*arg,**kargs)
+            return func(struct = struct,*arg,**kargs)
     return tostruct
 
 @adapt_struct
