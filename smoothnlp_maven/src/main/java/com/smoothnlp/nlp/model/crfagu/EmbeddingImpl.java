@@ -7,9 +7,9 @@ import java.util.HashMap;
 
 public class EmbeddingImpl {
 
-    public HashMap<String,float[]> embeddingVector;
+    public HashMap<String,float[]> embeddingVector;  // string , float[]
     private String splitRegex = "\t";
-    private int vsize;
+    private int vsize;  // embedding size
 
     public EmbeddingImpl(){
         embeddingVector = new HashMap<>();
@@ -76,12 +76,17 @@ public class EmbeddingImpl {
         }
         float [] embedding = new float[vsize];
         for (int i =0; i <vsize; i++){
-            embedding[0] = Float.parseFloat(cols[i+1]);
+            embedding[i] = Float.parseFloat(cols[i+1]);
         }
         embeddingVector.put(key,embedding);
         return true;
     }
 
+    /**
+     * 重要，根据输入的str, 返回对应embedding vector; 如果无此str,则返回一个固定size(dim size) 的vector;
+     * @param key
+     * @return
+     */
     public float[] getStrEmbedding(String key){
         if(embeddingVector.containsKey(key)){
             return embeddingVector.get(key);
@@ -94,15 +99,21 @@ public class EmbeddingImpl {
         }
     }
 
-
     public static void main(String[]args){
         String file = "test.txt";
-        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"\t");
+        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file," ");
         for(String key:embeddingImpl.embeddingVector.keySet()){
             System.out.println(key);
-            float[] value = embeddingImpl.embeddingVector.get(key);
+            float[] value = embeddingImpl.getStrEmbedding(key);
+            float sum = 0;
             for(int i=0;i<value.length;i++)
-                System.out.println(value[i]);
+            {
+                System.out.print(value[i]+" ");
+                sum+=value[i];
+            }
+            System.out.println("");
+            System.out.println("-----");
+            System.out.println(sum);
         }
     }
 
