@@ -17,14 +17,24 @@ def extract_event(struct: dict = None, pretty: bool = True,
     verb_token = tokens[first_index - 1]
 
     verb_indexes = []    ## 解决多动词句子
+    verb_indexes.append(first_index)
+    valid_verb_flag = False
     if verb_token['postag'] in valid_verb_postags:
-        verb_indexes.append(first_index)
+        valid_verb_flag = True
 
-    while len(verb_indexes)<1:
+    while not valid_verb_flag:
+
+        original_index = verb_indexes.copy()
         for index in verb_indexes:
+            if index not in rel_map:
+                continue
             for rel in rel_map[index]:
+                verb_indexes.append(rel['targetIndex'])
                 if tokens[rel['targetIndex']-1]['postag'] in valid_verb_postags:
-                    verb_indexes.append(rel['targetIndex'])
+                    valid_verb_flag = True
+        for i in original_index:
+            verb_indexes.remove(i)
+
 
     if allow_multiple_verb:
         for rel in rel_map[first_index]:
