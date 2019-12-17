@@ -5,7 +5,8 @@ from .phrase import extract_describer_phrase,extract_subject,extract_noun_phrase
 def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
                   valid_subject_rel={"nsubj", "top"},
                   valid_object_rel={"dobj"},
-                  allow_multiple_verb: bool = True):
+                  allow_multiple_verb: bool = True,
+                  event_type:str = ""):
     valid_verb_postags = {"VV", "VC"}
     if struct is None:
         struct = nlp.analyze(text)
@@ -58,6 +59,7 @@ def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
             event['subject'] = prettify(event['subject'])
             event['action'] = event['action']['token']
             event['object'] = prettify(event['object'])
+            event['type'] = event_type
 
     return events
 
@@ -66,13 +68,15 @@ def extract_action_event(text: str = None, struct: dict = None, pretty: bool = T
     return extract_event(text=text, struct=struct, pretty=pretty,
                          valid_subject_rel={"nsubj", "top"},
                          valid_object_rel={"dobj"},
-                         allow_multiple_verb=allow_multiple_verb)
+                         allow_multiple_verb=allow_multiple_verb,
+                         event_type="action")
 
 
 def extract_state_event(text: str = None, struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
     return extract_event(text=text, struct=struct, pretty=pretty,
                          valid_subject_rel={"nsubj", "top"},
-                         valid_object_rel={"attr"}, allow_multiple_verb=allow_multiple_verb)
+                         valid_object_rel={"attr"}, allow_multiple_verb=allow_multiple_verb,
+                         event_type="state")
 
 
 def extract_all_event(text: str = None, struct: dict = None, pretty: bool = True, allow_multiple_verb: bool = True):
