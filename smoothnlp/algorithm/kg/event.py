@@ -7,20 +7,28 @@ def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
                   valid_object_rel={"dobj"},
                   allow_multiple_verb: bool = True,
                   event_type:str = ""):
+    events = []
     valid_verb_postags = {"VV", "VC"}
     if struct is None:
         struct = nlp.analyze(text)
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
     first_index = rel_map[0][0]["targetIndex"]
+    verb_token = tokens[first_index - 1]
 
-    verb_indexes = [first_index]  ## 解决多动词句子
+    verb_indexes = [first_index]    ## 解决多动词句子
+    while len(verb_indexes)<1:
+        for index in verb_indexes:
+            for rel in rel_map[index]:
+                if tokens[rel['targetIndex']-1]['postag'] in valid_verb_postags:
+                    verb_indexes.append(rel['targetIndex'])
+
     if allow_multiple_verb:
         for rel in rel_map[first_index]:
             if rel['relationship'] == 'conj' and tokens[rel['targetIndex'] - 1]['postag'] in valid_verb_postags:
                 verb_indexes.append(rel['targetIndex'])
 
-    events = []
+
     noun_phrases = extract_noun_phrase(struct=struct, multi_token_only=False, pretty=False, with_describer=True)
     subject_candidates = extract_subject(struct=struct, pretty=False)
     for verb_index in verb_indexes:
@@ -29,10 +37,10 @@ def extract_event(text: str = None, struct: dict = None, pretty: bool = True,
         verb_token['index'] = verb_index
 
         if verb_token['postag'] not in valid_verb_postags:
-            return
+            continue
 
         if not subject_candidates:
-            return
+            continue
 
         for subject_candidate in subject_candidates:
             subject_candidate_indexes = set([t['index'] for t in subject_candidate])
