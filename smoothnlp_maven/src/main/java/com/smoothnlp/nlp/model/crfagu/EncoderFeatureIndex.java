@@ -241,9 +241,6 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 for (String bitempl: bigramTempls_) {
                     osw.write(bitempl + "\n");
                 }
-                for (String etempl: embeddingTempls_){
-                    osw.write(etempl + "\n");
-                }
                 osw.write("\n");
                 for (Pair<String, Integer> pair: pairList) {
                     osw.write(pair.getValue() + " " + pair.getKey() + "\n");
