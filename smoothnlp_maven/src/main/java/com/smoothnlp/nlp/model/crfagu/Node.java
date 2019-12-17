@@ -7,8 +7,8 @@ import java.util.List;
  * Created by zhifac on 2017/3/18.
  */
 public class Node {
-    public int x;
-    public int y;
+    public int x;  //一个句子中第几行， 初始化，见FeatureIndex.rebuildFetures()
+    public int y;  //设置为第几个label  所有的都会设置一次
     public double alpha;
     public double beta;
     public double cost;
@@ -19,6 +19,10 @@ public class Node {
     public List<Path> rpath;
     public static double LOG2 = 0.69314718055;
     public static int MINUS_LOG_EPSILON = 50;
+
+    public List<String> emKey;
+    public String emStr; //仅支持一个
+    public int emID; // 仅支持一个
 
     public Node() {
         lpath = new ArrayList<Path>();
@@ -67,6 +71,24 @@ public class Node {
             p.calcExpectation(expected, Z, size);
         }
     }
+
+    // support embedding templates
+    public void calcExpectation(double[] expected, double [] expectedEmbedding, double Z, int size){
+        double c = Math.exp(alpha + beta - cost -Z);
+        for (int i = 0; fVector.get(i) != -1; i++) {
+            int idx = fVector.get(i) + y;
+            expected[idx] += c;
+        }
+
+        int idx =  emID + y ;
+        expectedEmbedding[idx] += c;
+
+        for (Path p: lpath){
+            p.calcExpectation(expected, Z, size);
+        }
+
+    }
+
 
     public void clear() {
         x = y = 0;
