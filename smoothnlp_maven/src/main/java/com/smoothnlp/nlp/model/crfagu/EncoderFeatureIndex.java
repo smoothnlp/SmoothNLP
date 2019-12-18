@@ -262,6 +262,33 @@ public class EncoderFeatureIndex extends FeatureIndex {
                     osw.write(val + "\n");
                 }
 
+                //add support embedding params
+                osw.write("\n");
+                osw.write("isSuppportEmbedding:" + isSupportEmbedding+"\n");
+                osw.write("maxembeddingid:" + maxEmbeddingId_ + "\n");
+                osw.write("\n");
+
+                for(int k = 0 ; k< maxEmbeddingId_; k++){
+                    String val = new DecimalFormat("0.0000000000000000").format(alphaEmbedding_[k]);
+                    osw.write(val + "\n");
+                }
+                osw.write("\n");
+
+                for (String emtempl :embeddingTempls_){
+                    osw.write(emtempl + "\n");
+                }
+
+                osw.write("\n");
+                for(String key: embedding.getEmbeddingKeySet()){
+                    float[] vectorSet = embedding.getStrEmbedding(key);
+                    StringBuffer sb = new StringBuffer();
+                    sb.append(key);
+                    for(int li = 0 ; li <embedding.getVsize(); li++){
+                            sb.append("\t" + vectorSet[li]);
+                    }
+                    sb.append("\n");
+                    osw.write(sb.toString());
+                }
 
                 osw.close();
             }
