@@ -32,9 +32,11 @@ public class CrfLearn {
 
         boolean convert = cmd.hasOption("C");
         boolean convertToText = cmd.hasOption("T");
+
         String[] restArgs = cmd.getArgs();
+
         if (cmd.hasOption("h") || ((convertToText || convert) && restArgs.length != 2) ||
-            (!convert && !convertToText && restArgs.length != 3)) {
+            (!convert && !convertToText && restArgs.length != 4)) {
             printHelp(options);
             return cmd.hasOption("h");
         }
@@ -76,6 +78,7 @@ public class CrfLearn {
             }
         } else {
             Encoder encoder = new Encoder();
+            System.out.println("start learning...");
             if (!encoder.learn(restArgs[0], restArgs[1], restArgs[2], restArgs[3],
                 textmodel, maxiter, freq, eta, C, threadNum, shrinkingSize, algo)) {
                 System.err.println("fail to learn model");
