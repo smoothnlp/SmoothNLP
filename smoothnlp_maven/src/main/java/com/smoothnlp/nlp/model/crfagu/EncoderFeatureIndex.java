@@ -92,9 +92,9 @@ public class EncoderFeatureIndex extends FeatureIndex {
                     bigramTempls_.add(line.trim());
                 } else if (line.charAt(0) == 'E'){
                     embeddingTempls_.add(line.trim());
-                    if(embeddingFile !=null && embeddingVector == null){
+                    if(embeddingFile !=null && embedding == null){
                         isSupportEmbedding = true;
-                        embeddingVector = new EmbeddingImpl(embeddingFile); //初始化embeddingVector
+                        embedding = new EmbeddingImpl(embeddingFile); //初始化embeddingVector
                     }
                 } else{
                     System.err.println("unknown type: " + line);
@@ -222,6 +222,16 @@ public class EncoderFeatureIndex extends FeatureIndex {
             oos.writeObject(dat.getBase());
             oos.writeObject(dat.getCheck());
             oos.writeObject(alpha_);
+
+            // add support embedding params
+            oos.writeObject(isSupportEmbedding);
+            oos.writeObject(maxEmbeddingId_);
+            oos.writeObject(embeddingTempls_);
+            oos.writeObject(alphaEmbedding_);
+
+            HashMap<String, float[]> vector = embedding.embeddingVector;
+            oos.writeObject(vector);
+
             oos.close();
 
             if (textModelFile) {
@@ -251,6 +261,8 @@ public class EncoderFeatureIndex extends FeatureIndex {
                     String val = new DecimalFormat("0.0000000000000000").format(alpha_[k]);
                     osw.write(val + "\n");
                 }
+
+
                 osw.close();
             }
         } catch(Exception e) {
