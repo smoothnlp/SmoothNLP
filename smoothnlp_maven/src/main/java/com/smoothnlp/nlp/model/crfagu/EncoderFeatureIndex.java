@@ -26,6 +26,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
     public EncoderFeatureIndex(int n) {
         threadNum_ = n;
         dic_ = new HashMap<String, Pair<Integer, Integer>>(); // <字符，<编码1~y,字符出现次数>
+        emb_dic_ = new HashMap<>();
     }
 
     /**
