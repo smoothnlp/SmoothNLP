@@ -292,6 +292,17 @@ public class TaggerImpl extends Tagger {
                 node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, Z_ ,ysize_);
             }
         }
+        StringBuffer sb = new StringBuffer();
+        for(int i = 0 ; i< expected.length; i++){
+            sb.append(" "+expected[i]);
+        }
+        System.out.println("expected: " +sb.toString());
+
+        sb = new StringBuffer();
+        for(int i = 0 ; i< expectedEmbedding.length; i++){
+            sb.append(" "+expectedEmbedding[i]);
+        }
+        System.out.println("expectedEmbedding: " +sb.toString());
 
         for(int i = 0; i < x_.size(); i++){
             List<Integer> fvector = node_.get(i).get(answer_.get(i)).fVector;
