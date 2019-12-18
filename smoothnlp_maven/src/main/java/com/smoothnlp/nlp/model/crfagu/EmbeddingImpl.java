@@ -116,7 +116,7 @@ public class EmbeddingImpl {
     }
 
     public static void main(String[]args){
-        String file = "test.txt";
+        String file = "embedding.txt";
         EmbeddingImpl embeddingImpl = new EmbeddingImpl(file," ");
         for(String key:embeddingImpl.embeddingVector.keySet()){
             System.out.println(key);
