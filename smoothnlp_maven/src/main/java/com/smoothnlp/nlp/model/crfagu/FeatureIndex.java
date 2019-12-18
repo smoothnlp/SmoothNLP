@@ -178,7 +178,7 @@ public abstract class FeatureIndex {
     public String applyRule(String str, int cur, TaggerImpl tagger) {
         StringBuilder sb = new StringBuilder();
         for (String tmp : str.split("%x", -1)) {
-            if (tmp.startsWith("U") || tmp.startsWith("B")) {
+            if (tmp.startsWith("U") || tmp.startsWith("B")|| tmp.startsWith("E")) {
                 sb.append(tmp);
             } else if (tmp.length() > 0) {
                 String[] tuple = tmp.split("]");
@@ -233,7 +233,6 @@ public abstract class FeatureIndex {
         List<Integer> feature = new ArrayList<Integer>();
         List<List<Integer>> featureCache = tagger.getFeatureCache_();
         tagger.setFeature_id_(featureCache.size());  // 标记？取该句的特征从该ID位置进行获取，C++中的操作，Java 待后续
-        System.out.println("buildFeatures() feature_id_:"+ tagger.getFeature_id_());
 
         for (int cur = 0; cur < tagger.size(); cur++) {   //遍历每个词，计算每个词的特征；
             if (!buildFeatureFromTempl(feature, unigramTempls_, cur, tagger)) {  // 根据unigram ,遍历 每个unigram 的特征；
