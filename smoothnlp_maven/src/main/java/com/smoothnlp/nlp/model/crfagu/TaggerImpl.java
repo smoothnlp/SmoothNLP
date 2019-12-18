@@ -38,8 +38,8 @@ public class TaggerImpl extends Tagger {
     List<List<Integer>> featureCache_;
 
     //support embedding;
-    List<String> featureEmbeddingStrsCache_;
-    List<Integer> featureEmbeddingIdsCache_;
+    ArrayList<String> featureEmbeddingStrsCache_;
+    ArrayList<Integer> featureEmbeddingIdsCache_;
 
     public TaggerImpl(Mode mode) {
         mode_ = mode;
@@ -292,17 +292,6 @@ public class TaggerImpl extends Tagger {
                 node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, Z_ ,ysize_);
             }
         }
-        StringBuffer sb = new StringBuffer();
-        for(int i = 0 ; i< expected.length; i++){
-            sb.append(" "+expected[i]);
-        }
-        System.out.println("expected: " +sb.toString());
-
-        sb = new StringBuffer();
-        for(int i = 0 ; i< expectedEmbedding.length; i++){
-            sb.append(" "+expectedEmbedding[i]);
-        }
-        System.out.println("expectedEmbedding: " +sb.toString());
 
         for(int i = 0; i < x_.size(); i++){
             List<Integer> fvector = node_.get(i).get(answer_.get(i)).fVector;
@@ -573,18 +562,18 @@ public class TaggerImpl extends Tagger {
     }
 
 
-    public List<String> getFeatureEmbeddingStrsCache_(){
+    public ArrayList<String> getFeatureEmbeddingStrsCache_(){
         return featureEmbeddingStrsCache_;
     }
 
-    public void setFeatureEmbeddingStrsCache_(List<String> featureEmbeddingStrsCache_){
+    public void setFeatureEmbeddingStrsCache_(ArrayList<String> featureEmbeddingStrsCache_){
         this.featureEmbeddingStrsCache_ = featureEmbeddingStrsCache_;
     }
 
-    public List<Integer> getFeatureEmbeddingIdsCache_(){
+    public ArrayList<Integer> getFeatureEmbeddingIdsCache_(){
         return featureEmbeddingIdsCache_;
     }
-    public void setFeatureEmbeddingIdsCache_(List<Integer> featureEmbeddingIdsCache_){
+    public void setFeatureEmbeddingIdsCache_(ArrayList<Integer> featureEmbeddingIdsCache_){
         this.featureEmbeddingIdsCache_ = featureEmbeddingIdsCache_;
     }
 
