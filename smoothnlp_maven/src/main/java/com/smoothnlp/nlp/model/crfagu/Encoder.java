@@ -259,6 +259,7 @@ public class Encoder {
                 }
             } else { //L2
                 numNonZero = featureIndex.size() + featureIndex.sizeEmbedding();
+                numNonZeroEmbedding = featureIndex.sizeEmbedding();
                 for (int k = 0; k < featureIndex.size(); k++) {
                     threads.get(0).obj += (alpha[k] * alpha[k] / (2.0 * C));
                     threads.get(0).expected[k] += alpha[k] / C;
