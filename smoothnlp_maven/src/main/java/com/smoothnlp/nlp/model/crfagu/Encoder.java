@@ -93,7 +93,6 @@ public class Encoder {
                         System.err.println("fail to build feature index ");
                         return false;
                     }
-                    System.out.println("embedding size: " + tagger.feature_index_.getMaxEmbeddingId_());
                     tagger.setThread_id_(lineNo % threadNum);  //tagger 对应分配至的thread_id，即lineNo分配至的线程ID
                     x.add(tagger);
                 } else if (status == TaggerImpl.ReadStatus.EOF) {
@@ -121,8 +120,6 @@ public class Encoder {
         double[] alphaEmbedding = new double[featureIndex.sizeEmbedding()];
         Arrays.fill(alphaEmbedding, 0.0);
         featureIndex.setAlphaEmbedding_(alphaEmbedding);
-
-        System.out.println(featureIndex.isSupportEmbedding);
 
         System.out.println("Number of sentences: " + x.size());
         System.out.println("Number of features:  " + featureIndex.size());
@@ -304,49 +301,29 @@ public class Encoder {
             // 传入似然函数值和梯度等参数，调用LBFGS 算法；
             //int ret = lbfgs.optimize(featureIndex.size(), alpha, threads.get(0).obj, threads.get(0).expected, orthant, C);
 
-            // 这里偷个懒，不再改函数了，讲alpha 和 alphaEmbedding 拼接，featureIndex.size() + featureIndex.sizeEmbedding(),expected[] 和 expectedEmbedding[] 拼接传入；出来后再行分割
-
-
-            System.out.println("param Embedding Size: "+ featureIndex.sizeEmbedding());
-            System.out.println("alphaEmbedding size: " + alphaEmbedding.length);
-            System.out.println("expectedEmbedding size: " + threads.get(0).expectedEmbedding.length);
+            // 将alpha 和 alphaEmbedding 拼接，featureIndex.size() + featureIndex.sizeEmbedding(),expected[] 和 expectedEmbedding[] 拼接传入；出来后再行分割
 
             int paramSize = featureIndex.size() + featureIndex.sizeEmbedding();
-            System.out.println("paramSize: " + paramSize);
-
-
 
             double [] alphaCombine = new double[alpha.length+ alphaEmbedding.length];
             double [] expectedCombine = new double[threads.get(0).expected.length + threads.get(0).expectedEmbedding.length];
-            System.out.println("alphaCombine size: " + alphaCombine.length);
-            System.out.println("expectedCombine size: " + expectedCombine.length);
 
             int li = 0 ;
-            StringBuffer sb = new StringBuffer();
             for(; li<alpha.length;li++){
                 alphaCombine[li] = alpha[li];
-                sb.append(alphaCombine[li] + " ");
             }
             for(int i = 0; i < alphaEmbedding.length; i++){
                 alphaCombine[li+i] = alphaEmbedding[i];
-                sb.append(alphaCombine[li+i] + " ");
             }
-            System.out.println(sb.toString());
 
 
             li = 0 ;
-            sb = new StringBuffer();
             for(; li<alpha.length;li++){
                 expectedCombine[li] = threads.get(0).expected[li];
-                sb.append(expectedCombine[li] + " ");
             }
             for(int i = 0; i < alphaEmbedding.length; i++){
                 expectedCombine[li+i] = threads.get(0).expectedEmbedding[i];
-                sb.append(expectedCombine[li+i] + " ");
             }
-            System.out.println(sb.toString());
-
-
 
             int ret = lbfgs.optimize(paramSize,
                     alphaCombine, threads.get(0).obj, expectedCombine, orthant, C);
