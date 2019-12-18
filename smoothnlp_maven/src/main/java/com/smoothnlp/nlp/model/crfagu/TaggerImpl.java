@@ -394,7 +394,8 @@ public class TaggerImpl extends Tagger {
      * @return
      */
     public boolean shrink() {
-        if (!feature_index_.buildFeatures(this)) {
+        //if (!feature_index_.buildFeatures(this)) {
+        if(!feature_index_.buildEmbeddingFeature(this)){
             System.err.println("build features failed");
             return false;
         }
