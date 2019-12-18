@@ -19,6 +19,11 @@ public class DecoderFeatureIndex extends FeatureIndex {
         return dat.exactMatchSearch(key);
     }
 
+    //TO_DO
+    public int getEmbeddingID(String key){
+        return 1;
+    }
+
     public boolean open(InputStream stream) {
         try {
             ObjectInputStream ois = new ObjectInputStream(stream);
