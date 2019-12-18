@@ -229,7 +229,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
             oos.writeObject(embeddingTempls_);
             oos.writeObject(alphaEmbedding_);
 
-            HashMap<String, float[]> vector = embedding.embeddingVector;
+            HashMap<String, float[]> vector = embedding.getEmbeddingVector();
             oos.writeObject(vector);
 
             oos.close();
@@ -264,8 +264,13 @@ public class EncoderFeatureIndex extends FeatureIndex {
 
                 //add support embedding params
                 osw.write("\n");
-                osw.write("isSuppportEmbedding:" + isSupportEmbedding+"\n");
-                osw.write("maxembeddingid:" + maxEmbeddingId_ + "\n");
+                osw.write("isSuppportEmbedding: " + isSupportEmbedding+"\n");
+                osw.write("maxembeddingid: " + maxEmbeddingId_ + "\n");
+                osw.write("\n");
+
+                for (String emtempl :embeddingTempls_){
+                    osw.write(emtempl + "\n");
+                }
                 osw.write("\n");
 
                 for(int k = 0 ; k< maxEmbeddingId_; k++){
@@ -274,11 +279,6 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 }
                 osw.write("\n");
 
-                for (String emtempl :embeddingTempls_){
-                    osw.write(emtempl + "\n");
-                }
-
-                osw.write("\n");
                 for(String key: embedding.getEmbeddingKeySet()){
                     float[] vectorSet = embedding.getStrEmbedding(key);
                     StringBuffer sb = new StringBuffer();
@@ -390,6 +390,49 @@ public class EncoderFeatureIndex extends FeatureIndex {
             for (int i = 0; i < alpha.size(); i++) {
                 alpha_[i] = alpha.get(i);
             }
+
+            // add support embedding params
+            isSupportEmbedding = Boolean.valueOf(br.readLine().substring("isSuppportEmbedding: ".length()));
+            maxEmbeddingId_ = Integer.valueOf(br.readLine().substring("maxembeddingid: ".length()));
+
+            System.out.println("Done reading embedding constant");
+
+            while((line = br.readLine())!= null && line.length() > 0){
+                if(line.startsWith("E")){
+                    embeddingTempls_.add(line);
+                }
+            }
+            System.out.println("Done reading embedding templates");
+            List<Double> alphaEmbedding = new ArrayList<>();
+            while((line = br.readLine()) != null && line.length() >0 ){
+                alphaEmbedding.add(Double.valueOf(line));
+            }
+            System.out.println("Done reading embedding params weights");
+            alphaEmbedding_ = new double[alphaEmbedding.size()];
+            for(int i =0 ;i < alphaEmbedding.size(); i++){
+                alphaEmbedding_[i] = alphaEmbedding.get(i);
+            }
+
+            HashMap<String ,float[]> embeddingMap = new HashMap<>();
+            int vsize = 0 ;
+            while((line = br.readLine()) != null && line.length()>0){
+                String [] splits = line.trim().split("\t");
+                List<Float> vectorList = new ArrayList<>();
+                for(int i = 1; i<splits.length; i++){
+                    vectorList.add(Float.parseFloat(splits[i]));
+                }
+                vsize = vectorList.size();
+                float[] vectors = new float[vsize];
+                for(int i= 0 ;i <vectorList.size(); i++){
+                    vectors[i] = vectorList.get(i);
+                }
+                embeddingMap.put(splits[0],vectors);
+            }
+            embedding = new EmbeddingImpl();
+            embedding.setEmbeddingVector(embeddingMap);
+            embedding.setVsize(vsize);
+            System.out.println("Done reading embedding vectors");
+
             br.close();
             System.out.println("Writing binary model to " + binarymodel);
             return save(binarymodel, false);
