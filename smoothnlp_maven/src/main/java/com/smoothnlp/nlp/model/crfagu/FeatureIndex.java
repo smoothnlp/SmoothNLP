@@ -178,9 +178,9 @@ public abstract class FeatureIndex {
     public String applyRule(String str, int cur, TaggerImpl tagger) {
         StringBuilder sb = new StringBuilder();
         for (String tmp : str.split("%x", -1)) {
-            if (tmp.startsWith("U") || tmp.startsWith("B")|| tmp.startsWith("E")) {
+            if (tmp.startsWith("U") || tmp.startsWith("B")) {
                 sb.append(tmp);
-            } else if (tmp.length() > 0) {
+            } else if (!tmp.startsWith("E") && tmp.length() > 0) {
                 String[] tuple = tmp.split("]");
                 String[] idx = tuple[0].replace("[", "").split(",");
                 String r = getIndex(idx, cur, tagger);
@@ -298,7 +298,6 @@ public abstract class FeatureIndex {
         List<Integer> feature = new ArrayList<Integer>();
         List<List<Integer>> featureCache = tagger.getFeatureCache_();
         tagger.setFeature_id_(featureCache.size());  // 标记？取该句的特征从该ID位置进行获取，C++中的操作，Java 待后续
-        System.out.println("buildFeatures() feature_id_:"+ tagger.getFeature_id_());
 
         for (int cur = 0; cur < tagger.size(); cur++) {   //遍历每个词，计算每个词的特征；
             if (!buildFeatureFromTempl(feature, unigramTempls_, cur, tagger)) {  // 根据unigram ,遍历 每个unigram 的特征；
@@ -317,8 +316,8 @@ public abstract class FeatureIndex {
             feature = new ArrayList<Integer>();
         }
         // embedding feature ;
-        ArrayList<String> embeddingStrs = new ArrayList<String>();
-        ArrayList<Integer> embedingIDs = new ArrayList<Integer>();
+        ArrayList<String> embeddingStrs = tagger.getFeatureEmbeddingStrsCache_();
+        ArrayList<Integer> embedingIDs = tagger.getFeatureEmbeddingIdsCache_();
 
         String template = embeddingTempls_.get(0); // 仅支持一个embedding特征；
         for(int cur = 0; cur<tagger.size(); cur++){
