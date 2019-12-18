@@ -8,12 +8,12 @@ import java.util.Set;
 
 public class EmbeddingImpl {
 
-    public HashMap<String,float[]> embeddingVector;  // string , float[]
+    private HashMap<String,float[]> embeddingVector;  // string , float[]
     private String splitRegex = "\t";
     private int vsize;  // embedding size
 
     public EmbeddingImpl(){
-        embeddingVector = new HashMap<>();
+        embeddingVector = new HashMap<String, float[]>();
     }
     public EmbeddingImpl(String inputFile){
         this();
@@ -102,6 +102,17 @@ public class EmbeddingImpl {
 
     public Set<String> getEmbeddingKeySet(){
         return embeddingVector.keySet();
+    }
+
+    public HashMap<String, float[]> getEmbeddingVector(){
+        return embeddingVector;
+    }
+
+    public void setEmbeddingVector(HashMap<String, float[]> embeddingVector){
+        this.embeddingVector = embeddingVector;
+    }
+    public void setVsize(int vsize){
+        this.vsize = vsize;
     }
 
     public static void main(String[]args){
