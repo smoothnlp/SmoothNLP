@@ -117,7 +117,7 @@ public class EmbeddingImpl {
 
     public static void main(String[]args){
         String file = "embedding.txt";
-        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file," ");
+        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"\t");
         for(String key:embeddingImpl.embeddingVector.keySet()){
             System.out.println(key);
             float[] value = embeddingImpl.getStrEmbedding(key);
