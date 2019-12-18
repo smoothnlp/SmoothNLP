@@ -32,7 +32,7 @@ public abstract class FeatureIndex {
     protected int maxEmbeddingId_;
     protected boolean isSupportEmbedding = false;
     protected List<String> embeddingTempls_;  //存储embedding 特征模板 ，理论上仅支持 E00:%x[0,0], buildFeaturesEmbedding中仅取get(0)
-    protected EmbeddingImpl embeddingVector;  //存储embedding 特征本身
+    protected EmbeddingImpl embedding;  //存储embedding 特征本身
     protected double[] alphaEmbedding_; // embedding的参数
 
 
@@ -108,14 +108,14 @@ public abstract class FeatureIndex {
             c += alpha_[node.fVector.get(i) + node.y];
         }
 
-        float [] vector = embeddingVector.getStrEmbedding(node.emStr);
+        float [] vector = embedding.getStrEmbedding(node.emStr);
         for (int i=0; i< vector.length;i++){
             c+= alphaEmbedding_[ node.emID + i + node.y] * vector[i];
         }
 
         node.cost = costFactor_ * c;
     }
- 
+
 
     public String makeTempls(List<String> unigramTempls, List<String> bigramTempls) {
         StringBuilder sb = new StringBuilder();
@@ -495,12 +495,11 @@ public abstract class FeatureIndex {
         return maxEmbeddingId_;
     }
     public int getEmbeddingVectorSize(){
-        return embeddingVector.getVsize();
+        return embedding.getVsize();
     }
     public int sizeEmbedding(){
         return getMaxEmbeddingId_();
     }
-
     public void setAlphaEmbedding_(double[] alphaEmbedding_){
         this.alphaEmbedding_ = alphaEmbedding_;
     }
