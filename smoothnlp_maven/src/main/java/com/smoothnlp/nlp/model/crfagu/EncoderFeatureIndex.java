@@ -143,7 +143,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 }
                 if (max_size != cols.length) {
                     String msg = "inconsistent column size: " + max_size +
-                        " " + cols.length + " " + filename;
+                        " " + cols.length + " " + filename + "\n error line:" + line;
                     throw new RuntimeException(msg);
                 }
                 xsize_ = cols.length - 1;
