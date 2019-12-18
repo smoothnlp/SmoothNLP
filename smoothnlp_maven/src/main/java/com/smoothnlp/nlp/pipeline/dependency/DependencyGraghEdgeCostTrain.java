@@ -115,6 +115,10 @@ public class DependencyGraghEdgeCostTrain {
                     put("max_depth", 4);
                     put("silent", 0);
                     put("objective", "binary:logistic");
+
+                    // other parameters
+                    // "objective" -> "multi:softmax", "num_class" -> "6"
+
                     put("eval_metric", "logloss");
                     put("tree_method","approx");
                 }
@@ -134,7 +138,7 @@ public class DependencyGraghEdgeCostTrain {
     }
 
     public static void main (String[] args) throws IOException {
-//        readCoNLL2DMatrix("dev.conllx");
+//        readCoNLL2DMatrix("dev.conllx",2);
         // put in train, valid, model destinationß
 //        trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin",1);
         if (args.length==3){

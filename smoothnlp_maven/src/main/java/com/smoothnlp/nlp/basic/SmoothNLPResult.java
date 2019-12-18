@@ -8,7 +8,7 @@ import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 
 public class SmoothNLPResult {
     public List<SToken> tokens;
-    public List<DependencyRelationship> dependencyRelationships;
+    public DependencyRelationship[] dependencyRelationships;
     public List<SEntity> entities;
     public String errMsg;
 

@@ -18,25 +18,27 @@ import java.util.List;
 public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 
     private Booster edgeScoreModel;
+    private Booster edgeTagModel;
 
     public MaxEdgeScoreDependencyParser(){
-        init(SmoothNLP.DP_EDGE_SCORE_XGBOOST);
+        init(SmoothNLP.DP_EDGE_SCORE_XGBOOST, SmoothNLP.DP_EDGE_TAG_XGBOOST);
     }
 
-    public MaxEdgeScoreDependencyParser(String modelPath){
-        init(modelPath);
+    public MaxEdgeScoreDependencyParser(String edgeScoreModel, String edgeTagModel){
+        init(edgeScoreModel,edgeTagModel);
     }
 
-    private void init(String modelPath){
-        this.edgeScoreModel = loadXgbModel(modelPath);
+    private void init(String edgeScoreModel, String edgeTagModel){
+        this.edgeScoreModel = loadXgbModel(edgeScoreModel);
+        this.edgeTagModel = loadXgbModel(edgeTagModel);
     }
 
-    public List<DependencyRelationship> parse(String input) throws XGBoostError{
+    public DependencyRelationship[] parse(String input) throws XGBoostError{
         List<SToken> stokens = SmoothNLP.POSTAG_PIPELINE.process(input);
         return parse(stokens);
     }
 
-    public List<DependencyRelationship> parse(List<SToken> stokens) throws XGBoostError{
+    public DependencyRelationship[] parse(List<SToken> stokens) throws XGBoostError{
         CoNLLDependencyGraph cgraph = new CoNLLDependencyGraph(stokens);
         // build ftrs
         Float[][] pairFtrs = cgraph.buildAllFtrs();
@@ -56,7 +58,8 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
             }
         }
         cgraph.setEdgeScores(edgeScores);
-        return cgraph.parseDependencyRelationships();
+
+        return cgraph.parseDependencyRelationships(this.edgeTagModel);
     }
 
 
@@ -75,7 +78,10 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 
     public static void main(String[] args) throws XGBoostError{
         MaxEdgeScoreDependencyParser dparser = new MaxEdgeScoreDependencyParser();
-        System.out.println(dparser.parse("因为股票涨了, 所以我特别开心"));
+        System.out.println(UtilFns.toJson(dparser.parse("AI创业公司“一览群智”完成1.5亿元融资，经纬中国、策源资本投资")));
+        System.out.println(UtilFns.toJson(dparser.parse("中共中央政治局召开会议,分析研究2019年经济工作")));
+        System.out.println(UtilFns.toJson(dparser.parse("阿里与腾讯达成合作协议")));
+        System.out.println(UtilFns.toJson(dparser.parse("文磨获得天使轮融资")));
 
     }
 

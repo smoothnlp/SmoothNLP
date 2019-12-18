@@ -5,7 +5,7 @@ import com.smoothnlp.nlp.basic.SToken;
 public class DependencyRelationship {
 
     public String relationship;
-    public SToken dependent,target;
+    private transient SToken dependent,target;
     public int dependentIndex,targetIndex;
 
     public static String UnknownRelationship = "UNKNOWN";
@@ -23,6 +23,15 @@ public class DependencyRelationship {
         this.dependent = dependent;
         this.target = target;
     }
+
+    public DependencyRelationship(int dependentIndex, int targetIndex, SToken dependent, SToken target, String relationship){
+        this.dependentIndex = dependentIndex;
+        this.targetIndex = targetIndex;
+        this.relationship = relationship;
+        this.dependent = dependent;
+        this.target = target;
+    }
+
 
     public String toString(){
         if (this.dependent==null | this.target ==null){

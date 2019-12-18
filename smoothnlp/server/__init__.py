@@ -9,6 +9,8 @@ class smoothNlpRequest(object):
         self.url = url
 
     def __call__(self,text):
+        if len(text)>200:
+            raise ValueError("text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
         content = {"text":text}
         r = requests.get(self.url+"/query", params=content)
         self.result = r.json()['payload']['response']
