@@ -39,11 +39,12 @@ public class CRFEmbeddingEncoderThread implements Callable<Integer> {
         if (expected == null) {
             expected = new double[wSize];
         }
+        Arrays.fill(expected, 0.0);
         if (expectedEmbedding == null){
             expectedEmbedding = new double[wESize];
         }
+        Arrays.fill(expectedEmbedding,0.0);
 
-        Arrays.fill(expected, 0.0);
         for (int i = start_i; i < size; i = i + threadNum) { // 每个线程并行处理多个子句，且各自处理的句子不相同，size 为整体训练样本中句子的个数
             obj += x.get(i).gradientWithEmbedding(expected,expectedEmbedding); //用第i个tagger即句子的gradient进行计算；主要功能：构建无向图，调用前后向算法；计算期望
             int errorNum = x.get(i).eval();   //评估本次计算时，该句子中错误预测label的数量；
