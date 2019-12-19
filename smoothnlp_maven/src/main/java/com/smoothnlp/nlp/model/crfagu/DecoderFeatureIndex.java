@@ -3,6 +3,7 @@ package com.smoothnlp.nlp.model.crfagu;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -41,6 +42,16 @@ public class DecoderFeatureIndex extends FeatureIndex {
             dat.setCheck(datCheck);
             dat.setSize(datBase.length);
             alpha_ = (double[])ois.readObject();
+            // add support embedding params
+            isSupportEmbedding = (boolean) ois.readObject();
+            maxEmbeddingId_ = (Integer) ois.readObject();
+            embeddingTempls_ = (List<String>) ois.readObject();
+            alphaEmbedding_ = (double[])ois.readObject();
+            embedding = new EmbeddingImpl();
+            int embeddingSize = (Integer) ois.readObject();
+            HashMap<String, float[]> vector = (HashMap<String, float[]>)ois.readObject();
+            embedding.setEmbeddingVector(vector);
+            embedding.setVsize(embeddingSize);
             ois.close();
             return true;
         } catch(Exception e) {
