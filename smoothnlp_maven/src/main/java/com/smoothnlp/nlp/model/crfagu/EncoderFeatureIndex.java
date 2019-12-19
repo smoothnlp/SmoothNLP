@@ -229,6 +229,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
             oos.writeObject(maxEmbeddingId_);
             oos.writeObject(embeddingTempls_);
             oos.writeObject(alphaEmbedding_);
+            oos.writeObject(embedding.getVsize());
 
             HashMap<String, float[]> vector = embedding.getEmbeddingVector();
             oos.writeObject(vector);
@@ -279,6 +280,8 @@ public class EncoderFeatureIndex extends FeatureIndex {
                     osw.write(val + "\n");
                 }
                 osw.write("\n");
+
+                osw.write("embedding_size: " +embedding.getVsize()+"\n");
 
                 for(String key: embedding.getEmbeddingKeySet()){
                     float[] vectorSet = embedding.getStrEmbedding(key);
