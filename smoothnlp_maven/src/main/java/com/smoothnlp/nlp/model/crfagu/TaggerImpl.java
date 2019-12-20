@@ -705,6 +705,26 @@ public class TaggerImpl extends Tagger {
         return true;
     }
 
+    public boolean parseEmbedding(){
+
+        if (!feature_index_.buildEmbeddingFeature(this)) {
+            System.err.println("fail to build featureIndex");
+            return false;
+        }
+        if (x_.isEmpty()) {
+            return true;
+        }
+        buildLatticeWithEmbedding();
+        if (nbest_ != 0 || vlevel_ >= 1) {
+            forwardbackward();
+        }
+        viterbi();
+        if (nbest_ != 0) {
+            initNbest();
+        }
+        return true;
+    }
+
 
     public boolean clear() {
         if (mode_ == Mode.TEST) {
