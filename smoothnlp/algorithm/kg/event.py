@@ -1,6 +1,20 @@
 from ...nlp import nlp
 
-from .phrase import extract_describer_phrase,extract_subject,extract_noun_phrase,extract_phrase,_get_rel_map,adapt_struct
+from .phrase import extract_describer_phrase,phrase_index_range,extract_subject,extract_noun_phrase,extract_phrase,_get_rel_map,adapt_struct
+
+def _split_conj_sents(struct:dict = None):
+    tokens = struct['tokens']
+    rels = struct['dependencyRelationships']
+
+    conj_pairs = [(rel['dependentIndex'],rel['targetIndex']) for rel in rels if rel['relationship'] == 'conj']
+
+    split_indexes = []
+    for i in range(1,len(tokens)+1):
+        if tokens[i-1]['postag'] == "PU":
+            for pair in conj_pairs:
+                if pair[0]<=i<= pair[1]:
+                    split_indexes.append(i)
+    return split_indexes;
 
 @adapt_struct
 def extract_event(struct: dict = None, pretty: bool = True,
@@ -8,6 +22,9 @@ def extract_event(struct: dict = None, pretty: bool = True,
                   valid_object_rel={"dobj"},
                   allow_multiple_verb: bool = True,
                   event_type:str = ""):
+
+    split_indexes = _split_conj_sents(struct)
+
     events = []
     valid_verb_postags = {"VV", "VC"}
 
@@ -70,12 +87,30 @@ def extract_event(struct: dict = None, pretty: bool = True,
                 for rel in rel_map[verb_index]:
                     if rel['relationship'] in valid_object_rel and rel[
                         'targetIndex'] not in subject_candidate_indexes and rel['targetIndex'] in noun_indexes:
+
+                        ## 添加event之前检查是否跨句
+
+                        subj_index = phrase_index_range(subject)[0]
+                        obj_index = phrase_index_range(noun)[0]
+
+                        ## ~~~~~~~~~  对于跨并列句的情况进行检查 ~~~~~~~~
+                        ## ~~~ 如: 中美一阶段协议达成,货币政策空间加大  ~~~
+                        violate_split_condition = False
+                        for i in split_indexes:
+                            if (subj_index < i) != (obj_index <i):
+                                violate_split_condition = True
+                                break
+                        if violate_split_condition:
+                            continue
+                        ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
                         events.append({
                             "subject": subject,
                             "action": verb_token,
                             "object": noun
                         })
                         break
+
     prettify = lambda l: "".join([t['token'] for t in l])
     if pretty:
         for event in events:

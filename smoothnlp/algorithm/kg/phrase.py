@@ -1,6 +1,7 @@
 from ...nlp import nlp
 from functools import wraps
 prettify = lambda l: "".join([t['token'] for t in l])
+phrase_index_range = lambda l: [t['index'] for t in l]
 
 def _get_rel_map(struct):
     rel_map = {}
@@ -32,7 +33,7 @@ def extract_phrase(struct: dict = None,
                    valid_postags={},
                    invalid_postags={},
                    valid_rels={},
-                   rm_one_char: bool = True, ):
+                   rm_one_char: bool = True):
 
     tokens = struct['tokens']
 
@@ -60,22 +61,23 @@ def extract_phrase(struct: dict = None,
                                                                    rel['relationship'] in valid_rels and rel[
                                                                        'relationship']]
 
-        #         print(index)
-        #         print(valid_postag_condition,invalid_postag_condition)
-        #         print(reverse_rel_condition1,reverse_rel_condition2)
-        #         print(direct_rel_condition1,direct_rel_condition2)
+        # print(index)
+        # print(valid_postag_condition,invalid_postag_condition)
+        # print(reverse_rel_condition1,reverse_rel_condition2)
+        # print(direct_rel_condition1,direct_rel_condition2)
 
         token['index'] = index
-        if (valid_postag_condition
-            or reverse_rel_condition1 or reverse_rel_condition2
-            or direct_rel_condition1 or direct_rel_condition2
-        ) and invalid_postag_condition:
+
+        rel_condition = reverse_rel_condition1 or reverse_rel_condition2 or direct_rel_condition1 or direct_rel_condition2
+
+        if (valid_postag_condition or rel_condition) and invalid_postag_condition:
+
             if not phrase:
                 phrase = [token]
             else:
                 phrase.append(token)
-            continue
-        else:
+
+        else:  ## 不符合条件的情况下
             if phrase:
                 if (multi_token_only and len(phrase) > 1) or not multi_token_only:
                     phrases.append(phrase)
@@ -130,13 +132,15 @@ def concat_consecutive_phrases(phrases):
 def extract_noun_phrase(struct: dict = None,
                         multi_token_only=True,
                         pretty=False,
-                        with_describer: bool = True):  ## 如果with_desciber 为true, pretty 必须=False
+                        with_describer: bool = True, ## 如果with_desciber 为true, pretty 必须=False
+                        ):
 
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
-                                      valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY"},
+                                      valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD"},
                                       invalid_postags={"PU", "CD", "M", "VV", "VC", "DEG", "DEV", "DER", "AS", "SP"},
-                                      valid_rels={'nn', "dobj", "dep"})
+                                      valid_rels={'nn', "dobj", "dep","nsubj"}
+                                      )
         return noun_phrases
     else:
         ## 抽取带有修饰性的名词
@@ -193,8 +197,8 @@ def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=
 def extract_hybrid_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
     phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
-                             valid_postags={"AD","DEC"},
-                              invalid_postags={"NR", "VC", "M", "JJ", "CD","CPM"},
+                             valid_postags={"AD","DEC","NR"},
+                              invalid_postags={"VC","VV","M","JJ","CD"},
                               valid_rels={'rcmod', "advmod","dobj"},
                               rm_one_char=rm_one_char)
     phrases = [p for p in phrases if p[-1]['postag']=="DEC"]
