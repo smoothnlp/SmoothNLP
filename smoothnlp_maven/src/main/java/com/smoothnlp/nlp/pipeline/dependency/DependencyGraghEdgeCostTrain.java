@@ -112,9 +112,14 @@ public class DependencyGraghEdgeCostTrain {
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
                     put("eta", 1.0);
-                    put("max_depth", 4);
+                    put("max_depth", 6);
                     put("silent", 0);
                     put("objective", "binary:logistic");
+                    put("colsample_bytree",0.8);
+                    put("colsample_bylevel",0.9);
+                    put("eta",0.1);
+                    put("subsample",0.8);
+                    put("lambda",1);
 
                     // other parameters
                     // "objective" -> "multi:softmax", "num_class" -> "6"
