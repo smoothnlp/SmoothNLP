@@ -9,7 +9,7 @@ import java.util.Set;
 public class EmbeddingImpl {
 
     private HashMap<String,float[]> embeddingVector;  // string , float[]
-    private String splitRegex = "\t";
+    private String splitRegex = "[\t| ]";
     private int vsize;  // embedding size
 
     public EmbeddingImpl(){
@@ -49,12 +49,13 @@ public class EmbeddingImpl {
             String line;
             line = br.readLine();
             String [] cols = line.split(splitRegex);
-            int xsize = cols.length -1 ;
+            int xsize = Integer.parseInt(cols[cols.length -1]);
             vsize = xsize;
             while(true){
-                add(line);
                 line = br.readLine();
-                if(line == null){
+                if(line!=null){
+                    add(line);
+                }else{
                     break;
                 }
             }
@@ -67,7 +68,7 @@ public class EmbeddingImpl {
     public boolean add(String line){
         String [] cols = line.split(splitRegex);
         if (vsize != cols.length -1){
-            System.err.println("# x is small: size=" + cols.length+" and xsize=" + vsize);
+            System.err.println("# x size=" + cols.length+" and xsize=" + vsize + ",The line is " + line);
             return false;
         }
         String key = cols[0];
@@ -117,7 +118,9 @@ public class EmbeddingImpl {
 
     public static void main(String[]args){
         String file = "embedding.txt";
-        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"\t");
+        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file);
+        System.out.println(embeddingImpl.getVsize());
+
         for(String key:embeddingImpl.embeddingVector.keySet()){
             System.out.println(key);
             float[] value = embeddingImpl.getStrEmbedding(key);
