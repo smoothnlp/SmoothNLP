@@ -83,9 +83,10 @@ def extract_phrase(struct: dict = None,
     if phrase:
         if (multi_token_only and len(phrase) > 1) or not multi_token_only:
             phrases.append(phrase)
-
     if rm_one_char:
         phrases = [phrase for phrase in phrases if len(phrase) > 1 or len(phrase[0]['token']) > 1]
+
+    phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]  ## 短语不考虑只有一个token, 且token长度为1的情况
 
     if not pretty:
         return phrases
@@ -119,14 +120,12 @@ def concat_consecutive_phrases(phrases):
     return phrases
 
 
-prettify = lambda l: "".join([t['token'] for t in l])
-
-
 # def extract_cc_phrase(text:str=None,struct:dict=None,multi_token_only = True, pretty = False):
 #     return extract_phrase(text,struct,multi_token_only,pretty,valid_postags = {"AD","DEG","DEV","DER","AS","SP","ETC","MSP","LOC"},
 #                         invalid_postags = {"NR","VC","M","VV","VE"},
 #                         valid_rels = {"cc","ccomp"},
 #                          rm_one_char = True)
+
 @adapt_struct
 def extract_noun_phrase(struct: dict = None,
                         multi_token_only=True,
@@ -140,17 +139,28 @@ def extract_noun_phrase(struct: dict = None,
                                       valid_rels={'nn', "dobj", "dep"})
         return noun_phrases
     else:
+        ## 抽取带有修饰性的名词
         noun_phrases = extract_noun_phrase(struct = struct, multi_token_only=False, pretty=False, with_describer=False)
         noun_phrases_indexes = set([token['index'] for p in noun_phrases for token in p if len(p) > 1])
         describer_phrases = extract_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
                                                      rm_one_char=False)
+        describer_phrases += extract_hybrid_describer_phrase(struct=struct, multi_token_only=False, pretty=False,
+                                                     rm_one_char=False)  ## 添加组合型形容词
+
+        describer_phrases = concat_consecutive_phrases(describer_phrases)
 
         #         cc_phrases = extract_cc_phrase(text,struct,multi_token_only=False,pretty=False)
         #         describer_phrases = concat_consecutive_phrases(describer_phrases+cc_phrases)
         describer_phrases = deduple_phrases(describer_phrases)
 
-        describer_phrases = [p for p in describer_phrases if sum([(token['index'] in noun_phrases_indexes) for token in
-                                                                  p]) == 0]  ## 对 describe_phrase 在 noun_phrase中出现的部分进行去重
+        describer_phrases = [p for p in describer_phrases if sum(
+            [(token['index'] in noun_phrases_indexes) for token in p]
+        ) == 0]  ## 对 describe_phrase 在 noun_phrase中出现的部分进行去重
+
+        describer_phrases = [p for p in describer_phrases if sum(
+            [(p[-1]["index"]+1 == np[0]["index"]
+              ) for np in noun_phrases])==1]  ## 只考虑修饰词后紧跟名词短语的情况
+
         phrases = noun_phrases + describer_phrases
         phrases = deduple_phrases(phrases)
         phrases = concat_consecutive_phrases(phrases)
@@ -173,10 +183,26 @@ def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=
     :param rm_one_char:
     :return:
     """
-    return extract_phrase(struct = struct,multi_token_only = multi_token_only,pretty = pretty,valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
+    return extract_phrase(struct = struct,multi_token_only = multi_token_only,pretty = pretty,
+                          valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
                         invalid_postags = {"NR","VC","M","VV","VE","NN","JJ","CD"},
                         valid_rels = {'dep',"advmod","attr","neg","amod","dobj","cpm"},
                          rm_one_char = rm_one_char)
+
+@adapt_struct
+def extract_hybrid_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
+                             rm_one_char: bool = True):
+    phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
+                             valid_postags={"AD","DEC"},
+                              invalid_postags={"NR", "VC", "M", "JJ", "CD","CPM"},
+                              valid_rels={'rcmod', "advmod","dobj"},
+                              rm_one_char=rm_one_char)
+    phrases = [p for p in phrases if p[-1]['postag']=="DEC"]
+    if pretty:
+        phrases = [prettify(p) for p in phrases]
+    return phrases
+
+
 
 @adapt_struct
 def get_dp_rel(struct:dict=None,rel:str="nsubj"):

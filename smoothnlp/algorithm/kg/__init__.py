@@ -1,4 +1,4 @@
-from .phrase import extract_noun_phrase,extract_subject,extract_describer_phrase,_get_rel_map
+from .phrase import extract_noun_phrase,extract_subject,extract_describer_phrase,_get_rel_map,extract_hybrid_describer_phrase
 from .event import extract_noun_phrase,extract_subject,extract_describer_phrase,extract_all_event,extract_action_event,extract_state_event
 from ...nlp import nlp
 
