@@ -258,6 +258,8 @@ def extract_verbs(struct:dict=None,pretty:bool = True):
 
     verb_tokens = []
     for vtoken in verb_candidate_tokens:
+        if vtoken['index'] not in rel_map:
+            continue
         rels = rel_map[vtoken['index']]
         for rel in rels:
             if rel['relationship'] in verb_connected_relationships:  ## 检查该动词是否连接一个主语或者宾语
