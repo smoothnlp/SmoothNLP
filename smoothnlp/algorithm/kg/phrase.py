@@ -234,6 +234,7 @@ def get_dp_rel(struct:dict=None,rel:str="nsubj"):
             target_tokens.append(tokens[target_index-1])
     return target_tokens
 
+@adapt_struct
 def extract_verbs(struct:dict=None,pretty:bool = True):
     """
     抽取句子中的谓语
@@ -243,7 +244,7 @@ def extract_verbs(struct:dict=None,pretty:bool = True):
     """
 
     valid_verb_postags = {"VV", "VC", "VE", "VA"}
-    verb_connected_relationships = {'nsubj', 'dobj'}
+    verb_connected_relationships = {'nsubj', 'dobj',"top","range"}
 
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
