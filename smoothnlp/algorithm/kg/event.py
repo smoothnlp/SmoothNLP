@@ -1,20 +1,8 @@
 from ...nlp import nlp
+from .entity import extract_subject
+from .phrase import extract_describer_phrase,phrase_index_range,extract_noun_phrase,extract_phrase,_get_rel_map,adapt_struct
+from .phrase import _split_conj_sents
 
-from .phrase import extract_describer_phrase,phrase_index_range,extract_subject,extract_noun_phrase,extract_phrase,_get_rel_map,adapt_struct
-
-def _split_conj_sents(struct:dict = None):
-    tokens = struct['tokens']
-    rels = struct['dependencyRelationships']
-
-    conj_pairs = [(rel['dependentIndex'],rel['targetIndex']) for rel in rels if rel['relationship'] == 'conj']
-
-    split_indexes = []
-    for i in range(1,len(tokens)+1):
-        if tokens[i-1]['postag'] == "PU":
-            for pair in conj_pairs:
-                if pair[0]<=i<= pair[1]:
-                    split_indexes.append(i)
-    return split_indexes;
 
 @adapt_struct
 def extract_event(struct: dict = None, pretty: bool = True,

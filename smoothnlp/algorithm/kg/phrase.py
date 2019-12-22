@@ -3,6 +3,20 @@ from functools import wraps
 prettify = lambda l: "".join([t['token'] for t in l])
 phrase_index_range = lambda l: [t['index'] for t in l]
 
+def _split_conj_sents(struct:dict = None):
+    tokens = struct['tokens']
+    rels = struct['dependencyRelationships']
+
+    conj_pairs = [(rel['dependentIndex'],rel['targetIndex']) for rel in rels if rel['relationship'] == 'conj']
+
+    split_indexes = []
+    for i in range(1,len(tokens)+1):
+        if tokens[i-1]['postag'] == "PU":
+            for pair in conj_pairs:
+                if pair[0]<=i<= pair[1]:
+                    split_indexes.append(i)
+    return split_indexes;
+
 def _get_rel_map(struct):
     rel_map = {}
     rels = struct['dependencyRelationships']
@@ -220,28 +234,35 @@ def get_dp_rel(struct:dict=None,rel:str="nsubj"):
             target_tokens.append(tokens[target_index-1])
     return target_tokens
 
-@adapt_struct
-def extract_subject(struct:dict=None,pretty:bool = True):
+def extract_verbs(struct:dict=None,pretty:bool = True):
     """
-    返回一段句子中的主语
-    :param text:
+    抽取句子中的谓语
     :param struct:
     :param pretty:
     :return:
     """
-    # if struct is None:
-    #     struct = nlp.analyze(text)
-    phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=False)
-    subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")+get_dp_rel(struct=struct,rel = "top")
-    subject_phrase = list()
-    added_phrase_index = set()
-    for index in [t['index'] for t in subject_tokens]:
-        for j in range(len(phrases)):
-            phrase = phrases[j]
-            if index in [t['index'] for t in phrase] and j not in added_phrase_index:
-                added_phrase_index.add(j)
-                if pretty:
-                    subject_phrase.append("".join([p['token'] for p in phrase]))
-                else:
-                    subject_phrase.append(phrase)
-    return subject_phrase
+
+    valid_verb_postags = {"VV", "VC", "VE", "VA"}
+    verb_connected_relationships = {'nsubj', 'dobj'}
+
+    tokens = struct['tokens']
+    rel_map = _get_rel_map(struct)
+
+    verb_candidate_tokens = []
+
+    for i in range(1, len(tokens) + 1):
+        token = tokens[i - 1]
+        if token['postag'] in valid_verb_postags:
+            token['index'] = i
+            verb_candidate_tokens.append(token)
+
+    verb_tokens = []
+    for vtoken in verb_candidate_tokens:
+        rels = rel_map[vtoken['index']]
+        for rel in rels:
+            if rel['relationship'] in verb_connected_relationships:  ## 检查该动词是否连接一个主语或者宾语
+                verb_tokens.append(vtoken)
+                break
+    if pretty:
+        verb_tokens = [t['token'] for t in verb_tokens]
+    return verb_tokens
