@@ -244,7 +244,7 @@ def extract_verbs(struct:dict=None,pretty:bool = True):
     """
 
     valid_verb_postags = {"VV", "VC", "VE", "VA"}
-    verb_connected_relationships = {'nsubj', 'dobj',"top","range"}
+    verb_connected_relationships = {'nsubj', 'dobj',"top","range"}  ## 谓语可以连接向外的依存关系
 
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
