@@ -43,6 +43,8 @@ def extract_entity(struct:dict=None,pretty:bool = True,  valid_rel:set = {}):
 
     object_token_index = []
     for vtoken in verbs:
+        if vtoken['index'] not in rel_map:
+            continue
         rels = rel_map[vtoken['index']]
         rels = [rel for rel in rels if rel['relationship'] in valid_rel]
         for rel in rels:
