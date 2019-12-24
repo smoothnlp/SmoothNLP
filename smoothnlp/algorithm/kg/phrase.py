@@ -152,8 +152,8 @@ def extract_noun_phrase(struct: dict = None,
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
                                       valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD"},
-                                      invalid_postags={"PU", "CD", "M", "VV", "VC", "DEG", "DEV", "DER", "AS", "SP"},
-                                      valid_rels={'nn', "dobj", "dep","nsubj"}
+                                      invalid_postags={"PU", "M", "VV", "VC", "DEG", "DEV", "DER", "AS", "SP"},
+                                      valid_rels={'nn', "dobj", "dep","range"}
                                       )
         return noun_phrases
     else:
@@ -244,7 +244,7 @@ def extract_verbs(struct:dict=None,pretty:bool = True):
     """
 
     valid_verb_postags = {"VV", "VC", "VE", "VA"}
-    verb_connected_relationships = {'nsubj', 'dobj',"top","range"}  ## 谓语可以连接向外的依存关系
+    verb_connected_relationships = {'nsubj', 'dobj',"top","range",'attr'}  ## 谓语可以连接向外的依存关系
 
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)

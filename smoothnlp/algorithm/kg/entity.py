@@ -29,7 +29,7 @@ from .phrase import adapt_struct,get_dp_rel,extract_noun_phrase,_get_rel_map,ext
 #     return subject_phrase
 
 @adapt_struct
-def extract_entity(struct:dict=None,pretty:bool = True,  valid_rel:set = {}):
+def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with_describer : bool = False):
     """
     参考英文中"主谓宾"的语法, 抽取被谓语动词的受动体
     :param struct:
@@ -37,7 +37,7 @@ def extract_entity(struct:dict=None,pretty:bool = True,  valid_rel:set = {}):
     :return:
     """
     verbs = extract_verbs(struct,pretty=False)
-    noun_phrases =  extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=False)
+    noun_phrases =  extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=with_describer)
     rel_map = _get_rel_map(struct)
     split_indexes = _split_conj_sents(struct)
 
@@ -61,11 +61,13 @@ def extract_entity(struct:dict=None,pretty:bool = True,  valid_rel:set = {}):
         noun_phrases = [prettify(p) for p in noun_phrases if sum([t['index'] in object_token_index for t in p])>=1]
     return noun_phrases
 
-def extract_object(struct:dict=None,pretty:bool = True):
-    return extract_entity(struct = struct,pretty = pretty,valid_rel={"dobj","range"})
+def extract_object(struct:dict=None,pretty:bool = True,with_describer:bool = True):
+    return extract_entity(struct = struct,pretty = pretty,
+                          valid_rel={"dobj","range","attr"}, with_describer = with_describer)
 
-def extract_subject(struct:dict=None,pretty:bool = True):
-    return extract_entity(struct = struct,pretty = pretty,valid_rel={"nsubj","top"})
+def extract_subject(struct:dict=None,pretty:bool = True,with_describer:bool = True):
+    return extract_entity(struct = struct,pretty = pretty,
+                          valid_rel={"nsubj","top"},with_describer = with_describer)
 
 
 
