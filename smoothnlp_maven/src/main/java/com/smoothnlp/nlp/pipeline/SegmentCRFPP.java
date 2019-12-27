@@ -64,12 +64,12 @@ public class SegmentCRFPP extends CRFModel{
         // 6. 数字的中文/阿拉伯表示的混合形态不切开, 如 15万
 
         // 注意 [&.-] 为数字与字母见常用连接标点
-        String pupattern = "[+——！，。？、~@#￥%……&*（）℃”“()》《丨|\"\\[\\]]{1}";
-        String engpattern = "[a-zA-Z0-9&.-]{2,10}";
-        String numpattern = "[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,8}";
+        String pupattern = "[|+——！\\-，。？、~@#￥%……&*（）℃”“()》《丨\"\\[\\]]{1}";
+        String engpattern = "[a-zA-Z0-9]{1,10}([&.-]{0,1})[a-zA-Z0-9]{0,10}";
+        String numpattern = "[点两双一二三四五六七八九零十〇\\d.%个十百千万亿]{2,8}";
         String spcpattern = "[\\s]+";
 
-        String allpattern =  UtilFns.join("|",new String[]{pupattern,numpattern,engpattern,spcpattern});
+        String allpattern =  UtilFns.join("|",new String[]{numpattern,engpattern,pupattern,spcpattern});
         Pattern pattern = Pattern.compile(allpattern);
 
 //        Pattern pattern  = Pattern.compile("[a-zA-Z0-9]{2,10}|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
@@ -86,7 +86,6 @@ public class SegmentCRFPP extends CRFModel{
             }
             ytags[matcher.end()-1] = STOP_LABEL;
         }
-
 
         List<IDictionary.MatchResult> matchedRanges = SmoothNLP.DICTIONARIES.find(input,libraryNames);
         Collections.sort(matchedRanges);  // 按照match 到token的长度进行排序
@@ -134,6 +133,12 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("关于Wi-Fi 6、5G和物联网、边缘时代的关键事实"));
         System.out.println(s.process("年轻人,你需要的SUV是哪辆?对比T-Cross、T-ROC"));
         System.out.println(s.process("从北京SKP-S解码购物中心艺术商业新方向"));
+        System.out.println(s.process("独家|年营收超50亿 巴拉巴拉“登陆”小程序："));
+        System.out.println(s.process("独家|月营收超50亿 巴拉巴拉“登陆”小程序："));
+        System.out.println(s.process("独家|日营收超50亿 巴拉巴拉“登陆”小程序："));
+        System.out.println(s.process("“烈火”-3夜射成功 印弹道导弹战略威慑力初具规模"));
+        System.out.println(s.process("财政部:1-11月国有企业营业总收入55.7万亿元"));
+
     }
 
 }
