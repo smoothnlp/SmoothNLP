@@ -105,12 +105,13 @@ public class DependencyGraghEdgeCostTrain {
 
     }
 
-    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround, int negSampleRate, int earlyStop) throws IOException{
+    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround, int negSampleRate, int earlyStop, int nthreads) throws IOException{
         final DMatrix trainMatrix = readCoNLL2DMatrix(trainFile,negSampleRate);
         final DMatrix devMatrix = readCoNLL2DMatrix(devFile,negSampleRate);
         try{
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
+                    put("nthread", nthreads);
                     put("eta", 1.0);
                     put("max_depth", 6);
                     put("silent", 0);
@@ -147,9 +148,9 @@ public class DependencyGraghEdgeCostTrain {
         // put in train, valid, model destinationß
 //        trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin",1);
         if (args.length==3){
-            trainXgbModel(args[0],args[1],args[2],20,1,10);
+            trainXgbModel(args[0],args[1],args[2],20,1,10,8);
         }else{
-            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
+            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]),Integer.parseInt(args[6]));
         }
 
     }

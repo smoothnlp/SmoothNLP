@@ -192,12 +192,13 @@ public class DependencyGraphRelationshipTagTrain {
         return null;
     }
 
-    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround, int earlyStop) throws IOException{
+    public static void trainXgbModel(String trainFile, String devFile, String modelAddr, int nround, int earlyStop,int nthreads ) throws IOException{
         final DMatrix trainMatrix = readCoNLL2DMatrix(trainFile);
         final DMatrix devMatrix = readCoNLL2DMatrix(devFile);
         try{
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
+                    put("nthread", nthreads);
                     put("eta", 1.0);
                     put("max_depth", 6);
                     put("silent", 0);
@@ -236,9 +237,9 @@ public class DependencyGraphRelationshipTagTrain {
 //        readCoNLL2DMatrix("dev_sample.conllx");
 
         if (args.length==3){
-            trainXgbModel(args[0],args[1],args[2],20,10);
+            trainXgbModel(args[0],args[1],args[2],20,10,8);
         }else{
-            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]));
+            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
         }
 
 //        trainXgbModel("dev.conllx","dev.conllx","dp_tagmodel.bin",10,10);
@@ -250,7 +251,6 @@ public class DependencyGraphRelationshipTagTrain {
 //        }else{
 //            trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
 //        }
-
     }
 
 

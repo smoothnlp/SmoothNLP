@@ -58,7 +58,21 @@ public class SegmentCRFPP extends CRFModel{
         // 1. 遇到空格切开
         // 2. 中英文相连切开, (特殊情况会被字典Overwrite, 如: "A轮"出现在字典中)
         // 3. 其他字符(标点等)和英文等没有分开
-        Pattern pattern  = Pattern.compile("[a-zA-Z0-9]{2,10}|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
+
+        // 4. "15.25"等不切开
+        // 5. 短标点与其他字符
+        // 6. 数字的中文/阿拉伯表示的混合形态不切开, 如 15万
+
+        // 注意 [&.-] 为数字与字母见常用连接标点
+        String pupattern = "[+——！，。？、~@#￥%……&*（）℃”“()》《丨|\"\\[\\]]{1}";
+        String engpattern = "[a-zA-Z0-9&.-]{2,10}";
+        String numpattern = "[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,8}";
+        String spcpattern = "[\\s]+";
+
+        String allpattern =  UtilFns.join("|",new String[]{pupattern,numpattern,engpattern,spcpattern});
+        Pattern pattern = Pattern.compile(allpattern);
+
+//        Pattern pattern  = Pattern.compile("[a-zA-Z0-9]{2,10}|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
         Matcher matcher =  pattern.matcher(input);
         while (matcher.find()) {
 //            System.out.println(matcher.toString());
@@ -113,7 +127,13 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("首席出行要闻丨多家车企签署战略合作协议"));
         System.out.println(s.process("京东与格力开展战略合作丨家居要闻点评"));
         System.out.println(s.process("SOHO3Q甩卖11个项目 孵化器公司筑梦之星接盘"));
-        System.out.println(s.process("1号店宣布彻底破产"));
+        System.out.println(s.process("Google找来两个AI坐在一起玩游戏，他们会合作还是打架？|潮科技："));
+        System.out.println(s.process("营收增加15.2万元"));
+        System.out.println(s.process("外资便利店巨头7-11登陆郑州："));
+        System.out.println(s.process("冬至日-44.7℃ “中国最冷小镇”迎入冬来最低温："));
+        System.out.println(s.process("关于Wi-Fi 6、5G和物联网、边缘时代的关键事实"));
+        System.out.println(s.process("年轻人,你需要的SUV是哪辆?对比T-Cross、T-ROC"));
+        System.out.println(s.process("从北京SKP-S解码购物中心艺术商业新方向"));
     }
 
 }
