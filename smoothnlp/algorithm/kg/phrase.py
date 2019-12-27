@@ -152,7 +152,7 @@ def extract_noun_phrase(struct: dict = None,
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
                                       valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD"},
-                                      invalid_postags={"PU", "M", "VV", "VC", "DEG", "DEV", "DER", "AS", "SP"},
+                                      invalid_postags={"PU", "M", "VC", "VE" ,"DEG", "DEV", "DER", "AS", "SP"},
                                       valid_rels={'nn', "dobj", "dep","range"}
                                       )
         return noun_phrases
@@ -215,6 +215,11 @@ def extract_hybrid_describer_phrase(struct: dict = None, multi_token_only=True, 
                               invalid_postags={"VC","VV","M","JJ","CD"},
                               valid_rels={'rcmod', "advmod","dobj"},
                               rm_one_char=rm_one_char)
+
+    """
+    待解决的case: "欧工国际是目前国内最大的、专业的软装配套设计公司。" -> "最大的"
+    """
+
     phrases = [p for p in phrases if p[-1]['postag']=="DEC"]
     if pretty:
         phrases = [prettify(p) for p in phrases]

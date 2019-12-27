@@ -333,7 +333,6 @@ public class CoNLLDependencyGraph {
         String[] labels = new String[this.tokens.length-1];
 //        System.out.print("token size: ");
 //        System.out.println(this.tokens.length);
-
 //        System.out.println(" ~~~~~~~~ProcessTag4Sentence~~~~~~~  ");
 
         for (int i = 1; i < this.tokens.length; i++){
@@ -381,9 +380,20 @@ public class CoNLLDependencyGraph {
          */
         CoNLLToken[] tokens = new CoNLLToken[conllLines.length+1];
         tokens[0] = CoNLLToken.ROOT;
+        List<SToken> stokens  = new LinkedList<>();
         for (int i = 0; i< conllLines.length; i++){
             tokens[i+1] = CoNLLToken.parseCoNLLLine(conllLines[i]);
+            stokens.add(new SToken(conllLines[i].split("\t")[1]));
+
         }
+        stokens = SmoothNLP.POSTAG_PIPELINE.process(stokens);
+
+        int counter = 1;
+        for (SToken stoken: stokens){
+            tokens[counter].postag = stoken.postag;
+            counter+=1;
+        }
+
         return new CoNLLDependencyGraph(tokens);
     }
 
