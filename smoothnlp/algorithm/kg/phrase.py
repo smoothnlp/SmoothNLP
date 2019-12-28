@@ -152,7 +152,7 @@ def extract_noun_phrase(struct: dict = None,
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
                                       valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD"},
-                                      invalid_postags={"PU", "M", "VC", "VE" ,"DEG", "DEV", "DER", "AS", "SP"},
+                                      invalid_postags={"PU", "M", "VC", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
                                       valid_rels={'nn', "dobj", "dep","range"}
                                       )
         return noun_phrases
@@ -189,6 +189,10 @@ def extract_noun_phrase(struct: dict = None,
             phrases = [prettify(p) for p in phrases]
         return phrases
 
+
+## todo:
+## 抽取: 宁德时代正式成为宝马集团在大中华地区唯一的电池供应商; "名词"与"的"组成的修饰短语
+
 @adapt_struct
 def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
@@ -210,12 +214,21 @@ def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=
 @adapt_struct
 def extract_hybrid_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
+    """
+    抽取 "最具创新力的" <- 等, 动名词组合形容词短语
+    :param struct:
+    :param multi_token_only:
+    :param pretty:
+    :param rm_one_char:
+    :return:
+    """
     phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
                              valid_postags={"AD","DEC","NR"},
                               invalid_postags={"VC","VV","M","JJ","CD"},
                               valid_rels={'rcmod', "advmod","dobj"},
                               rm_one_char=rm_one_char)
 
+    ## todo
     """
     待解决的case: "欧工国际是目前国内最大的、专业的软装配套设计公司。" -> "最大的"
     """
@@ -274,3 +287,7 @@ def extract_verbs(struct:dict=None,pretty:bool = True):
     if pretty:
         verb_tokens = [t['token'] for t in verb_tokens]
     return verb_tokens
+
+def extract_all_phrases(struct:dict = None, pretty:bool = False):
+    noun_phrases = extract_noun_phrase(struct=struct, pretty=pretty, multi_token_only=False, with_describer=True)
+    return noun_phrases

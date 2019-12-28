@@ -38,7 +38,7 @@ public class SmoothNLP{
     public static Map<String, String> regexLibraries = new HashMap<String, String>() {
         {
             put("RELATIVE_TIME","datetime_relative.txt");
-//            put("DATETIME","datetime.txt");
+            put("DATETIME","datetime.txt");
         }
     };
 

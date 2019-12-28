@@ -37,7 +37,7 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
     :return:
     """
     verbs = extract_verbs(struct,pretty=False)
-    noun_phrases =  extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=with_describer)
+    noun_phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=with_describer)
     rel_map = _get_rel_map(struct)
     split_indexes = _split_conj_sents(struct)
 

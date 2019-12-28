@@ -126,7 +126,7 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("首席出行要闻丨多家车企签署战略合作协议"));
         System.out.println(s.process("京东与格力开展战略合作丨家居要闻点评"));
         System.out.println(s.process("SOHO3Q甩卖11个项目 孵化器公司筑梦之星接盘"));
-        System.out.println(s.process("Google找来两个AI坐在一起玩游戏，他们会合作还是打架？|潮科技："));
+        System.out.println(s.process("Google找来两个AI坐在一起玩游戏，他们会合作还是打架？|潮科技"));
         System.out.println(s.process("营收增加15.2万元"));
         System.out.println(s.process("外资便利店巨头7-11登陆郑州："));
         System.out.println(s.process("冬至日-44.7℃ “中国最冷小镇”迎入冬来最低温："));
@@ -138,7 +138,7 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("独家|日营收超50亿 巴拉巴拉“登陆”小程序："));
         System.out.println(s.process("“烈火”-3夜射成功 印弹道导弹战略威慑力初具规模"));
         System.out.println(s.process("财政部:1-11月国有企业营业总收入55.7万亿元"));
-
+        System.out.println(s.process("投资界24h|险资开展股权投资迎来“绿色通道“"));
     }
 
 }
