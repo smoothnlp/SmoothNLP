@@ -1,4 +1,4 @@
-from .phrase import extract_noun_phrase,extract_verbs,extract_describer_phrase,_get_rel_map,extract_hybrid_describer_phrase
+from .phrase import extract_noun_phrase,extract_verb_phrase,extract_describer_phrase,_get_rel_map,extract_hybrid_describer_phrase
 from .event import extract_all_event,extract_action_event,extract_state_event
 from .entity import extract_subject,extract_object
 # from .attr import extract_attr_de

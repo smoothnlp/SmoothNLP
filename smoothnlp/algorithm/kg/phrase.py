@@ -3,6 +3,14 @@ from functools import wraps
 prettify = lambda l: "".join([t['token'] for t in l])
 phrase_index_range = lambda l: [t['index'] for t in l]
 
+
+def _find_phrase_connected_rel(phrase, rel_map):
+    rels = []
+    for token in phrase:
+        if token['index'] in rel_map:
+            rels += rel_map[token['index']]
+    return rels
+
 def _split_conj_sents(struct:dict = None):
     tokens = struct['tokens']
     rels = struct['dependencyRelationships']
@@ -151,7 +159,7 @@ def extract_noun_phrase(struct: dict = None,
 
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
-                                      valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD"},
+                                      valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD","DTA"},
                                       invalid_postags={"PU", "M", "VC", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
                                       valid_rels={'nn', "dobj", "dep","range"}
                                       )
@@ -208,7 +216,7 @@ def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=
     return extract_phrase(struct = struct,multi_token_only = multi_token_only,pretty = pretty,
                           valid_postags = {"DEC","DEV","DER","SP","ETC","MSP","LOC"},
                         invalid_postags = {"NR","VC","M","VV","VE","NN","JJ","CD"},
-                        valid_rels = {'dep',"advmod","attr","neg","amod","dobj","cpm"},
+                        valid_rels = {'dep',"attr","neg","amod","dobj","cpm"},
                          rm_one_char = rm_one_char)
 
 @adapt_struct
@@ -253,7 +261,7 @@ def get_dp_rel(struct:dict=None,rel:str="nsubj"):
     return target_tokens
 
 @adapt_struct
-def extract_verbs(struct:dict=None,pretty:bool = True):
+def extract_verb_phrase(struct:dict=None,pretty:bool = True):
     """
     抽取句子中的谓语
     :param struct:
@@ -261,32 +269,67 @@ def extract_verbs(struct:dict=None,pretty:bool = True):
     :return:
     """
 
+    processed_index = set()
+
+    def extend_verb_phrase(index,tokens,rel_map, phrase = []):
+        if index in rel_map and ("ccomp" in [rel['relationship'] for rel in rel_map[index]]):
+            for rel in [r for r in rel_map[index] if r['relationship'] in {"ccomp"}]:
+                # another_token = tokens[rel['targetIndex']-1]
+                # another_token['index'] = rel['targetIndex']
+                token = tokens[index - 1]
+                token['index'] = index
+                processed_index.add(index)
+                phrase.append(token)
+                another_phrase = phrase.copy()
+                return extend_verb_phrase(rel['targetIndex'],tokens,rel_map,another_phrase)
+        else:
+            token = tokens[index-1]
+            token['index'] = index
+            processed_index.add(index)
+            phrase.append(token)
+            return phrase
+
     valid_verb_postags = {"VV", "VC", "VE", "VA"}
     verb_connected_relationships = {'nsubj', 'dobj',"top","range",'attr'}  ## 谓语可以连接向外的依存关系
 
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
 
-    verb_candidate_tokens = []
+    verb_candidate_phrases = []
 
     for i in range(1, len(tokens) + 1):
-        token = tokens[i - 1]
-        if token['postag'] in valid_verb_postags:
-            token['index'] = i
-            verb_candidate_tokens.append(token)
 
-    verb_tokens = []
-    for vtoken in verb_candidate_tokens:
-        if vtoken['index'] not in rel_map:
-            continue
-        rels = rel_map[vtoken['index']]
+        token = tokens[i - 1]
+        if token['postag'] in valid_verb_postags and i not in processed_index:
+            token['index'] = i
+            # phrase_candidate.append(token)
+            phrase_candidate = extend_verb_phrase(i,tokens,rel_map,[])
+            verb_candidate_phrases.append(phrase_candidate)
+
+
+    verb_phrases = []
+
+
+
+    for vphrase in verb_candidate_phrases:
+        rels = _find_phrase_connected_rel(vphrase,rel_map)
         for rel in rels:
-            if rel['relationship'] in verb_connected_relationships:  ## 检查该动词是否连接一个主语或者宾语
-                verb_tokens.append(vtoken)
+            if rel['relationship'] in verb_connected_relationships:
+                verb_phrases.append(vphrase)
                 break
+
+
+    # for vtoken in verb_candidate_tokens:
+    #     if vtoken['index'] not in rel_map:
+    #         continue
+    #     rels = rel_map[vtoken['index']]
+    #     for rel in rels:
+    #         if rel['relationship'] in verb_connected_relationships:  ## 检查该动词是否连接一个主语或者宾语
+    #             verb_tokens.append(vtoken)
+    #             break
     if pretty:
-        verb_tokens = [t['token'] for t in verb_tokens]
-    return verb_tokens
+        verb_phrases = [ prettify(vphrase) for vphrase in verb_phrases]
+    return verb_phrases
 
 def extract_all_phrases(struct:dict = None, pretty:bool = False):
     noun_phrases = extract_noun_phrase(struct=struct, pretty=pretty, multi_token_only=False, with_describer=True)

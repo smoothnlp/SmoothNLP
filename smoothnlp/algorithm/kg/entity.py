@@ -1,4 +1,4 @@
-from .phrase import adapt_struct,get_dp_rel,extract_noun_phrase,_get_rel_map,extract_verbs,prettify,_split_conj_sents
+from .phrase import _find_phrase_connected_rel,adapt_struct,get_dp_rel,extract_noun_phrase,_get_rel_map,prettify,_split_conj_sents,extract_verb_phrase
 
 ## Deprecate 主语抽取Func
 # @adapt_struct
@@ -36,16 +36,17 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
     :param pretty:
     :return:
     """
-    verbs = extract_verbs(struct,pretty=False)
+    verbs = extract_verb_phrase(struct,pretty=False)
     noun_phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=with_describer)
     rel_map = _get_rel_map(struct)
     split_indexes = _split_conj_sents(struct)
 
     object_token_index = []
-    for vtoken in verbs:
-        if vtoken['index'] not in rel_map:
-            continue
-        rels = rel_map[vtoken['index']]
+
+
+
+    for vphrase in verbs:
+        rels = _find_phrase_connected_rel(vphrase,rel_map)
         rels = [rel for rel in rels if rel['relationship'] in valid_rel]
         for rel in rels:
             violate_split_condition = False
@@ -68,6 +69,10 @@ def extract_object(struct:dict=None,pretty:bool = True,with_describer:bool = Tru
 def extract_subject(struct:dict=None,pretty:bool = True,with_describer:bool = True):
     return extract_entity(struct = struct,pretty = pretty,
                           valid_rel={"nsubj","top"},with_describer = with_describer)
+
+def extract_tmod_entity(struct:dict=None,pretty:bool = True,with_describer:bool = True):
+    return extract_entity(struct = struct,pretty = pretty,
+                          valid_rel={"tmod"},with_describer = with_describer)
 
 
 
