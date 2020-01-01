@@ -1,4 +1,4 @@
-from .phrase import _find_phrase_connected_rel,adapt_struct,get_dp_rel,extract_noun_phrase,_get_rel_map,prettify,_split_conj_sents,extract_verb_phrase
+from .phrase import _find_phrase_connected_rel,adapt_struct,concat_consecutive_phrases,extract_noun_phrase,_get_rel_map,prettify,_split_conj_sents,extract_verb_phrase
 
 ## Deprecate 主语抽取Func
 # @adapt_struct
@@ -43,13 +43,25 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
 
     object_token_index = []
 
-
+    def extend_valid_rel(rels,rel_map):
+        for rel in rels:
+            if rel['targetIndex'] in rel_map:
+                extra_rels = [rel for rel in rel_map[rel['targetIndex']] if rel['relationship']=="conj"]
+                print("   --- extra rels: before run: ",extra_rels)
+                extra_rels = extend_valid_rel(extra_rels,rel_map)
+                rels += extra_rels
+        return rels
 
     for vphrase in verbs:
+        # print("vphrase: ",prettify(vphrase))
         rels = _find_phrase_connected_rel(vphrase,rel_map)
         rels = [rel for rel in rels if rel['relationship'] in valid_rel]
+        # print("   ---- before extended: ",rels)
+        # rels = extend_valid_rel(rels,rel_map)
+        # print("   ---- after extended: ",rels)
         for rel in rels:
             violate_split_condition = False
+
             for i in split_indexes:
                 if (rel['dependentIndex'] < i) != (rel['targetIndex'] < i):
                     violate_split_condition = True
@@ -57,9 +69,14 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
             if violate_split_condition:
                 continue
             object_token_index.append(rel['targetIndex'])
-    noun_phrases = [p for p in noun_phrases if p]
+
+    noun_phrases = [p for p in noun_phrases if sum([t['index'] in object_token_index for t in p])>=1]
+
+    # noun_phrases = concat_consecutive_phrases(noun_phrases)
+
     if pretty:
-        noun_phrases = [prettify(p) for p in noun_phrases if sum([t['index'] in object_token_index for t in p])>=1]
+        noun_phrases = [prettify(p) for p in noun_phrases]
+
     return noun_phrases
 
 def extract_object(struct:dict=None,pretty:bool = True,with_describer:bool = True):
@@ -73,6 +90,10 @@ def extract_subject(struct:dict=None,pretty:bool = True,with_describer:bool = Tr
 def extract_tmod_entity(struct:dict=None,pretty:bool = True,with_describer:bool = True):
     return extract_entity(struct = struct,pretty = pretty,
                           valid_rel={"tmod"},with_describer = with_describer)
+
+def extract_num_entity(struct:dict=None,pretty:bool = True,with_describer:bool = True):
+    return extract_entity(struct = struct,pretty = pretty,
+                          valid_rel={"range","nummod"},with_describer = with_describer)
 
 
 

@@ -151,6 +151,18 @@ def concat_consecutive_phrases(phrases):
 #                          rm_one_char = True)
 
 @adapt_struct
+def extract_num_phrase(struct: dict = None,
+                        multi_token_only=True,
+                        pretty=False,
+                        ):
+    num_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
+                                  valid_postags={},
+                                  invalid_postags={},
+                                  valid_rels={"range","nummod"}
+                                  )
+    return num_phrases
+
+@adapt_struct
 def extract_noun_phrase(struct: dict = None,
                         multi_token_only=True,
                         pretty=False,
@@ -160,7 +172,7 @@ def extract_noun_phrase(struct: dict = None,
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
                                       valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD","DTA"},
-                                      invalid_postags={"PU", "M", "VC", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
+                                      invalid_postags={"PU", "M", "VC","VV", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
                                       valid_rels={'nn', "dobj", "dep","range"}
                                       )
         return noun_phrases
