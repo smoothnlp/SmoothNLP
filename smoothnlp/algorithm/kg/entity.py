@@ -43,14 +43,14 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
 
     object_token_index = []
 
-    def extend_valid_rel(rels,rel_map):
-        for rel in rels:
-            if rel['targetIndex'] in rel_map:
-                extra_rels = [rel for rel in rel_map[rel['targetIndex']] if rel['relationship']=="conj"]
-                print("   --- extra rels: before run: ",extra_rels)
-                extra_rels = extend_valid_rel(extra_rels,rel_map)
-                rels += extra_rels
-        return rels
+    # def extend_valid_rel(rels, rel_map):
+    #     for rel in rels:
+    #         if rel['targetIndex'] in rel_map:
+    #             extra_rels = [rel for rel in rel_map[rel['targetIndex']] if rel['relationship'] == "conj"]
+    #             print("   --- extra rels: before run: ", extra_rels)
+    #             extra_rels = extend_valid_rel(extra_rels, rel_map)
+    #             rels += extra_rels
+    #     return rels
 
     for vphrase in verbs:
         # print("vphrase: ",prettify(vphrase))

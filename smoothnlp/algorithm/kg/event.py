@@ -145,7 +145,7 @@ def extract_prep_event(struct:dict = None, pretty:bool = True, event_type = "pre
     if pretty:
         for event in events:
             event['subject'] = prettify(event['subject'])
-            event['action'] = event['action']['token']
+            event['action'] = prettify(event['action'])
             event['mod'] = prettify(event['mod'])
             event['type'] = event_type
     return events

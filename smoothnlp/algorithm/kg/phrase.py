@@ -283,9 +283,10 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
 
     processed_index = set()
 
-    def extend_verb_phrase(index,tokens,rel_map, phrase = []):
-        if index in rel_map and ("ccomp" in [rel['relationship'] for rel in rel_map[index]]):
-            for rel in [r for r in rel_map[index] if r['relationship'] in {"ccomp"}]:
+    def extend_verb_phrase(index,tokens,rel_map, phrase = [], extend_dprels = {"ccomp"}):
+        index_rels = set([rel['relationship'] for rel in rel_map[index]])
+        if index in rel_map and len(extend_dprels.intersection(index_rels))>=1:
+            for rel in [r for r in rel_map[index] if r['relationship'] in extend_dprels]:
                 # another_token = tokens[rel['targetIndex']-1]
                 # another_token['index'] = rel['targetIndex']
                 token = tokens[index - 1]
@@ -293,7 +294,7 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
                 processed_index.add(index)
                 phrase.append(token)
                 another_phrase = phrase.copy()
-                return extend_verb_phrase(rel['targetIndex'],tokens,rel_map,another_phrase)
+                return extend_verb_phrase(rel['targetIndex'],tokens,rel_map,another_phrase,extend_dprels)
         else:
             token = tokens[index-1]
             token['index'] = index
@@ -302,7 +303,7 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
             return phrase
 
     valid_verb_postags = {"VV", "VC", "VE", "VA"}
-    verb_connected_relationships = {'nsubj', 'dobj',"top","range",'attr'}  ## 谓语可以连接向外的依存关系
+    verb_connected_relationships = {'nsubj', 'dobj',"top","range",'attr',"prep"}  ## 谓语可以连接向外的依存关系
 
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
@@ -317,11 +318,7 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
             # phrase_candidate.append(token)
             phrase_candidate = extend_verb_phrase(i,tokens,rel_map,[])
             verb_candidate_phrases.append(phrase_candidate)
-
-
     verb_phrases = []
-
-
 
     for vphrase in verb_candidate_phrases:
         rels = _find_phrase_connected_rel(vphrase,rel_map)
