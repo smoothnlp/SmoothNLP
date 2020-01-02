@@ -22,6 +22,7 @@ def extract_attr_num(struct: dict = None, pretty: bool = True):
     noun_phrases = extract_noun_phrase(struct = struct, pretty = False, multi_token_only=False,with_describer=False)
     num_phrases = extract_num_phrase(struct = struct, pretty = False)
     subject_entities = extract_subject(struct = struct, pretty = False)
+
     for subject in subject_entities:
         for num_phrase in num_phrases:
             min_distance = 9999

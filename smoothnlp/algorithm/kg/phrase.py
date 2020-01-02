@@ -48,6 +48,78 @@ def adapt_struct(func):
             return func(struct = struct,*arg,**kargs)
     return tostruct
 
+# @adapt_struct
+# def extract_phrase(struct: dict = None,
+#                    multi_token_only=True,
+#                    pretty=False,
+#                    valid_postags={},
+#                    invalid_postags={},
+#                    valid_rels={},
+#                    rm_one_char: bool = False):
+#
+#     tokens = struct['tokens']
+#
+#     rel_map = _get_rel_map(struct)
+#
+#     phrases = []
+#     phrase = []
+#     for i in range(len(tokens)):
+#         index = i + 1
+#         token = tokens[i]
+#
+#         ## required conditions
+#         valid_postag_condition = token["postag"] in valid_postags
+#         invalid_postag_condition = token["postag"] not in invalid_postags
+#         reverse_rel_condition1 = index in rel_map and index - 1 in [rel["targetIndex"] for rel in rel_map[index] if
+#                                                                     rel['relationship'] in valid_rels and rel[
+#                                                                         'relationship']]
+#         reverse_rel_condition2 = index + 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index + 1] if
+#                                                                     rel['relationship'] in valid_rels and rel[
+#                                                                         'relationship']]
+#         direct_rel_condition1 = index in rel_map and index + 1 in [rel["targetIndex"] for rel in rel_map[index] if
+#                                                                    rel['relationship'] in valid_rels and rel[
+#                                                                        'relationship']]
+#         direct_rel_condition2 = index - 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index - 1] if
+#                                                                    rel['relationship'] in valid_rels and rel[
+#                                                                        'relationship']]
+#
+#         # print(index)
+#         # print(valid_postag_condition,invalid_postag_condition)
+#         # print(reverse_rel_condition1,reverse_rel_condition2)
+#         # print(direct_rel_condition1,direct_rel_condition2)
+#
+#         token['index'] = index
+#
+#         rel_condition = reverse_rel_condition1 or reverse_rel_condition2 or direct_rel_condition1 or direct_rel_condition2
+#
+#         ## 检查 index 与 index-1 的 postag 是否一直
+#         # neighbor_postag_same_flag = True
+#         # # if i>0:
+#         # #     neighbor_postag_same_flag =
+#
+#         if (valid_postag_condition or rel_condition) and invalid_postag_condition:
+#             if not phrase:
+#                 phrase = [token]
+#             else:
+#                 phrase.append(token)
+#         else:  ## 不符合条件的情况下
+#             if phrase:
+#                 if (multi_token_only and len(phrase) > 1) or not multi_token_only:
+#                     phrases.append(phrase)
+#                 phrase = []
+#     if phrase:
+#         if (multi_token_only and len(phrase) > 1) or not multi_token_only:
+#             phrases.append(phrase)
+#     if rm_one_char:
+#         phrases = [phrase for phrase in phrases if len(phrase) > 1 or len(phrase[0]['token']) > 1]
+#     # phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]  ## 短语不考虑只有一个token, 且token长度为1的情况
+#
+#     if not pretty:
+#         return phrases
+#     else:
+#         return ["".join([p['token'] for p in phrase]) for phrase in phrases]
+
+
 @adapt_struct
 def extract_phrase(struct: dict = None,
                    multi_token_only=True,
@@ -58,62 +130,56 @@ def extract_phrase(struct: dict = None,
                    rm_one_char: bool = False):
 
     tokens = struct['tokens']
-
     rel_map = _get_rel_map(struct)
 
     phrases = []
-    phrase = []
     for i in range(len(tokens)):
         index = i + 1
-        token = tokens[i]
+        tokens[i]['index'] = index
+        if tokens[i]['postag'] in valid_postags:
+            phrases.append([tokens[i]])
 
-        ## required conditions
-        valid_postag_condition = token["postag"] in valid_postags
-        invalid_postag_condition = token["postag"] not in invalid_postags
-        reverse_rel_condition1 = index in rel_map and index - 1 in [rel["targetIndex"] for rel in rel_map[index] if
-                                                                    rel['relationship'] in valid_rels and rel[
-                                                                        'relationship']]
-        reverse_rel_condition2 = index + 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index + 1] if
-                                                                    rel['relationship'] in valid_rels and rel[
-                                                                        'relationship']]
-        direct_rel_condition1 = index in rel_map and index + 1 in [rel["targetIndex"] for rel in rel_map[index] if
-                                                                   rel['relationship'] in valid_rels and rel[
-                                                                       'relationship']]
-        direct_rel_condition2 = index - 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index - 1] if
-                                                                   rel['relationship'] in valid_rels and rel[
-                                                                       'relationship']]
 
-        # print(index)
-        # print(valid_postag_condition,invalid_postag_condition)
-        # print(reverse_rel_condition1,reverse_rel_condition2)
-        # print(direct_rel_condition1,direct_rel_condition2)
+    def extend_phrase_by_rel(phrases,start_index:int,rel_map, valid_rels:set = {}):
+        if start_index>= len(phrases)-1:
+            return phrases
 
-        token['index'] = index
+        p1 = phrases.pop(start_index)
+        p2 = phrases.pop(start_index)
+        if p1[-1]['index'] + 1 != p2[0]['index']:  ## 检查p1, p2 是否相邻
+            phrases.insert(start_index, p2)
+            phrases.insert(start_index, p1)
+            start_index += 1
+            return extend_phrase_by_rel(phrases, start_index=start_index, rel_map=rel_map, valid_rels=valid_rels)
 
-        rel_condition = reverse_rel_condition1 or reverse_rel_condition2 or direct_rel_condition1 or direct_rel_condition2
+        p1_indexes = set([t['index'] for t in p1])
+        p2_indexes = set([t['index'] for t in p2])
+        p1_rels_targetIndexes = set([rel['targetIndex'] for rel in _find_phrase_connected_rel(phrase=p1,rel_map=rel_map) if rel['relationship'] in valid_rels])
+        p2_rels_targetIndexes = set([rel['targetIndex'] for rel in _find_phrase_connected_rel(phrase=p2,rel_map=rel_map) if rel['relationship'] in valid_rels])
 
-        if (valid_postag_condition or rel_condition) and invalid_postag_condition:
+        if len(p1_indexes.intersection(p2_rels_targetIndexes)) >= 1 or len(
+                p2_indexes.intersection(p1_rels_targetIndexes)) >= 1 or \
+               p1[-1]['postag'] == p2[0]['postag']: ## share 相同postag 合并
 
-            if not phrase:
-                phrase = [token]
-            else:
-                phrase.append(token)
-        else:  ## 不符合条件的情况下
-            if phrase:
-                if (multi_token_only and len(phrase) > 1) or not multi_token_only:
-                    phrases.append(phrase)
-                phrase = []
-    if phrase:
-        if (multi_token_only and len(phrase) > 1) or not multi_token_only:
-            phrases.append(phrase)
-    if rm_one_char:
-        phrases = [phrase for phrase in phrases if len(phrase) > 1 or len(phrase[0]['token']) > 1]
-    # phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]  ## 短语不考虑只有一个token, 且token长度为1的情况
+            ## todo: share 相同的 targetRelationship , 合并
 
-    if not pretty:
-        return phrases
-    else:
-        return ["".join([p['token'] for p in phrase]) for phrase in phrases]
+            # print("p1: ", prettify(p1))
+            # print("p2: ", prettify(p2))
+            # print("merge p1,p2")
+            new_p = p1+p2
+            phrases.insert(start_index,new_p)
+        else:
+            phrases.insert(start_index,p2)
+            phrases.insert(start_index,p1)
+            start_index += 1
+        return extend_phrase_by_rel(phrases,start_index=start_index,rel_map=rel_map,valid_rels=valid_rels)
+
+    phrases = extend_phrase_by_rel(phrases,start_index=0,rel_map=rel_map,valid_rels=valid_rels)
+    # print(" -- output phrases: ",phrases)
+
+    if pretty:
+        phrases = [prettify(p) for p in phrases]
+    return phrases
 
 
 def deduple_phrases(phrases):
@@ -154,9 +220,9 @@ def extract_num_phrase(struct: dict = None,
                         pretty=False,
                         ):
     num_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
-                                  valid_postags={},
+                                  valid_postags={"CD","M","DTA","OD"},
                                   invalid_postags={},
-                                  valid_rels={"range","nummod"}
+                                  valid_rels={"range","nummod","dep"}
                                   )
     return num_phrases
 
@@ -171,7 +237,7 @@ def extract_noun_phrase(struct: dict = None,
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
                                       valid_postags={"NN", "NR", "NT", "LOC", "DT", "JJ", "CTY","OD","DTA"},
                                       invalid_postags={"PU", "M", "VC","VV", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
-                                      valid_rels={'nn', "dobj", "dep","range"},
+                                      valid_rels={'nn', "dobj", "dep","range","amod"},
                                       rm_one_char=False,
                                       )
         return noun_phrases
@@ -326,7 +392,6 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
             if rel['relationship'] in verb_connected_relationships:
                 verb_phrases.append(vphrase)
                 break
-
 
     # for vtoken in verb_candidate_tokens:
     #     if vtoken['index'] not in rel_map:

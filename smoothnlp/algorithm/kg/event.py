@@ -141,7 +141,6 @@ def extract_prep_event(struct:dict = None, pretty:bool = True, event_type = "pre
                 vmod_token['index'] = ptargetTokens['targetIndex']
                 event['mod'] = [prep_token,vmod_token]
                 events.append(event)
-
     if pretty:
         for event in events:
             event['subject'] = prettify(event['subject'])
