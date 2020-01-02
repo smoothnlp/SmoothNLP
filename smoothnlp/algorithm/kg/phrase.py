@@ -55,7 +55,7 @@ def extract_phrase(struct: dict = None,
                    valid_postags={},
                    invalid_postags={},
                    valid_rels={},
-                   rm_one_char: bool = True):
+                   rm_one_char: bool = False):
 
     tokens = struct['tokens']
 
@@ -98,7 +98,6 @@ def extract_phrase(struct: dict = None,
                 phrase = [token]
             else:
                 phrase.append(token)
-
         else:  ## 不符合条件的情况下
             if phrase:
                 if (multi_token_only and len(phrase) > 1) or not multi_token_only:
@@ -109,8 +108,7 @@ def extract_phrase(struct: dict = None,
             phrases.append(phrase)
     if rm_one_char:
         phrases = [phrase for phrase in phrases if len(phrase) > 1 or len(phrase[0]['token']) > 1]
-
-    phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]  ## 短语不考虑只有一个token, 且token长度为1的情况
+    # phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]  ## 短语不考虑只有一个token, 且token长度为1的情况
 
     if not pretty:
         return phrases
@@ -171,9 +169,10 @@ def extract_noun_phrase(struct: dict = None,
 
     if not with_describer:
         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
-                                      valid_postags={"NN", "NR", "LOC", "DT", "JJ", "CTY","OD","DTA"},
+                                      valid_postags={"NN", "NR", "NT", "LOC", "DT", "JJ", "CTY","OD","DTA"},
                                       invalid_postags={"PU", "M", "VC","VV", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
-                                      valid_rels={'nn', "dobj", "dep","range"}
+                                      valid_rels={'nn', "dobj", "dep","range"},
+                                      rm_one_char=False,
                                       )
         return noun_phrases
     else:
@@ -284,7 +283,7 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
     processed_index = set()
 
     def extend_verb_phrase(index,tokens,rel_map, phrase = [], extend_dprels = {"ccomp"}):
-        index_rels = set([rel['relationship'] for rel in rel_map[index]])
+        index_rels = set([rel['relationship'] for rel in rel_map[index] if index in rel_map])
         if index in rel_map and len(extend_dprels.intersection(index_rels))>=1:
             for rel in [r for r in rel_map[index] if r['relationship'] in extend_dprels]:
                 # another_token = tokens[rel['targetIndex']-1]
