@@ -283,7 +283,8 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
     processed_index = set()
 
     def extend_verb_phrase(index,tokens,rel_map, phrase = [], extend_dprels = {"ccomp"}):
-        index_rels = set([rel['relationship'] for rel in rel_map[index] if index in rel_map])
+        if index in rel_map:
+            index_rels = set([rel['relationship'] for rel in rel_map[index]])
         if index in rel_map and len(extend_dprels.intersection(index_rels))>=1:
             for rel in [r for r in rel_map[index] if r['relationship'] in extend_dprels]:
                 # another_token = tokens[rel['targetIndex']-1]
