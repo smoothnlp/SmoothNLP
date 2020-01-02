@@ -1,6 +1,6 @@
 from ...nlp import nlp
 from .entity import extract_subject,extract_object,extract_tmod_entity
-from .phrase import extract_all_phrases,extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct
+from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct
 from .phrase import _split_conj_sents,_find_phrase_connected_rel
 
 @adapt_struct
@@ -168,14 +168,15 @@ def extract_action_event(struct: dict = None, pretty: bool = True):
 @adapt_struct
 def extract_state_event(struct: dict = None, pretty: bool = True):
     return extract_obj_event( struct=struct, pretty=pretty,
-                         valid_object_rel={"attr"},
-                         event_type="state")
+                         valid_object_rel={"attr","dep"},
+                         event_type="state" ,
+                              object_extract_func= lambda struct,pretty: extract_noun_phrase(struct = struct,pretty = pretty,with_describer=True) )
 
 @adapt_struct
 def extract_all_event( struct: dict = None, pretty: bool = True):
     ea = extract_action_event(struct =  struct,
                                 pretty = pretty)
-    es = extract_state_event( struct=struct, pretty=pretty)
+    es = extract_state_event(struct=struct, pretty=pretty)
     ep = extract_prep_event(struct = struct, pretty=pretty)
     et = extract_tmod_event(struct = struct, pretty= pretty)
     return ea+es+ep+et

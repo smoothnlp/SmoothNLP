@@ -1,4 +1,4 @@
-from .phrase import adapt_struct,extract_noun_phrase,extract_verb_phrase,extract_describer_phrase,_get_rel_map,extract_hybrid_describer_phrase
+from .phrase import adapt_struct,extract_noun_phrase,extract_verb_phrase,_get_rel_map
 from .event import extract_all_event,extract_action_event,extract_state_event
 from .entity import extract_subject,extract_object
 from .attr import extract_all_attr
@@ -25,6 +25,7 @@ def smart_split2sentence(struct:dict):
         return struct
 
     first_sentence = "".join([t['token'] for t in sents[0]])
+    print(first_sentence)
     first_struct = nlp.analyze(first_sentence)
     current_subjects = extract_subject(first_struct, pretty=True)
     if len(current_subjects)!=1:
@@ -34,6 +35,7 @@ def smart_split2sentence(struct:dict):
     for sent in sents[1:]:
         sent_first_token = sent[0]
         sent_str = "".join([t['token'] for t in sent])
+        print(sent_str)
         if sent_first_token['postag'][0] =="V":
             sent_str  = current_subject + sent_str
         new_structs.append(nlp.analyze(sent_str))
@@ -50,6 +52,38 @@ def adapt_smart_split2sentences(func):
         # outputs += func(struct)
         return outputs
     return smart_concat
+
+@adapt_struct
+def extract_all_debug(struct:dict):
+    # print("all:", extract_all(struct=struct, pretty=True))
+    print(" ~~~~~ phrase ~~~~~~~")
+    print("noun(no describer): ", extract_noun_phrase(struct=struct, pretty=True, multi_token_only=False, with_describer=False))
+    print("noun(with describer): ",
+          extract_noun_phrase(struct=struct, pretty=True, multi_token_only=False, with_describer=True))
+    print("describer: ", phrase.extract_mod_describer_phrase(struct = struct, pretty= True))
+    print("vhybrid describer: ", phrase.extract_vhybrid_describer_phrase(struct=struct, pretty=True))
+    print("loc describer: ", phrase.extract_loc_describer_phrase(struct=struct, pretty=True))
+    print("prep describer: ",phrase.extract_prep_describer_phrase(struct=struct, pretty=True))
+    print("all describer: ", phrase.extract_all_describer_phrase(struct=struct, pretty=True))
+
+    print("verb: ", extract_verb_phrase(struct= struct, pretty=True))
+    print("num phrase: ",phrase.extract_num_phrase(struct = struct, pretty=True))
+
+    print(" ~~~~~ entity ~~~~~~~")
+    print("subject:", entity.extract_subject(struct=struct, pretty=True))
+    print("object: ",entity.extract_object(struct=struct,pretty=True))
+    print("tmod entity:", entity.extract_tmod_entity(struct, pretty=True))
+
+    print("~~~~~~~ attr ~~~~~~~~")
+    print("num attrs: ",attr.extract_attr_num(struct,pretty=True))
+
+    print("~~~~~~~~ event  ~~~~~~~~~")
+    print("subject&verb:", event.extract_subj_and_verb(struct=struct, pretty=True))
+    print("prep event: ", event.extract_prep_event(struct=struct, pretty=True))
+    print("tmod event: ", event.extract_tmod_event(struct=struct, pretty=True))
+    print("action event: ", event.extract_action_event(struct=struct, pretty=True))
+    print("state event: ", event.extract_state_event(struct=struct, pretty=True))
+
 
 @adapt_struct
 @adapt_smart_split2sentences

@@ -61,7 +61,6 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
         # print("   ---- after extended: ",rels)
         for rel in rels:
             violate_split_condition = False
-
             for i in split_indexes:
                 if (rel['dependentIndex'] < i) != (rel['targetIndex'] < i):
                     violate_split_condition = True
@@ -84,8 +83,9 @@ def extract_object(struct:dict=None,pretty:bool = True,with_describer:bool = Tru
                           valid_rel={"dobj","range","attr"}, with_describer = with_describer)
 
 def extract_subject(struct:dict=None,pretty:bool = True,with_describer:bool = True):
-    return extract_entity(struct = struct,pretty = pretty,
+    subject_entities =  extract_entity(struct = struct,pretty = pretty,
                           valid_rel={"nsubj","top"},with_describer = with_describer)
+    return subject_entities
 
 def extract_tmod_entity(struct:dict=None,pretty:bool = True,with_describer:bool = True):
     return extract_entity(struct = struct,pretty = pretty,

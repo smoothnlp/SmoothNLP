@@ -177,6 +177,12 @@ def extract_phrase(struct: dict = None,
     phrases = extend_phrase_by_rel(phrases,start_index=0,rel_map=rel_map,valid_rels=valid_rels)
     # print(" -- output phrases: ",phrases)
 
+    if multi_token_only:
+        phrases = [phrase for phrase in phrases if len(phrase) > 1 ]
+
+    if rm_one_char:
+        phrases = [phrase for phrase in phrases if len(phrase) == 1 or len(phrase[0]['token']) > 1]
+
     if pretty:
         phrases = [prettify(p) for p in phrases]
     return phrases
@@ -215,18 +221,6 @@ def concat_consecutive_phrases(phrases):
 #                          rm_one_char = True)
 
 @adapt_struct
-def extract_num_phrase(struct: dict = None,
-                        multi_token_only=True,
-                        pretty=False,
-                        ):
-    num_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
-                                  valid_postags={"CD","M","DTA","OD"},
-                                  invalid_postags={},
-                                  valid_rels={"range","nummod","dep"}
-                                  )
-    return num_phrases
-
-@adapt_struct
 def extract_noun_phrase(struct: dict = None,
                         multi_token_only=True,
                         pretty=False,
@@ -244,21 +238,23 @@ def extract_noun_phrase(struct: dict = None,
     else:
         ## 抽取带有修饰性的名词
         noun_phrases = extract_noun_phrase(struct = struct, multi_token_only=False, pretty=False, with_describer=False)
-        noun_phrases_indexes = set([token['index'] for p in noun_phrases for token in p if len(p) > 1])
-        describer_phrases = extract_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
-                                                     rm_one_char=False)
-        describer_phrases += extract_hybrid_describer_phrase(struct=struct, multi_token_only=False, pretty=False,
-                                                     rm_one_char=False)  ## 添加组合型形容词
+        # noun_phrases_indexes = set([token['index'] for p in noun_phrases for token in p if len(p) > 1])
+        # describer_phrases = extract_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
+        #                                              rm_one_char=True)
+        # describer_phrases += extract_hybrid_describer_phrase(struct=struct, multi_token_only=False, pretty=False,
+        #                                              rm_one_char=True)  ## 添加组合型形容词
+        #
+        # describer_phrases = concat_consecutive_phrases(describer_phrases)
+        #
+        # #         cc_phrases = extract_cc_phrase(text,struct,multi_token_only=False,pretty=False)
+        # #         describer_phrases = concat_consecutive_phrases(describer_phrases+cc_phrases)
+        # describer_phrases = deduple_phrases(describer_phrases)
+        #
+        # describer_phrases = [p for p in describer_phrases if sum(
+        #     [(token['index'] in noun_phrases_indexes) for token in p]
+        # ) == 0]  ## 对 describe_phrase 在 noun_phrase中出现的部分进行去重
 
-        describer_phrases = concat_consecutive_phrases(describer_phrases)
-
-        #         cc_phrases = extract_cc_phrase(text,struct,multi_token_only=False,pretty=False)
-        #         describer_phrases = concat_consecutive_phrases(describer_phrases+cc_phrases)
-        describer_phrases = deduple_phrases(describer_phrases)
-
-        describer_phrases = [p for p in describer_phrases if sum(
-            [(token['index'] in noun_phrases_indexes) for token in p]
-        ) == 0]  ## 对 describe_phrase 在 noun_phrase中出现的部分进行去重
+        describer_phrases = extract_all_describer_phrase(struct = struct, pretty=False)
 
         describer_phrases = [p for p in describer_phrases if sum(
             [(p[-1]["index"]+1 == np[0]["index"]
@@ -274,12 +270,31 @@ def extract_noun_phrase(struct: dict = None,
             phrases = [prettify(p) for p in phrases]
         return phrases
 
+def extract_all_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False):
+    mod_describers = extract_mod_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
+                                                     rm_one_char=False)
+    vhybrid_describers = extract_vhybrid_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
+                                                     rm_one_char=False)
+    loc_describers = extract_loc_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
+                                                     rm_one_char=False)
+    prep_describers = extract_prep_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
+                                                     rm_one_char=False)
+
+    phrases = mod_describers+vhybrid_describers+loc_describers+prep_describers
+    phrases = concat_consecutive_phrases(phrases)
+    phrases = deduple_phrases(phrases)
+
+    if pretty:
+        phrases = [prettify(p) for p in phrases]
+
+    return phrases
+
 
 ## todo:
 ## 抽取: 宁德时代正式成为宝马集团在大中华地区唯一的电池供应商; "名词"与"的"组成的修饰短语
 
 @adapt_struct
-def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
+def extract_mod_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
     """
     目前主要支持抓取以形容词为代表的描述性短语, 如: "最高的". 对"组合形容词"效果不好, 如: "最具创新力的"
@@ -297,7 +312,64 @@ def extract_describer_phrase(struct: dict = None, multi_token_only=True, pretty=
                          rm_one_char = rm_one_char)
 
 @adapt_struct
-def extract_hybrid_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
+def extract_loc_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
+                             rm_one_char: bool = False):
+    phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
+                             valid_postags={"NN","LC"},
+                             invalid_postags={"VC", "M", "JJ", "CD"},
+                             valid_rels={"loc"},
+                             rm_one_char=False)
+
+    noun_phrases = extract_noun_phrase(struct = struct, multi_token_only = False, pretty = False, with_describer=False)
+    phrases = concat_consecutive_phrases(phrases+noun_phrases)
+
+    valid_phrases = []
+    for p in phrases:
+        for i in range(len(p)):
+            if p[i]['postag'] == "LC":
+                valid_phrases.append(p[:i + 1])
+                break
+    phrases = valid_phrases
+
+    if pretty:
+        phrases = [prettify(p) for p in phrases]
+    return phrases
+
+    return phrases
+
+
+@adapt_struct
+def extract_prep_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
+                             rm_one_char: bool = True):
+    phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
+                             valid_postags={ "NN", "VA","VV", "P","DEG"},
+                             invalid_postags={"VC", "M", "JJ", "CD"},
+                             valid_rels={'rcmod', "advmod", "dep", "assmod"},
+                             rm_one_char=False)
+
+    phrases = concat_consecutive_phrases(phrases)
+
+    # print(" --- vhybrid base phrases: ",[prettify(p) for p in phrases])
+
+    ## todo
+    """
+    待解决的case: "欧工国际是目前国内最大的、专业的软装配套设计公司。" -> "最大的"
+    """
+
+    valid_phrases = []
+    for p in phrases:
+        for i in range(len(p)):
+            if p[i]['postag'] == "DEG" and p[0]['postag'] == "P":
+                valid_phrases.append(p[:i + 1])
+                break
+    phrases = valid_phrases
+
+    if pretty:
+        phrases = [prettify(p) for p in phrases]
+    return phrases
+
+@adapt_struct
+def extract_vhybrid_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
                              rm_one_char: bool = True):
     """
     抽取 "最具创新力的" <- 等, 动名词组合形容词短语
@@ -308,17 +380,28 @@ def extract_hybrid_describer_phrase(struct: dict = None, multi_token_only=True, 
     :return:
     """
     phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
-                             valid_postags={"AD","DEC","NR"},
-                              invalid_postags={"VC","VV","M","JJ","CD"},
-                              valid_rels={'rcmod', "advmod","dobj"},
-                              rm_one_char=rm_one_char)
+                             valid_postags={"AD","DEC","NR","VV","NN","VA","P"},
+                              invalid_postags={"VC","M","JJ","CD"},
+                              valid_rels={'rcmod', "advmod","dobj","dep","assmod"},
+                              rm_one_char=False)
+
+    phrases = concat_consecutive_phrases(phrases)
+
+    # print(" --- vhybrid base phrases: ",[prettify(p) for p in phrases])
 
     ## todo
     """
     待解决的case: "欧工国际是目前国内最大的、专业的软装配套设计公司。" -> "最大的"
     """
 
-    phrases = [p for p in phrases if p[-1]['postag']=="DEC"]
+    valid_phrases = []
+    for p in phrases:
+        for i in range(len(p)):
+            if p[i]['postag']=="DEC":
+                valid_phrases.append(p[:i+1])
+                break
+    phrases = valid_phrases
+
     if pretty:
         phrases = [prettify(p) for p in phrases]
     return phrases
@@ -393,6 +476,17 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
                 verb_phrases.append(vphrase)
                 break
 
+    rels = struct['dependencyRelationships']
+    valid_vphrases  = []
+    valid_source_rels = {"root", 'cc', 'conj'}
+    for phrase in verb_phrases:
+        for token in phrase:
+            token_rel = rels[token['index'] - 1]
+            if token_rel['relationship'] in valid_source_rels:
+                valid_vphrases.append(phrase)
+                break
+    verb_phrases = valid_vphrases
+
     # for vtoken in verb_candidate_tokens:
     #     if vtoken['index'] not in rel_map:
     #         continue
@@ -405,6 +499,18 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
         verb_phrases = [ prettify(vphrase) for vphrase in verb_phrases]
     return verb_phrases
 
-def extract_all_phrases(struct:dict = None, pretty:bool = False):
-    noun_phrases = extract_noun_phrase(struct=struct, pretty=pretty, multi_token_only=False, with_describer=True)
-    return noun_phrases
+# def extract_all_phrases(struct:dict = None, pretty:bool = False):
+#     noun_phrases = extract_noun_phrase(struct=struct, pretty=pretty, multi_token_only=False, with_describer=True)
+#     return noun_phrases
+
+@adapt_struct
+def extract_num_phrase(struct: dict = None,
+                        multi_token_only=True,
+                        pretty=False,
+                        ):
+    num_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
+                                  valid_postags={"CD","M","DTA","OD"},
+                                  invalid_postags={},
+                                  valid_rels={"range","nummod","dep"}
+                                  )
+    return num_phrases
