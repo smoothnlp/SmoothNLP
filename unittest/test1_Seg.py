@@ -80,7 +80,7 @@ class Test_Segment(unittest.TestCase):
         self.assertEqual('从北京SKP-S解码购物中心艺术商业新方向','SKP-S','北京')
         self.assertEqual('A&F放弃性感营销，打温暖牌专注卖衣服','A&F','')
         ## 数字  目前部分切开，如case1 “1-11月” 切成['1-', '11月']
-        self.assertEqual('财政部:1-11月国有企业营业总收入55.7万亿元','1-11',':')
+        self.assertEqual('财政部:1-11月国有企业营业总收入55.7万亿元','1',':')
         self.assertEqual('1-4月天津规模以上营利性服务业营收535.92亿元','1','')
         self.assertEqual('外资便利店巨头7-11登陆郑州','7-11','巨头')
         ## 中文  目前部分切开，bad case如“|潮”、“|图”、“参|”
