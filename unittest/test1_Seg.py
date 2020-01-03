@@ -68,7 +68,8 @@ class Test_Segment(unittest.TestCase):
         self.assertEqual('上市对36氪有三大好处','36氪','对')
         self.assertEqual('帮邦行完成1亿元人民币B1轮投资','B1轮','人民币')
         self.assertGreaterEqual(1-failed_counter/num_test_case,0.5)
-        
+    
+    
     def test3_SegPunct(self):
         '''测试符号与两边的字符是否切开,按照符号两边字符种类划分'''
         print('\n######',sys._getframe().f_code.co_name,'测试结果：######')
