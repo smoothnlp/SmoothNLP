@@ -12,6 +12,8 @@ import ml.dmlc.xgboost4j.java.DMatrix;
 import ml.dmlc.xgboost4j.java.XGBoostError;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.XGBoost;
+import scala.Int;
+import scala.tools.nsc.transform.patmat.Logic;
 
 public class CoNLLDependencyGraph {
 
@@ -105,6 +107,29 @@ public class CoNLLDependencyGraph {
     }
 
 
+    public boolean check2edgeCrossed(DependencyRelationship rel1, DependencyRelationship rel2){
+
+        int rel1_start = Math.min(rel1.targetIndex,rel1.dependentIndex);
+        int rel1_end = Math.max(rel1.targetIndex,rel1.dependentIndex);
+
+        int rel2_start = Math.min(rel2.targetIndex,rel2.dependentIndex);
+        int rel2_end = Math.max(rel2.targetIndex,rel2.dependentIndex);
+
+        int range1 = rel1_end-rel1_start;
+        int range2 = rel2_end - rel2_start;
+        Set<Integer> covered_range = new HashSet<>();
+        for (int i = rel1_start; i < rel1_end;i++){covered_range.add(i);}
+        for (int i = rel2_start; i < rel2_end;i++){covered_range.add(i);}
+
+        if (covered_range.size()==Math.max(range1,range2)){
+            return false;
+        }
+        if (covered_range.size()==range1+range2){
+            return false;
+        }
+        return true;
+    }
+
     public DependencyRelationship[]  parseDependencyRelationships(Booster edgeTagModel){
         /**
          * figure out dependency using "maximal spanning tree" algorithm.
@@ -131,6 +156,7 @@ public class CoNLLDependencyGraph {
 
         // construct a set to keep track of unreached indexes
         HashSet<Integer> unreachedIndexes = new HashSet<Integer>();
+
         for (int i = 1; i<this.nodeSize; i++) { unreachedIndexes.add(i);};
 
 //        List<DependencyRelationship> relationships = new ArrayList<DependencyRelationship>();
@@ -138,26 +164,76 @@ public class CoNLLDependencyGraph {
         DependencyRelationship[] relationships = new DependencyRelationship[this.tokens.length-1];
 
         while (!unreachedIndexes.isEmpty()){
-            ScoreEdge selectedEdge = edgePQ.poll();
+            ScoreEdge selectedEdge = edgePQ.poll();  // 不断从pq中抽出 candidate edge
+
+
             if (unreachedIndexes.contains(selectedEdge.target)){
 
+//                System.out.print("Attempt insert: ");
+//                System.out.print(selectedEdge.source);
+//                System.out.print(":");
+//                System.out.print(selectedEdge.target);
+//                System.out.print("  ;;; check range index: ");
+
+                boolean projectable = true;
+
+                // 检查是否有edge交叉的情况
+                DependencyRelationship candidate_rel = new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]);
+                for (DependencyRelationship rel : relationships){
+                    if (rel != null){
+                        if (this.check2edgeCrossed(rel,candidate_rel)){
+                            projectable = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (!projectable){  // 存在交叉的情况, skip 这条edge
+                    continue;
+                }
+
+
+
                 // 计算tag model需要的特征+模型
-//                relationships.add(new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]));
+
+                // construct edge, 放入 array中
                 relationships[selectedEdge.target-1] = new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]);
+
                 // 对CoNLLToken进行dependentIndex的更新
                 this.tokens[selectedEdge.target].dependentIndex= selectedEdge.source;
+
                 // track 连接到的token
                 unreachedIndexes.remove(selectedEdge.target);
 
                 // 基于 selectedEdge.target 添加下一轮的candidate 放入 priority queue
 
-                if (selectedEdge.source==0){
+                if (selectedEdge.source==0){  // 第一轮root 找到后, 清空 priority queue
                     edgePQ =  new PriorityQueue<ScoreEdge>();
                 }
 
-                for (int j = 1; j<this.nodeSize; j++){
+                int start = 1;
+                int end = this.nodeSize;
+                for (int i = 1; i < selectedEdge.target; i++){
+                    if (relationships[i-1] != null){
+                        start = i+1;
+                    }
+                }
+
+                for (int i = this.nodeSize-1 ; i > selectedEdge.target; i--){
+                    if (relationships[i-1] != null){
+                        end = i -1;
+                    }
+                }
+
+                for (int j = start; j<end; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
                     edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
                 }
+
+//                for (int j = 1; j<this.nodeSize; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
+//                    edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
+//                }
+
+
 
             }
         }
@@ -214,10 +290,22 @@ public class CoNLLDependencyGraph {
 
         // 特征之间的 位置差
         ftrs.add((float) dependentIndex - targetIndex);
+//        ftrs.add(((float) dependentIndex - targetIndex)/this.tokens.length);
 
         // 两个token本身在句子中的位置
         ftrs.add(((float)dependentIndex)/this.tokens.length);
-        ftrs.add(((float) targetIndex)/this.tokens.length);
+        ftrs.add(((float)targetIndex)/this.tokens.length);
+
+        // 新特征: depedent 与 target 之间是否存在"逗号"
+        int start_index = Math.min(dependentIndex,targetIndex);
+        int end_index = Math.max(dependentIndex,targetIndex);
+        float fccounter = 0.0f;
+        for (int i = start_index; i<end_index;i++){
+            if (this.tokens[i].token == "," | this .tokens[i].token =="，" ){
+                fccounter+=1;
+            }
+        }
+        ftrs.add(fccounter);
 
         // embedding 特征
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
