@@ -35,9 +35,9 @@ def smart_split2sentence(struct:dict):
     for sent in sents[1:]:
         sent_first_token = sent[0]
         sent_str = "".join([t['token'] for t in sent])
-        print(sent_str)
         if sent_first_token['postag'][0] =="V":
             sent_str  = current_subject + sent_str
+        print(sent_str)
         new_structs.append(nlp.analyze(sent_str))
     return new_structs
 
@@ -55,7 +55,7 @@ def adapt_smart_split2sentences(func):
 
 @adapt_struct
 def extract_all_debug(struct:dict):
-    # print("all:", extract_all(struct=struct, pretty=True))
+    # print("all: ", extract_all(struct=struct, pretty=True))
     print(" ~~~~~ phrase ~~~~~~~")
     print("noun(no describer): ", extract_noun_phrase(struct=struct, pretty=True, multi_token_only=False, with_describer=False))
     print("noun(with describer): ",

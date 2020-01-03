@@ -359,7 +359,7 @@ def extract_prep_describer_phrase(struct: dict = None, multi_token_only=False, p
     valid_phrases = []
     for p in phrases:
         for i in range(len(p)):
-            if p[i]['postag'] == "DEG" and p[0]['postag'] == "P":
+            if p[i]['postag'] in {"DEG","DEC"} and p[0]['postag'] == "P":
                 valid_phrases.append(p[:i + 1])
                 break
     phrases = valid_phrases
@@ -380,9 +380,9 @@ def extract_vhybrid_describer_phrase(struct: dict = None, multi_token_only=False
     :return:
     """
     phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
-                             valid_postags={"AD","DEC","NR","VV","NN","VA","P"},
-                              invalid_postags={"VC","M","JJ","CD"},
-                              valid_rels={'rcmod', "advmod","dobj","dep","assmod"},
+                             valid_postags={"AD","DEC","NR","VV","NN","VA","P","DEG"},
+                              invalid_postags={"VC","M","CD"},
+                              valid_rels={'rcmod', "advmod","dobj","dep","assmod","assm"},
                               rm_one_char=False)
 
     phrases = concat_consecutive_phrases(phrases)
@@ -397,7 +397,7 @@ def extract_vhybrid_describer_phrase(struct: dict = None, multi_token_only=False
     valid_phrases = []
     for p in phrases:
         for i in range(len(p)):
-            if p[i]['postag']=="DEC":
+            if p[i]['postag'] in {"DEC","DEG"}:
                 valid_phrases.append(p[:i+1])
                 break
     phrases = valid_phrases
@@ -430,29 +430,38 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
     """
 
     processed_index = set()
+    valid_verb_postags = {"VV", "VC", "VE"}
+    verb_connected_relationships = {'nsubj', 'dobj', "top", "range", 'attr', "prep"}  ## 谓语可以连接向外的依存关系
 
-    def extend_verb_phrase(index,tokens,rel_map, phrase = [], extend_dprels = {"ccomp"}):
-        if index in rel_map:
-            index_rels = set([rel['relationship'] for rel in rel_map[index]])
-        if index in rel_map and len(extend_dprels.intersection(index_rels))>=1:
-            for rel in [r for r in rel_map[index] if r['relationship'] in extend_dprels]:
-                # another_token = tokens[rel['targetIndex']-1]
-                # another_token['index'] = rel['targetIndex']
-                token = tokens[index - 1]
-                token['index'] = index
-                processed_index.add(index)
-                phrase.append(token)
-                another_phrase = phrase.copy()
-                return extend_verb_phrase(rel['targetIndex'],tokens,rel_map,another_phrase,extend_dprels)
-        else:
-            token = tokens[index-1]
-            token['index'] = index
-            processed_index.add(index)
-            phrase.append(token)
-            return phrase
+    # def extend_verb_phrase(index,tokens,rel_map, phrase = [], extend_dprels = {"ccomp"}):
+    #     """
+    #     对多动词的组合(ccomp)进行动词短语的补充
+    #     :param index:
+    #     :param tokens:
+    #     :param rel_map:
+    #     :param phrase:
+    #     :param extend_dprels:
+    #     :return:
+    #     """
+    #     if index in rel_map:
+    #         index_rels = set([rel['relationship'] for rel in rel_map[index]])
+    #     if index in rel_map and len(extend_dprels.intersection(index_rels))>=1:
+    #         for rel in [r for r in rel_map[index] if r['relationship'] in extend_dprels]:
+    #             # another_token = tokens[rel['targetIndex']-1]
+    #             # another_token['index'] = rel['targetIndex']
+    #             token = tokens[index - 1]
+    #             token['index'] = index
+    #             processed_index.add(index)
+    #             phrase.append(token)
+    #             another_phrase = phrase.copy()
+    #             return extend_verb_phrase(rel['targetIndex'],tokens,rel_map,another_phrase,extend_dprels)
+    #     else:
+    #         token = tokens[index-1]
+    #         token['index'] = index
+    #         processed_index.add(index)
+    #         phrase.append(token)
+    #         return phrase
 
-    valid_verb_postags = {"VV", "VC", "VE", "VA"}
-    verb_connected_relationships = {'nsubj', 'dobj',"top","range",'attr',"prep"}  ## 谓语可以连接向外的依存关系
 
     tokens = struct['tokens']
     rel_map = _get_rel_map(struct)
@@ -464,9 +473,13 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
         token = tokens[i - 1]
         if token['postag'] in valid_verb_postags and i not in processed_index:
             token['index'] = i
-            # phrase_candidate.append(token)
-            phrase_candidate = extend_verb_phrase(i,tokens,rel_map,[])
+            phrase_candidate = [token]  ## 目前仅考虑单一token为动词短语
+            # phrase_candidate = extend_verb_phrase(i,tokens,rel_map,[])
             verb_candidate_phrases.append(phrase_candidate)
+
+    ## 对紧挨的动词进行拼接
+    verb_candidate_phrases = concat_consecutive_phrases(verb_candidate_phrases)
+
     verb_phrases = []
 
     for vphrase in verb_candidate_phrases:
@@ -487,14 +500,6 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
                 break
     verb_phrases = valid_vphrases
 
-    # for vtoken in verb_candidate_tokens:
-    #     if vtoken['index'] not in rel_map:
-    #         continue
-    #     rels = rel_map[vtoken['index']]
-    #     for rel in rels:
-    #         if rel['relationship'] in verb_connected_relationships:  ## 检查该动词是否连接一个主语或者宾语
-    #             verb_tokens.append(vtoken)
-    #             break
     if pretty:
         verb_phrases = [ prettify(vphrase) for vphrase in verb_phrases]
     return verb_phrases
@@ -505,12 +510,24 @@ def extract_verb_phrase(struct:dict=None,pretty:bool = True):
 
 @adapt_struct
 def extract_num_phrase(struct: dict = None,
-                        multi_token_only=True,
+                        multi_token_only=False,
                         pretty=False,
+                        rm_one_char=True,  ## need to impliment
                         ):
-    num_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
+    num_phrases = extract_phrase(struct=struct, multi_token_only = False, pretty= False,
                                   valid_postags={"CD","M","DTA","OD"},
                                   invalid_postags={},
                                   valid_rels={"range","nummod","dep"}
-                                  )
+                                  ,rm_one_char=False)
+
+    num_phrases = concat_consecutive_phrases(num_phrases)
+    num_phrases = [p for p in num_phrases if
+                   not (len(p) == 1 and p[0]['postag'] == "M")]  ## 去除只有一个token, 且token为"单位"的case
+
+    if rm_one_char:
+        num_phrases = [p for p in num_phrases if not(len(p)==1 and len(p[0]['token']) ==1)]
+
+    if pretty:
+        num_phrases = [prettify(p) for p in num_phrases]
+
     return num_phrases
