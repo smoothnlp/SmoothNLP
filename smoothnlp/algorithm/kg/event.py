@@ -2,6 +2,7 @@ from ...nlp import nlp
 from .entity import extract_subject,extract_object,extract_tmod_entity
 from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct
 from .phrase import _split_conj_sents,_find_phrase_connected_rel
+from copy import deepcopy
 
 @adapt_struct
 def extract_subj_and_verb(struct: dict = None,
@@ -15,12 +16,38 @@ def extract_subj_and_verb(struct: dict = None,
     """
     # split_indexes = _split_conj_sents(struct)
     events = []
+
+    def extend_valid_rel(rels):
+        """
+        基于 "conj" 对现有的dependency 做补充
+        :param rels:
+        :return:
+        """
+        output_rels = deepcopy(rels)
+        for dindex in set([rel['dependentIndex'] for rel in rels]):
+            index_rels = [r for r in rels if r['dependentIndex']==dindex]
+            drels = [r for r in index_rels if r['relationship']=="conj"]
+            index_rels = [r for r in index_rels if r['relationship'] != "conj"]
+            for drel in drels:
+                # print("relate rel: ",drel)
+                extra_rels = deepcopy(index_rels)
+                for erel in extra_rels:
+                    erel['dependentIndex'] = drel['targetIndex']
+                    erel["dependentToken"] = drel['targetToken']
+                    output_rels+=extra_rels
+        return output_rels
+    struct['dependencyRelationships'] = extend_valid_rel(struct['dependencyRelationships'])
+
     rel_map = _get_rel_map(struct)
     verbs = extract_verb_phrase(struct, pretty=False)
     subject_candidates = extract_subject(struct=struct, pretty=False)
 
+
     for vphrase in verbs:  ## loop 每一个动词短语
         v_rels = _find_phrase_connected_rel(vphrase,rel_map)
+
+        v_rels = [rel for rel in v_rels if rel['relationship'] in valid_subject_rel]
+
         for subject_candidate in subject_candidates:  ## loop 每一个主语
             subject_candidate_indexes = set([t['index'] for t in subject_candidate])
             subject = None
@@ -56,6 +83,9 @@ def extract_obj_event(struct: dict = None,
     :return:
     """
     split_indexes = _split_conj_sents(struct)
+
+    print(" -- split index: ",split_indexes)
+
     events = []
     rel_map = _get_rel_map(struct)
     object_candidates = object_extract_func(struct = struct, pretty=False)
@@ -85,8 +115,14 @@ def extract_obj_event(struct: dict = None,
 
                     ## ~~~~~~~~~  对于跨并列句的情况进行检查 ~~~~~~~~
                     ## ~~~ 如: 中美一阶段协议达成,货币政策空间加大  ~~~
+
+                    ## todo: 如果第二句话有助于的情况下; 否则不检查
+                    ## todo: 如果 主语与动词在同一个句子下, 检查, 否则, 不检查
                     violate_split_condition = False
+                    # print(" -- subject: ", prettify(subject), " object: ", prettify(object))
                     for i in split_indexes:
+                        # print("subject: ",prettify(subject)," object: ",prettify(object))
+                        # print("condition",(subj_index < i) != (obj_index < i))
                         if (subj_index < i) != (obj_index < i):
                             violate_split_condition = True
                             break

@@ -52,8 +52,9 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
     #             rels += extra_rels
     #     return rels
 
+
     for vphrase in verbs:
-        # print("vphrase: ",prettify(vphrase))
+        # print(" -- vphrase: ",prettify(vphrase))
         rels = _find_phrase_connected_rel(vphrase,rel_map)
         rels = [rel for rel in rels if rel['relationship'] in valid_rel]
         # print("   ---- before extended: ",rels)
@@ -83,7 +84,7 @@ def extract_object(struct:dict=None,pretty:bool = True,with_describer:bool = Tru
                           valid_rel={"dobj","range","attr"}, with_describer = with_describer)
 
 def extract_subject(struct:dict=None,pretty:bool = True,with_describer:bool = True):
-    subject_entities =  extract_entity(struct = struct,pretty = pretty,
+    subject_entities = extract_entity(struct = struct,pretty = pretty,
                           valid_rel={"nsubj","top"},with_describer = with_describer)
     return subject_entities
 

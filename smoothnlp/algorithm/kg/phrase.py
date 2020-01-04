@@ -22,7 +22,7 @@ def _split_conj_sents(struct:dict = None):
     conj_pairs = [(rel['dependentIndex'],rel['targetIndex']) for rel in rels if rel['relationship'] == 'conj']
     split_indexes = []
     for i in range(1,len(tokens)+1):
-        if tokens[i-1]['token'] in {",","，"}:
+        if tokens[i-1]['postag'] == "PU" and tokens[i-1]['postag'] not in {"“","”"}:
             for pair in conj_pairs:
                 if pair[0]<=i<= pair[1]:
                     split_indexes.append(i)
