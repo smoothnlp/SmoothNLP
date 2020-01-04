@@ -12,14 +12,17 @@ def _find_phrase_connected_rel(phrase, rel_map):
     return rels
 
 def _split_conj_sents(struct:dict = None):
+    """
+    如果动词之间出现并列关系, 且中间出现逗号, 进行隔句处理
+    :param struct:
+    :return:
+    """
     tokens = struct['tokens']
     rels = struct['dependencyRelationships']
-
     conj_pairs = [(rel['dependentIndex'],rel['targetIndex']) for rel in rels if rel['relationship'] == 'conj']
-
     split_indexes = []
     for i in range(1,len(tokens)+1):
-        if tokens[i-1]['postag'] == "PU":
+        if tokens[i-1]['token'] in {",","，"}:
             for pair in conj_pairs:
                 if pair[0]<=i<= pair[1]:
                     split_indexes.append(i)
