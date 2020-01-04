@@ -68,17 +68,20 @@ class Test_Segment(unittest.TestCase):
         self.assertEqual('上市对36氪有三大好处','36氪','对')
         self.assertEqual('帮邦行完成1亿元人民币B1轮投资','B1轮','人民币')
         self.assertGreaterEqual(1-failed_counter/num_test_case,0.5)
-        
+    
+    
     def test3_SegPunct(self):
         '''测试符号与两边的字符是否切开,按照符号两边字符种类划分'''
         print('\n######',sys._getframe().f_code.co_name,'测试结果：######')
         ## 英文  目前部分切开，如case3 “SKP-S” 切成['SKP', '-S']
         self.assertEqual('年轻人,你需要的SUV是哪辆?对比T-Cross、T-ROC','T-Cross','对比')
+        self.assertEqual('同时，首钢股份拟以4.29元/股的价格向首钢总公司发行预计不超过30亿股作为支付对价','元','4.29')
         self.assertEqual('关于Wi-Fi 6、5G和物联网、边缘时代的关键事实','Wi-Fi','关于')
         self.assertEqual('从北京SKP-S解码购物中心艺术商业新方向','SKP-S','北京')
         self.assertEqual('A&F放弃性感营销，打温暖牌专注卖衣服','A&F','')
         ## 数字  目前部分切开，如case1 “1-11月” 切成['1-', '11月']
-        self.assertEqual('财政部:1-11月国有企业营业总收入55.7万亿元','1-11',':')
+        self.assertEqual('财政部:1-11月国有企业营业总收入55.7万亿元','1',':')
+        self.assertEqual('1-4月天津规模以上营利性服务业营收535.92亿元','1','')
         self.assertEqual('外资便利店巨头7-11登陆郑州','7-11','巨头')
         ## 中文  目前部分切开，bad case如“|潮”、“|图”、“参|”
         self.assertEqual('首发|爱奇艺、哔哩哔哩被纳入MSCI指数','|','首发')
