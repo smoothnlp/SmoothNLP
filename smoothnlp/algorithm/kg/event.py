@@ -36,7 +36,8 @@ def extract_subj_and_verb(struct: dict = None,
                     erel["dependentToken"] = drel['targetToken']
                     output_rels+=extra_rels
         return output_rels
-    struct['dependencyRelationships'] = extend_valid_rel(struct['dependencyRelationships'])
+    ## todo ： 迁移到_get_rel_map， 尚未解决：腾讯进军印度保险市场：花15亿元收购一公司10%股份 --> {'subject': '腾讯', 'action': '花', 'object': '印度保险市场', 'type': 'action'}]
+    # struct['dependencyRelationships'] = extend_valid_rel(struct['dependencyRelationships'])
 
     rel_map = _get_rel_map(struct)
     verbs = extract_verb_phrase(struct, pretty=False)
