@@ -1,5 +1,11 @@
 from ...nlp import nlp
 from functools import wraps
+from copy import deepcopy
+
+_object_rels = {"dobj","range","attr"}
+_subject_rels = {"nsubj","top"}
+_num_rels = {"range","nummod"}
+
 prettify = lambda l: "".join([t['token'] for t in l])
 phrase_index_range = lambda l: [t['index'] for t in l]
 
@@ -20,17 +26,69 @@ def _split_conj_sents(struct:dict = None):
     tokens = struct['tokens']
     rels = struct['dependencyRelationships']
     conj_pairs = [(rel['dependentIndex'],rel['targetIndex']) for rel in rels if rel['relationship'] == 'conj']
-    split_indexes = []
+    split_indexes = [0]
     for i in range(1,len(tokens)+1):
-        if tokens[i-1]['postag'] == "PU" and tokens[i-1]['postag'] not in {"“","”"}:
+        if tokens[i-1]['postag'] == "PU" \
+                and tokens[i-1]['postag'] not in {"“","”"}:
             for pair in conj_pairs:
                 if pair[0]<=i<= pair[1]:
                     split_indexes.append(i)
-    return split_indexes;
+
+    for i in range(len(split_indexes)-1,0,-1):
+        if split_indexes[i] - split_indexes[i-1]<15:
+
+            split_indexes.pop(i)
+    split_indexes.pop(0)
+    return split_indexes
+
+def extend_valid_rel(rels):
+    """
+    基于 "conj" 对现有的dependency 做补充
+    :param rels:
+    :return:
+    """
+    output_rels = deepcopy(rels)
+    for dindex in set([rel['dependentIndex'] for rel in rels]):
+        index_rels = [r for r in rels if r['dependentIndex']==dindex]  ## 找出由dindex出发的relationship
+        drels = [r for r in index_rels if r['relationship']=="conj"]  ## 找出存在 conj 并列关系的case
+
+        index_rels = [r for r in index_rels if r['relationship'] != "conj"]  ## 可以被拓展的关联 dindex 开始的关联
+        index_rels_relationship = set([ r['relationship'] for r in index_rels ])
+        for drel in drels:  ## 对每一个拓展词做处理
+            extra_rels = deepcopy(index_rels)
+
+            ## 对于 conj 两边词汇公有的 rel, 不做拓展
+            drel_targetIndex = drel['targetIndex']
+            target_covered_rels_relationship = set([r['relationship'] for r in rels if r['dependentIndex']==drel_targetIndex])
+            for rel_set in [_object_rels,_subject_rels,_num_rels]:  ## 拓展 主语,宾语, 数字 rel,
+                if len(target_covered_rels_relationship.intersection(rel_set))>=1:
+                    target_covered_rels_relationship = target_covered_rels_relationship.union(rel_set)
+
+            extendable_rel = _object_rels.union(_subject_rels).union(_num_rels)
+            extendable_rel = extendable_rel - target_covered_rels_relationship
+
+            extra_rels = [r for r in extra_rels if r['relationship'] in extendable_rel]  ## 过滤掉已经被拓展的rel
+
+            # subject_valid = True   ### 检查要跳转的词前面有没有主语, 如果有, 不跳转
+            # drel_targetIndex = drel['targetIndex']
+            # for i in range(max(drel_targetIndex-5,0),drel_targetIndex-1):
+            #     if rels[i]['relationship'] in {"nsubj","top"}:
+            #         subject_valid = False
+            #         break
+            # if not subject_valid:
+            #     continue
+
+
+            for erel in extra_rels:
+                erel['dependentIndex'] = drel['targetIndex']
+                erel["dependentToken"] = drel['targetToken']
+            output_rels+=extra_rels
+    return output_rels
 
 def _get_rel_map(struct):
     rel_map = {}
-    rels = struct['dependencyRelationships']
+    rels = extend_valid_rel(struct['dependencyRelationships'])
+    # rels = struct['dependencyRelationships']
     for rel in rels:
         if rel['dependentIndex'] in rel_map:
             rel_map[rel['dependentIndex']].append(rel)
@@ -51,76 +109,6 @@ def adapt_struct(func):
             return func(struct = struct,*arg,**kargs)
     return tostruct
 
-# @adapt_struct
-# def extract_phrase(struct: dict = None,
-#                    multi_token_only=True,
-#                    pretty=False,
-#                    valid_postags={},
-#                    invalid_postags={},
-#                    valid_rels={},
-#                    rm_one_char: bool = False):
-#
-#     tokens = struct['tokens']
-#
-#     rel_map = _get_rel_map(struct)
-#
-#     phrases = []
-#     phrase = []
-#     for i in range(len(tokens)):
-#         index = i + 1
-#         token = tokens[i]
-#
-#         ## required conditions
-#         valid_postag_condition = token["postag"] in valid_postags
-#         invalid_postag_condition = token["postag"] not in invalid_postags
-#         reverse_rel_condition1 = index in rel_map and index - 1 in [rel["targetIndex"] for rel in rel_map[index] if
-#                                                                     rel['relationship'] in valid_rels and rel[
-#                                                                         'relationship']]
-#         reverse_rel_condition2 = index + 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index + 1] if
-#                                                                     rel['relationship'] in valid_rels and rel[
-#                                                                         'relationship']]
-#         direct_rel_condition1 = index in rel_map and index + 1 in [rel["targetIndex"] for rel in rel_map[index] if
-#                                                                    rel['relationship'] in valid_rels and rel[
-#                                                                        'relationship']]
-#         direct_rel_condition2 = index - 1 in rel_map and index in [rel["targetIndex"] for rel in rel_map[index - 1] if
-#                                                                    rel['relationship'] in valid_rels and rel[
-#                                                                        'relationship']]
-#
-#         # print(index)
-#         # print(valid_postag_condition,invalid_postag_condition)
-#         # print(reverse_rel_condition1,reverse_rel_condition2)
-#         # print(direct_rel_condition1,direct_rel_condition2)
-#
-#         token['index'] = index
-#
-#         rel_condition = reverse_rel_condition1 or reverse_rel_condition2 or direct_rel_condition1 or direct_rel_condition2
-#
-#         ## 检查 index 与 index-1 的 postag 是否一直
-#         # neighbor_postag_same_flag = True
-#         # # if i>0:
-#         # #     neighbor_postag_same_flag =
-#
-#         if (valid_postag_condition or rel_condition) and invalid_postag_condition:
-#             if not phrase:
-#                 phrase = [token]
-#             else:
-#                 phrase.append(token)
-#         else:  ## 不符合条件的情况下
-#             if phrase:
-#                 if (multi_token_only and len(phrase) > 1) or not multi_token_only:
-#                     phrases.append(phrase)
-#                 phrase = []
-#     if phrase:
-#         if (multi_token_only and len(phrase) > 1) or not multi_token_only:
-#             phrases.append(phrase)
-#     if rm_one_char:
-#         phrases = [phrase for phrase in phrases if len(phrase) > 1 or len(phrase[0]['token']) > 1]
-#     # phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]  ## 短语不考虑只有一个token, 且token长度为1的情况
-#
-#     if not pretty:
-#         return phrases
-#     else:
-#         return ["".join([p['token'] for p in phrase]) for phrase in phrases]
 
 
 @adapt_struct

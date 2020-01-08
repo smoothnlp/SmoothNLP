@@ -98,3 +98,8 @@ def extract_num_entity(struct:dict=None,pretty:bool = True,with_describer:bool =
 
 
 
+_object_rels = {"dobj","range","attr"}
+_subject_rels = {"nsubj","top"}
+_num_rels = {"range","nummod"}
+
+

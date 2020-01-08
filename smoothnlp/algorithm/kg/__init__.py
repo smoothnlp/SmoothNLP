@@ -55,7 +55,6 @@ def adapt_smart_split2sentences(func):
 
 @adapt_struct
 def extract_all_debug(struct:dict):
-    # print("all: ", extract_all(struct=struct, pretty=True))
     print(" ~~~~~ phrase ~~~~~~~")
     print("noun(no describer): ", extract_noun_phrase(struct=struct, pretty=True, multi_token_only=False, with_describer=False))
     print("noun(with describer): ",
@@ -84,13 +83,16 @@ def extract_all_debug(struct:dict):
     print("action event: ", event.extract_action_event(struct=struct, pretty=True))
     print("state event: ", event.extract_state_event(struct=struct, pretty=True))
 
+    print("~~~~~~~~ all  ~~~~~~~~~")
+    print("all: ", extract_all(struct=struct, pretty=True))
+
 
 @adapt_struct
-@adapt_smart_split2sentences
+# @adapt_smart_split2sentences
 def extract_all(struct:dict, pretty:bool=True):
-    attrs = extract_all_attr(struct = struct, pretty= pretty)
+    # attrs = extract_all_attr(struct = struct, pretty= pretty)
     events = extract_all_event(struct = struct, pretty = pretty)
-    return attrs+events
+    return events
 
 def get_paths(text:str=None,struct:dict=None):
     if struct is None:

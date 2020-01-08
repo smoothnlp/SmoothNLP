@@ -1,5 +1,5 @@
 from ...nlp import nlp
-from .entity import extract_subject,extract_object,extract_tmod_entity
+from .entity import extract_subject,extract_object,extract_tmod_entity,_subject_rels,_object_rels,_num_rels
 from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct
 from .phrase import _split_conj_sents,_find_phrase_connected_rel
 from copy import deepcopy
@@ -17,25 +17,6 @@ def extract_subj_and_verb(struct: dict = None,
     # split_indexes = _split_conj_sents(struct)
     events = []
 
-    def extend_valid_rel(rels):
-        """
-        基于 "conj" 对现有的dependency 做补充
-        :param rels:
-        :return:
-        """
-        output_rels = deepcopy(rels)
-        for dindex in set([rel['dependentIndex'] for rel in rels]):
-            index_rels = [r for r in rels if r['dependentIndex']==dindex]
-            drels = [r for r in index_rels if r['relationship']=="conj"]
-            index_rels = [r for r in index_rels if r['relationship'] != "conj"]
-            for drel in drels:
-                # print("relate rel: ",drel)
-                extra_rels = deepcopy(index_rels)
-                for erel in extra_rels:
-                    erel['dependentIndex'] = drel['targetIndex']
-                    erel["dependentToken"] = drel['targetToken']
-                    output_rels+=extra_rels
-        return output_rels
     ## todo ： 迁移到_get_rel_map， 尚未解决：腾讯进军印度保险市场：花15亿元收购一公司10%股份 --> {'subject': '腾讯', 'action': '花', 'object': '印度保险市场', 'type': 'action'}]
     # struct['dependencyRelationships'] = extend_valid_rel(struct['dependencyRelationships'])
 
