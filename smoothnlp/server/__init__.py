@@ -82,7 +82,7 @@ class smoothNlpRequest(object):
     def split2sentences(self,text:str):
         return self.__call__(text, path = '/split2sentences',max_size_limit=999999)
 
-    def processcorpus(self,url:str,text):
+    def processcorpus(self,text):
         return self.__call__(text, path='/processcorpus', max_size_limit=999999)
 
 
