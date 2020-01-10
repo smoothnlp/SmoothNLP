@@ -81,7 +81,7 @@ def extend_valid_rel(rels):
 
             for erel in extra_rels:
                 erel['dependentIndex'] = drel['targetIndex']
-                erel["dependentToken"] = drel['targetToken']
+                # erel["dependentToken"] = drel['targetToken']
             output_rels+=extra_rels
     return output_rels
 
