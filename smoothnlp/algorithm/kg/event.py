@@ -66,8 +66,6 @@ def extract_obj_event(struct: dict = None,
     """
     split_indexes = _split_conj_sents(struct)
 
-    print(" -- split index: ",split_indexes)
-
     events = []
     rel_map = _get_rel_map(struct)
     object_candidates = object_extract_func(struct = struct, pretty=False)
