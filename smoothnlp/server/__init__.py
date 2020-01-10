@@ -17,7 +17,10 @@ class smoothNlpRequest(object):
         content = {"text":text}
         r = requests.get(self.url+path, params=content)
         try:
-            self.result = r.json()['payload']['response']
+            self.result = r.json()
+            if isinstance(self.result,dict):
+                self.result = self.result['payload']['response']
+            return self.result
         except KeyError:
             counter+=1
             return self.__call__(text,counter)
