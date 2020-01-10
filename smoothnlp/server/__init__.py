@@ -23,7 +23,7 @@ class smoothNlpRequest(object):
             return self.result
         except KeyError:
             counter+=1
-            return self.__call__(text,counter)
+            return self.__call__(text,path = path, counter = counter, max_size_limit=max_size_limit)
 
     def dependencyrelationships(self,text):
         self.__call__(text)
