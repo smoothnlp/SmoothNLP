@@ -178,6 +178,7 @@ public class TaggerImpl extends Tagger {
     public void buildLatticeWithEmbedding(){
         if(!x_.isEmpty()){
             feature_index_.rebuildEmbeddingFeatures(this);
+
             for (int i = 0; i < x_.size(); i++) {
                 for (int j = 0; j < ysize_; j++) {
                     feature_index_.calcCostWithEmbedding(node_.get(i).get(j)); //计算节点代价 , node_[i][j] 表示一个节点；第i个词是第j个label 的点；
@@ -292,7 +293,6 @@ public class TaggerImpl extends Tagger {
                 node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, Z_ ,ysize_);
             }
         }
-
         for(int i = 0; i < x_.size(); i++){
             List<Integer> fvector = node_.get(i).get(answer_.get(i)).fVector;
             for(int j = 0 ; fvector.get(j) != -1 ; j++){
@@ -300,9 +300,11 @@ public class TaggerImpl extends Tagger {
                 expected[idx] -- ;
             }
 
-            int id = node_.get(i).get(answer_.get(i)).emID;
-            int idxEmbedding = id + answer_.get(i);
-            expectedEmbedding[idxEmbedding] -- ;
+            if(expectedEmbedding.length>0){
+                int id = node_.get(i).get(answer_.get(i)).emID;
+                int idxEmbedding = id + answer_.get(i);
+                expectedEmbedding[idxEmbedding] -- ;
+            }
 
             s += node_.get(i).get(answer_.get(i)).cost; //UNIGRAM COST
 

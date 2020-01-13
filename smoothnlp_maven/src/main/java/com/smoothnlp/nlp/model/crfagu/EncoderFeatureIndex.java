@@ -54,6 +54,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
         }
     }
 
+    /*
     public int getEmbeddingID(String key){
         if(!emb_dic_.containsKey(key)){
             emb_dic_.put(key,new Pair<Integer, Integer>(maxEmbeddingId_,1));
@@ -68,7 +69,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
             return k;
         }
     }
-
+    */
 
     /**
      * 用于打开特征模板文件，检测特征模板合法性

@@ -80,8 +80,11 @@ public class Node {
             expected[idx] += c;
         }
 
-        int idx =  emID + y ;
-        expectedEmbedding[idx] += c;
+        if(expectedEmbedding!=null && expectedEmbedding.length>0){
+            int idx =  emID + y ;
+            expectedEmbedding[idx] += c;
+            System.out.println("expectedEmbedding");
+        }
 
         for (Path p: lpath){
             p.calcExpectation(expected, Z, size);
