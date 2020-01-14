@@ -3,6 +3,7 @@ from smoothnlp.algorithm.phrase.ngram_utils import sentence_split_by_punc,remove
 from datetime import datetime
 import _io
 from smoothnlp import logger
+import types
 
 
 def chunk_generator_adapter(obj, chunk_size):
