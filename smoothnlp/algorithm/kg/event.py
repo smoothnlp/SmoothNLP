@@ -151,6 +151,8 @@ def extract_prep_event(struct:dict = None, pretty:bool = True, event_type = "pre
             if ptoken_index not in rel_map:
                 continue
             for ptargetTokens in rel_map[ptoken_index]:
+                if ptargetTokens['relationship'] not in {"pobj"}:
+                    continue
                 event = event_cand.copy()
                 ## todo 用 phrase/ner 短语替代
                 vmod_token = tokens[ptargetTokens['targetIndex']-1]

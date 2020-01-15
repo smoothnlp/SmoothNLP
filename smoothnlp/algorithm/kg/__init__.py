@@ -59,10 +59,12 @@ def extract_all_debug(struct:dict):
     print("noun(no describer): ", extract_noun_phrase(struct=struct, pretty=True, multi_token_only=False, with_describer=False))
     print("noun(with describer): ",
           extract_noun_phrase(struct=struct, pretty=True, multi_token_only=False, with_describer=True))
-    print("describer: ", phrase.extract_mod_describer_phrase(struct = struct, pretty= True))
-    print("vhybrid describer: ", phrase.extract_vhybrid_describer_phrase(struct=struct, pretty=True))
-    print("loc describer: ", phrase.extract_loc_describer_phrase(struct=struct, pretty=True))
+    # print("describer: ", phrase.extract_mod_describer_phrase(struct = struct, pretty= True))
+    # print("vhybrid describer: ", phrase.extract_vhybrid_describer_phrase(struct=struct, pretty=True))
+    # print("loc describer: ", phrase.extract_loc_describer_phrase(struct=struct, pretty=True))
     print("prep describer: ",phrase.extract_prep_describer_phrase(struct=struct, pretty=True))
+    # print("mod describer: ", phrase.extract_mod_describer_phrase(struct=struct, pretty=True))
+
     print("all describer: ", phrase.extract_all_describer_phrase(struct=struct, pretty=True))
 
     print("verb: ", extract_verb_phrase(struct= struct, pretty=True))
@@ -94,9 +96,8 @@ def extract_all(struct:dict, pretty:bool=True):
     events = extract_all_event(struct = struct, pretty = pretty)
     return events
 
-def get_paths(text:str=None,struct:dict=None):
-    if struct is None:
-        struct = nlp.analyze(text)
+@adapt_struct
+def get_paths(struct:dict=None):
     rel_map = _get_rel_map(struct)
     paths = []
     def get_paths_helper(path,index=0):
