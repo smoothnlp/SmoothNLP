@@ -113,11 +113,26 @@ public abstract class FeatureIndex {
             for (int i=0; i< vector.length;i++){
                 c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
             }
-            System.out.println("expectedEmbedding, c:" + c);
+
         }
 
         node.cost = costFactor_ * c;
     }
+
+    /**
+     * 引入Embedding之后的Node的 代价计算函数, 对于非bigram 特征时无用处
+     * @param path
+     */
+    public void calcCostWithEmbedding(Path path){
+        path.cost = 0.0;
+        double c = 0.0;
+        for (int i = 0; path.fvector.get(i) != -1; i++) {
+            c += alpha_[path.fvector.get(i) + path.lnode.y * y_.size() + path.rnode.y];
+        }
+        path.cost = costFactor_ * c;
+
+    }
+
 
 
     public String makeTempls(List<String> unigramTempls, List<String> bigramTempls) {
@@ -340,7 +355,16 @@ public abstract class FeatureIndex {
         List<Integer> featureEmbeddingIdsCache= tagger.getFeatureEmbeddingIdsCache_();
         for (int cur = 0; cur < tagger.size(); cur++) {
             List<Integer> f = featureCache.get(fid++);  // 去除词的特征，词的特征列表对应特征模板里的Unigram特征
+
             String emStr = featureEmbeddingStrsCache.get(cur);
+            float[] vector = embedding.getStrEmbedding(emStr);
+            /*
+            StringBuffer sb  = new StringBuffer();
+            for(int i=0;i<f.size();i++){
+                sb.append(f.get(i)+",");
+            }
+            System.out.println(emStr+" featureCache: " + sb.toString());
+            */
             //int emId = featureEmbeddingIdsCache.get(cur);
 
             for (int i = 0; i < y_.size(); i++) {  // label list
@@ -351,6 +375,7 @@ public abstract class FeatureIndex {
                 n.fVector = f;    // 特征列表
                 n.emStr = emStr;
                 //n.emID = emId;
+                //n.emVector = vector;
                 tagger.set_node(n, cur, i);   // TaggerImpl 中的二位数组node_存放该节点
             }
         }

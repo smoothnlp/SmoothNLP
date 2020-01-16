@@ -330,20 +330,20 @@ public class Encoder {
             for(int i =0 ;i<expectedCombine.length;i++){
                 sb.append(expectedCombine[i] + ",");
             }
-            System.out.println("expectedCombine:" + expectedCombine.length);
-            System.out.println("expectedCombine:" + sb.toString());
+            //System.out.println("expectedCombine:" + expectedCombine.length);
+            //System.out.println("expectedCombine:" + sb.toString());
 
             sb = new StringBuffer();
             for(int i =0 ;i<alphaCombine.length;i++){
                 sb.append(alphaCombine[i] + ",");
             }
-            System.out.println("alphaCombine:" + alphaCombine.length);
-            System.out.println("alphaCombine:" + sb.toString());
+            //System.out.println("alphaCombine:" + alphaCombine.length);
+            //System.out.println("alphaCombine:" + sb.toString());
 
 
             int ret = lbfgs.optimize(paramSize,
                     alphaCombine, threads.get(0).obj, expectedCombine, orthant, C);
-            System.out.println("ret:" + ret);
+            //System.out.println("ret:" + ret);
 
             li = 0;
             for(; li<alpha.length;li++){

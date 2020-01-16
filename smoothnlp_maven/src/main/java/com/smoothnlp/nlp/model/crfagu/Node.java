@@ -23,6 +23,7 @@ public class Node {
     public List<String> emKey;
     public String emStr; //仅支持一个
     public int emID; // 仅支持一个
+    public float[] emVector ; // support embedding vector
 
     public Node() {
         lpath = new ArrayList<Path>();
@@ -73,20 +74,21 @@ public class Node {
     }
 
     // support embedding templates
-    public void calcExpectation(double[] expected, double [] expectedEmbedding, double Z, int size){
+    public void calcExpectation(double[] expected, double [] expectedEmbedding,float[] vectorNode, int vecSize, double Z, int size){
         double c = Math.exp(alpha + beta - cost -Z);
         for (int i = 0; fVector.get(i) != -1; i++) {
             int idx = fVector.get(i) + y;
             expected[idx] += c;
         }
 
-        if(expectedEmbedding!=null && expectedEmbedding.length>0){
-            int idx =  emID + y ;
-            expectedEmbedding[idx] += c;
-            System.out.println("expectedEmbedding");
+        if(expectedEmbedding.length>0 && vectorNode.length>0 && vecSize == vectorNode.length){
+            for(int i=0;i<vectorNode.length;i++){
+                int idx = i + y * vecSize;
+                expectedEmbedding[idx] += c * vectorNode[i];
+            }
         }
 
-        for (Path p: lpath){
+        for (Path p: lpath){ // 未使用，for unigram 特征
             p.calcExpectation(expected, Z, size);
         }
 
