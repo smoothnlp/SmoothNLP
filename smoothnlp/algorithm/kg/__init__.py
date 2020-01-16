@@ -106,7 +106,7 @@ def extract_related(struct,ners= {"GS","COMPANY_REGISTR"},keywords=[],pretty=Tru
     tokens = struct['tokens']
     keyword_index = set([t['index'] for t in tokens if t['token'] in keywords])
     related_indexes = set([int(index) for ent in entities for index in ent['sTokenList'] if ent['nerTag'] in ners])
-    related_indexes+=keyword_index.union(related_indexes)
+    related_indexes=keyword_index.union(related_indexes)
     related_kgs = []
     for kg_piece in all_kgs:
         for val in kg_piece.values():
