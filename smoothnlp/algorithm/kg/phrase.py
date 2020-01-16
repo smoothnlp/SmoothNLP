@@ -114,11 +114,12 @@ def adapt_struct(func):
         if "struct" in kargs:
             kargs.pop("struct")
         if isinstance(struct,str):
-            return func(struct = nlp.analyze(struct),*arg,**kargs)
+            struct = nlp.analyze(struct)
         if struct is None or isinstance(text,str):
-            return func(struct = nlp.analyze(text),*arg,**kargs)
-        else:
-            return func(struct = struct,*arg,**kargs)
+            struct = nlp.analyze(text)
+        for i in range(len(struct['tokens'])):
+            struct['tokens'][i]['index'] = i+1
+        return func(struct = struct,*arg,**kargs)
     return tostruct
 
 
@@ -207,11 +208,9 @@ def deduple_phrases(phrases):
 
 
 def concat_consecutive_phrases(phrases):
-
     tokens = {t['index']:t for p in phrases for t in p}
     tokens = list(tokens.values())
     tokens.sort(key=lambda x: x['index'])
-
     phrases = []
     if (len(tokens)<1):
         return phrases
@@ -225,15 +224,6 @@ def concat_consecutive_phrases(phrases):
     if len(phrase)>0:
         phrases.append(phrase)
     return phrases
-
-    # phrases.sort(key=lambda x: x[0]['index'])
-    # for i in range(len(phrases) - 1):
-    #     if phrases[i][-1]["index"] + 1 == phrases[i + 1][0]["index"]:
-    #         p2 = phrases.pop(i + 1)
-    #         p1 = phrases.pop(i)
-    #         phrases.append(p1 + p2)
-    #         return concat_consecutive_phrases(phrases)
-    # return phrases
 
 
 
@@ -257,22 +247,6 @@ def extract_noun_phrase(struct: dict = None,
     else:
         ## 抽取带有修饰性的名词
         noun_phrases = extract_noun_phrase(struct = struct, multi_token_only=False, pretty=False, with_describer=False)
-        # noun_phrases_indexes = set([token['index'] for p in noun_phrases for token in p if len(p) > 1])
-        # describer_phrases = extract_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
-        #                                              rm_one_char=True)
-        # describer_phrases += extract_hybrid_describer_phrase(struct=struct, multi_token_only=False, pretty=False,
-        #                                              rm_one_char=True)  ## 添加组合型形容词
-        #
-        # describer_phrases = concat_consecutive_phrases(describer_phrases)
-        #
-        # #         cc_phrases = extract_cc_phrase(text,struct,multi_token_only=False,pretty=False)
-        # #         describer_phrases = concat_consecutive_phrases(describer_phrases+cc_phrases)
-        # describer_phrases = deduple_phrases(describer_phrases)
-        #
-        # describer_phrases = [p for p in describer_phrases if sum(
-        #     [(token['index'] in noun_phrases_indexes) for token in p]
-        # ) == 0]  ## 对 describe_phrase 在 noun_phrase中出现的部分进行去重
-
         describer_phrases = extract_all_describer_phrase(struct = struct, pretty=False)
 
         describer_phrases = [p for p in describer_phrases if sum(
@@ -315,10 +289,11 @@ def recursively_get_path(rel_map,
                                 valid_rels = valid_rels,
                                 invalid_rels = invalid_rels)
 
+@adapt_struct
 def extract_describer_phrase(struct: dict = None, valid_rel_set = {"assmod"} ,multi_token_only=False, pretty=False,
                              rm_one_char=True, recursive_valid_rels:set = set(), recursively_invalid_rels:set = set()):
     rel_map = _get_rel_map(struct=struct)
-    tokens = struct['tokens'];
+    tokens = struct['tokens']
     rels = struct['dependencyRelationships']
     modifier_rels = [rel for rel in rels if rel['relationship'] in valid_rel_set]
     mod_core_token_indexes = [rel['targetIndex'] for rel in modifier_rels]
@@ -339,6 +314,7 @@ def extract_describer_phrase(struct: dict = None, valid_rel_set = {"assmod"} ,mu
         phrases = [prettify(p) for p in phrases]
     return phrases
 
+@adapt_struct
 def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False, rm_one_char=True):
     rel_map = _get_rel_map(struct=struct)
     tokens = struct['tokens'];
@@ -379,202 +355,8 @@ def extract_prep_describer_phrase(struct: dict = None, multi_token_only=True, pr
                                     valid_rel_set={"prep"},rm_one_char=rm_one_char)
 
 
-
-
-# def extract_all_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False, rm_one_char=True):
-#     mod_describers = extract_mod_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
-#                                                      rm_one_char=True)
-#     vhybrid_describers = extract_vhybrid_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
-#                                                      rm_one_char=True)
-#     loc_describers = extract_loc_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
-#                                                      rm_one_char=True)
-#     prep_describers = extract_prep_describer_phrase(struct = struct, multi_token_only=False, pretty=False,
-#                                                      rm_one_char=True)
-#
-#     num_describers = extract_num_phrase(struct= struct, multi_token_only= False, pretty= False
-#                                         , rm_one_char= True)
-#
-#     punk = extract_phrase(struct=struct, multi_token_only=False, pretty=False,
-#                              valid_postags={"PU"},
-#                              invalid_postags={},
-#                              valid_rels={},
-#                              rm_one_char=False)
-#
-#
-#
-#     phrases = mod_describers+vhybrid_describers+loc_describers+prep_describers+num_describers
-#     phrases = concat_consecutive_phrases(phrases)
-#     phrases = concat_consecutive_phrases(punk + phrases)
-#
-#     phrases = deduple_phrases(phrases)
-#
-#     if rm_one_char:
-#         phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]
-#
-#
-#     # print(" --- candidate mod phrases: ", [prettify(p) for p in phrases])
-#     # print(" --- candidate mod phrases: ", [prettify(p) for p in concat_consecutive_phrases(punk + phrases)])
-#
-#     if pretty:
-#         phrases = [prettify(p) for p in phrases]
-#     return phrases
-
-
-## todo:
+# todo:
 ## 抽取: 宁德时代正式成为宝马集团在大中华地区唯一的电池供应商; "名词"与"的"组成的修饰短语
-
-# @adapt_struct
-# def extract_mod_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
-#                              rm_one_char: bool = True):
-#     """
-#     目前主要支持抓取以形容词为代表的描述性短语, 如: "最高的". 对"组合形容词"效果不好, 如: "最具创新力的"
-#     :param text:
-#     :param struct:
-#     :param multi_token_only:
-#     :param pretty:
-#     :param rm_one_char:
-#     :return:
-#     """
-#     phrases =  extract_phrase(struct = struct,multi_token_only = multi_token_only,pretty = False,
-#                           valid_postags = {"DEC","DEV","DER","DEG","SP","ETC","MSP","LOC","JJ"},
-#                         invalid_postags = {"NR","VC","M","VV","VE","NN","CD"},
-#                         valid_rels = {'dep',"attr","neg","amod","dobj","cpm","assm"},
-#                          rm_one_char = False)
-#     phrases = concat_consecutive_phrases(phrases)
-#
-#     if rm_one_char:
-#         phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]
-#
-#     # print(" --- amod base phrases: ",[prettify(p) for p in phrases])
-#
-#     if pretty:
-#         phrases = [prettify(p) for p in phrases]
-#     return phrases
-#
-# @adapt_struct
-# def extract_loc_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
-#                              rm_one_char: bool = False):
-#     phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
-#                              valid_postags={"NN","LC"},
-#                              invalid_postags={"VC", "M", "JJ", "CD"},
-#                              valid_rels={"loc"},
-#                              rm_one_char=False)
-#
-#     noun_phrases = extract_noun_phrase(struct = struct, multi_token_only = False, pretty = False, with_describer=False)
-#     phrases = concat_consecutive_phrases(phrases+noun_phrases)
-#
-#     valid_phrases = []
-#     for p in phrases:
-#         for i in range(len(p)):
-#             if p[i]['postag'] == "LC":
-#                 valid_phrases.append(p[:i + 1])
-#                 break
-#     phrases = valid_phrases
-#
-#     if rm_one_char:
-#         phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]
-#
-#
-#     if pretty:
-#         phrases = [prettify(p) for p in phrases]
-#     return phrases
-
-# @adapt_struct
-# def extract_prep_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
-#                              rm_one_char: bool = True):
-#     rel_map = _get_rel_map(struct=struct)
-#     tokens = struct['tokens'];
-#     rels = struct['dependencyRelationships']
-#     prep_rels = [rel for rel in rels if rel['relationship']=="prep"]
-#     prep_tokens = [tokens[prep_rel['targetIndex']-1] for prep_rel in prep_rels]
-#
-#     phrases = []
-#
-#     for prep_token in prep_tokens:
-#
-#
-#     valid_p_connected_rels = {"pobj","pccomp","dep"}
-#
-#     # def extend_prep_phrase(ptoken,hits=[]):
-#     #     ptoken_index = ptoken['index']
-#     #     if ptoken_index in rel_map:
-#     #         p_connected_rels = [rel for rel in rel_map[ptoken_index]]
-#
-#     print("in prep")
-#     print(prep_tokens)
-
-# @adapt_struct
-# def extract_prep_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
-#                              rm_one_char: bool = True):
-#     phrases = extract_phrase(struct=struct, multi_token_only=False, pretty=False,
-#                              valid_postags={ "NN", "VA","VV", "P","DEG","LOC","DTA","DEC"},
-#                              invalid_postags={"VC", "M", "CD"},
-#                              valid_rels={'rcmod', "advmod", "dep", "assmod"},
-#                              rm_one_char=False)
-#
-#     phrases = concat_consecutive_phrases(phrases)
-#
-#     # print(" --- prep base phrases: ",[prettify(p) for p in phrases])
-#
-#     valid_phrases = []
-#     for p in phrases:
-#         while p[0]['postag'] not in {"P"} and len(p)>1:  ## 开始必须为介词
-#             p.pop(0)
-#         for i in range(len(p)):
-#             if p[i]['postag'] in {"DEG","DEC"} and p[0]['postag'] == "P":
-#                 valid_phrases.append(p[:i + 1])
-#                 break
-#     phrases = valid_phrases
-#
-#     # print(" --- valid base phrases: ", [prettify(p) for p in phrases])
-#
-#     if rm_one_char:
-#         phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]
-#     if pretty:
-#         phrases = [prettify(p) for p in phrases]
-#     return phrases
-
-# @adapt_struct
-# def extract_vhybrid_describer_phrase(struct: dict = None, multi_token_only=False, pretty=False,
-#                              rm_one_char: bool = True):
-#     """
-#     抽取 "最具创新力的" <- 等, 动名词组合形容词短语
-#     :param struct:
-#     :param multi_token_only:
-#     :param pretty:
-#     :param rm_one_char:
-#     :return:
-#     """
-#     phrases = extract_phrase(struct=struct, multi_token_only=multi_token_only, pretty=False,
-#                              valid_postags={"AD","DEC","VA","DEG"},
-#                               invalid_postags={"VC","M","CD"},
-#                               valid_rels={'rcmod', "advmod","dobj","dep","assmod","assm"},
-#                               rm_one_char=False)
-#
-#
-#     phrases = concat_consecutive_phrases(phrases)
-#
-#     if rm_one_char:
-#         phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]
-#
-#     ## todo
-#     """
-#     待解决的case: "欧工国际是目前国内最大的、专业的软装配套设计公司。" -> "最大的"
-#     """
-#
-#     valid_phrases = []
-#     for p in phrases:
-#         while p[0]['postag'] in {"VV"} and len(p)>1:  ## 第一个词为动词, 不可是形容词
-#             p.pop(0)
-#         for i in range(len(p)):
-#             if p[i]['postag'] in {"DEC","DEG"}:
-#                 valid_phrases.append(p[:i+1])
-#                 break
-#     phrases = valid_phrases
-#
-#     if pretty:
-#         phrases = [prettify(p) for p in phrases]
-#     return phrases
 
 
 
@@ -589,62 +371,6 @@ def get_dp_rel(struct:dict=None,rel:str="nsubj"):
             tokens[target_index-1]['index'] = target_index
             target_tokens.append(tokens[target_index-1])
     return target_tokens
-
-@adapt_struct
-def extract_verb_phrase(struct:dict=None,pretty:bool = True):
-    """
-    抽取句子中的谓语
-    :param struct:
-    :param pretty:
-    :return:
-    """
-
-    processed_index = set()
-    valid_verb_postags = {"VV", "VC", "VE"}
-    verb_connected_relationships = {'nsubj', 'dobj', "top", "range", 'attr', "prep"}  ## 谓语可以连接向外的依存关系
-
-    tokens = struct['tokens']
-    rel_map = _get_rel_map(struct)
-
-    verb_candidate_phrases = []
-
-    for i in range(1, len(tokens) + 1):
-
-        token = tokens[i - 1]
-        if token['postag'] in valid_verb_postags and i not in processed_index:
-            token['index'] = i
-            phrase_candidate = [token]  ## 目前仅考虑单一token为动词短语
-            # phrase_candidate = extend_verb_phrase(i,tokens,rel_map,[])
-            verb_candidate_phrases.append(phrase_candidate)
-
-    ## 对紧挨的动词进行拼接
-    verb_candidate_phrases = concat_consecutive_phrases(verb_candidate_phrases)
-
-    verb_phrases = []
-
-    for vphrase in verb_candidate_phrases:
-        rels = _find_phrase_connected_rel(vphrase,rel_map)
-        for rel in rels:
-            if rel['relationship'] in verb_connected_relationships:
-                verb_phrases.append(vphrase)
-                break
-
-    rels = struct['dependencyRelationships']
-    valid_vphrases  = []
-    valid_source_rels = {"root", 'cc', 'conj'}
-    for phrase in verb_phrases:
-        for token in phrase:
-            # token_rel = rels[token['index'] - 1]
-            token_rels = [r for r in rels if r['targetIndex']==token['index']]
-            for token_rel in token_rels:
-                if token_rel['relationship'] in valid_source_rels:
-                    valid_vphrases.append(phrase)
-                    break
-    verb_phrases = valid_vphrases
-
-    if pretty:
-        verb_phrases = [ prettify(vphrase) for vphrase in verb_phrases]
-    return verb_phrases
 
 @adapt_struct
 def extract_verb_phrase(struct:dict=None,
