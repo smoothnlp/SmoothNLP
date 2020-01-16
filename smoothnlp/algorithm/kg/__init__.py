@@ -96,6 +96,25 @@ def extract_all(struct:dict, pretty:bool=True):
     events = extract_all_event(struct = struct, pretty = pretty)
     return events
 
+
+@adapt_struct
+def extract_entity_related(struct,ners= {"GS","COMPANY_REGISTR"},pretty=True):
+    all_kgs = extract_all(struct = struct,pretty=False)
+    entities = struct['entities']
+    ent_indexes = set([int(index) for ent in entities for index in ent['sTokenList'] if ent['nerTag'] in ners] )
+    related_kgs = []
+    for kg_piece in all_kgs:
+        for val in kg_piece.values():
+            val_indexes = set([v['index'] for v in val])
+            if len(val_indexes.intersection(ent_indexes))>0:
+                if pretty:
+                    for k in kg_piece.keys():
+                        kg_piece[k] = phrase.prettify(kg_piece[k])
+                related_kgs.append(kg_piece)
+                break
+    return related_kgs
+
+
 @adapt_struct
 def get_paths(struct:dict=None):
     rel_map = _get_rel_map(struct)
