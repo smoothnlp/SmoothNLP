@@ -1,5 +1,5 @@
 from ...nlp import nlp
-from .entity import extract_subject,extract_object,extract_tmod_entity,_subject_rels,_object_rels,_num_rels
+from .entity import extract_subject,extract_object,extract_prep_describer_phrase
 from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct
 from .phrase import _split_conj_sents,_find_phrase_connected_rel
 from .phrase import recursively_get_path
@@ -182,59 +182,80 @@ def extract_obj_event(struct: dict = None,
             event['type'] = event_type
     return events
 
+# @adapt_struct
+# def extract_prep_event(struct:dict = None, pretty:bool = True, event_type = "prep"):
+#     """
+#     带有(介词)做谓语修饰的三元组
+#     :param struct:
+#     :param pretty:
+#     :return:
+#     """
+#     events = []
+#     rel_map = _get_rel_map(struct)
+#     tokens = struct['tokens']
+#     # object_candidates = extract_object(struct=struct, pretty=False)
+#
+#     event_candidates = extract_subj_and_verb(struct)
+#
+#     # all_phrases = extract_all_phrases(struct,pretty=False)
+#
+#     for event_cand in event_candidates:
+#         v_rels = _find_phrase_connected_rel(event_cand['action'],rel_map)
+#         ## 直接介词连接的情况
+#         prep_tokens = [t for t in v_rels if t['relationship'] in {"prep"}]
+#         for prel in prep_tokens:
+#             ptoken_index = prel['targetIndex']
+#             prep_token = tokens[ptoken_index-1]
+#             prep_token['index'] = ptoken_index
+#             if ptoken_index not in rel_map:
+#                 continue
+#             for ptargetTokens in rel_map[ptoken_index]:
+#                 if ptargetTokens['relationship'] not in {"pobj"}:
+#                     continue
+#                 event = event_cand.copy()
+#                 ## todo 用 phrase/ner 短语替代
+#                 vmod_token = tokens[ptargetTokens['targetIndex']-1]
+#                 vmod_token['index'] = ptargetTokens['targetIndex']
+#                 event['mod'] = [prep_token,vmod_token]
+#                 events.append(event)
+#     if pretty:
+#         for event in events:
+#             event['subject'] = prettify(event['subject'])
+#             event['action'] = prettify(event['action'])
+#             event['mod'] = prettify(event['mod'])
+#             event['type'] = event_type
+#     return events
+
 @adapt_struct
-def extract_prep_event(struct:dict = None, pretty:bool = True, event_type = "prep"):
-    """
-    带有(介词)做谓语修饰的三元组
-    :param struct:
-    :param pretty:
-    :return:
-    """
-    events = []
+def extend_prep4event( events ,struct:dict = None,pretty:bool = True, event_type = "prep"):
     rel_map = _get_rel_map(struct)
-    tokens = struct['tokens']
-    # object_candidates = extract_object(struct=struct, pretty=False)
-
-    event_candidates = extract_subj_and_verb(struct)
-
-    # all_phrases = extract_all_phrases(struct,pretty=False)
-
-    for event_cand in event_candidates:
-        v_rels = _find_phrase_connected_rel(event_cand['action'],rel_map)
-        ## 直接介词连接的情况
-        prep_tokens = [t for t in v_rels if t['relationship'] in {"prep"}]
-        for prel in prep_tokens:
-            ptoken_index = prel['targetIndex']
-            prep_token = tokens[ptoken_index-1]
-            prep_token['index'] = ptoken_index
-            if ptoken_index not in rel_map:
-                continue
-            for ptargetTokens in rel_map[ptoken_index]:
-                if ptargetTokens['relationship'] not in {"pobj"}:
-                    continue
-                event = event_cand.copy()
-                ## todo 用 phrase/ner 短语替代
-                vmod_token = tokens[ptargetTokens['targetIndex']-1]
-                vmod_token['index'] = ptargetTokens['targetIndex']
-                event['mod'] = [prep_token,vmod_token]
-                events.append(event)
+    perp_phrases = extract_prep_describer_phrase(struct = struct, pretty = False)
+    for event in events:
+        keys = deepcopy(list(event.keys()))
+        for k in keys:
+            phrase = event[k]
+            phrase_linked_rels_index = set([rel['targetIndex'] for rel in _find_phrase_connected_rel(phrase,rel_map=rel_map,valid_rels={"prep"})])
+            for perp_phrase in perp_phrases:
+                perp_index_set = set([token['index'] for token in perp_phrase])
+                if len(perp_index_set.intersection(phrase_linked_rels_index))>0:
+                    event[k+"_prep"] = perp_phrase
     if pretty:
         for event in events:
-            event['subject'] = prettify(event['subject'])
-            event['action'] = prettify(event['action'])
-            event['mod'] = prettify(event['mod'])
-            event['type'] = event_type
+            for key in event.keys():
+                event[key] = prettify(event[key])
     return events
 
-@adapt_struct
-def extract_tmod_event(struct: dict = None, pretty: bool = True):
-    events = extract_obj_event( struct=struct, pretty=pretty,
-                         valid_object_rel={"tmod"},
-                         event_type="tmod",
-                         object_extract_func = extract_tmod_entity)
-    for event in events:
-        event['mod'] = event.pop("object")
-    return events
+
+
+# @adapt_struct
+# def extract_tmod_event(struct: dict = None, pretty: bool = True):
+#     events = extract_obj_event( struct=struct, pretty=pretty,
+#                          valid_object_rel={"tmod"},
+#                          event_type="tmod",
+#                          object_extract_func = extract_tmod_entity)
+#     for event in events:
+#         event['mod'] = event.pop("object")
+#     return events
 
 @adapt_struct
 def extract_action_event(struct: dict = None, pretty: bool = True):
@@ -252,8 +273,9 @@ def extract_state_event(struct: dict = None, pretty: bool = True):
 @adapt_struct
 def extract_all_event( struct: dict = None, pretty: bool = True):
     ea = extract_action_event(struct =  struct,
-                                pretty = pretty)
-    es = extract_state_event(struct=struct, pretty=pretty)
-    ep = extract_prep_event(struct = struct, pretty=pretty)
-    et = extract_tmod_event(struct = struct, pretty= pretty)
-    return ea+es+et+ep
+                                pretty = False)
+    es = extract_state_event(struct=struct, pretty=False)
+    events = extend_prep4event(struct=struct,events=ea+es)
+    # ep = extract_prep_event(struct = struct, pretty=pretty)
+    # et = extract_tmod_event(struct = struct, pretty= pretty)
+    return events

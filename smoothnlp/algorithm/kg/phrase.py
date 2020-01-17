@@ -10,11 +10,13 @@ prettify = lambda l: "".join([t['token'] for t in l])
 phrase_index_range = lambda l: [t['index'] for t in l]
 
 
-def _find_phrase_connected_rel(phrase, rel_map):
+def _find_phrase_connected_rel(phrase, rel_map, valid_rels = set()):
     rels = []
     for token in phrase:
         if token['index'] in rel_map:
             rels += rel_map[token['index']]
+    if len(valid_rels)>0:
+        rels = [rel for rel in rels if rel['relationship'] in valid_rels]
     return rels
 
 def _split_conj_sents(struct:dict = None):
