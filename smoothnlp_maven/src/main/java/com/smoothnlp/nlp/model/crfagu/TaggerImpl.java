@@ -178,12 +178,13 @@ public class TaggerImpl extends Tagger {
     public void buildLatticeWithEmbedding(){
         if(!x_.isEmpty()){
             feature_index_.rebuildEmbeddingFeatures(this);
+
             for (int i = 0; i < x_.size(); i++) {
                 for (int j = 0; j < ysize_; j++) {
                     feature_index_.calcCostWithEmbedding(node_.get(i).get(j)); //计算节点代价 , node_[i][j] 表示一个节点；第i个词是第j个label 的点；
                     List<Path> lpath = node_.get(i).get(j).lpath;
                     for (Path p : lpath) {
-                        feature_index_.calcCost(p); //计算边的代价 ,由于不支持转移矩阵特征，所以不影响；
+                        feature_index_.calcCostWithEmbedding(p); //计算边的代价
                     }
                 }
             }
@@ -286,26 +287,31 @@ public class TaggerImpl extends Tagger {
         forwardbackward();  // 前向-后向算法
 
         double s = 0.0;
+        int vecSize = feature_index_.embedding.getVsize();
         //计算期望
         for(int i = 0 ; i< x_.size(); i++){
             for (int j = 0 ; j< ysize_; j++){
-                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, Z_ ,ysize_);
+                float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(j).emStr);
+                //System.out.println(node_.get(i).get(j).emStr +" <" + expected.length + "<" +expectedEmbedding.length);
+                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, vector, vecSize, Z_ ,ysize_);
             }
         }
 
-        for(int i = 0; i < x_.size(); i++){
+        // not sure
+        for (int i = 0; i < x_.size(); i++) {
             List<Integer> fvector = node_.get(i).get(answer_.get(i)).fVector;
-            for(int j = 0 ; fvector.get(j) != -1 ; j++){
+            for (int j = 0; fvector.get(j) != -1; j++) {
                 int idx = fvector.get(j) + answer_.get(i);
-                expected[idx] -- ;
+                expected[idx]--;
             }
 
-            int id = node_.get(i).get(answer_.get(i)).emID;
-            int idxEmbedding = id + answer_.get(i);
-            expectedEmbedding[idxEmbedding] -- ;
+            float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(answer_.get(i)).emStr);
+            for (int j = 0; j < vector.length; j++){
+                int idx = j + answer_.get(i) * vecSize;
+                expectedEmbedding[idx] -= vector[j] ;
+            }
 
             s += node_.get(i).get(answer_.get(i)).cost; //UNIGRAM COST
-
             List<Path> lpath = node_.get(i).get(answer_.get(i)).lpath;
             for (Path p : lpath) {
                 if (p.lnode.y == answer_.get(p.lnode.x)) {
@@ -695,6 +701,26 @@ public class TaggerImpl extends Tagger {
             return true;
         }
         buildLattice();
+        if (nbest_ != 0 || vlevel_ >= 1) {
+            forwardbackward();
+        }
+        viterbi();
+        if (nbest_ != 0) {
+            initNbest();
+        }
+        return true;
+    }
+
+    public boolean parseEmbedding(){
+
+        if (!feature_index_.buildEmbeddingFeature(this)) {
+            System.err.println("fail to build featureIndex");
+            return false;
+        }
+        if (x_.isEmpty()) {
+            return true;
+        }
+        buildLatticeWithEmbedding();
         if (nbest_ != 0 || vlevel_ >= 1) {
             forwardbackward();
         }

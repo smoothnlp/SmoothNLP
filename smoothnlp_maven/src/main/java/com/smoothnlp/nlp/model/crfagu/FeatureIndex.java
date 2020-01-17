@@ -55,7 +55,7 @@ FeatureIndex {
     }
 
     protected abstract int getID(String s);
-    protected abstract int getEmbeddingID(String s);
+    //protected abstract int getEmbeddingID(String s);
 
     /**
      * 节点代价计算函数
@@ -110,12 +110,30 @@ FeatureIndex {
         }
 
         float [] vector = embedding.getStrEmbedding(node.emStr);
-        for (int i=0; i< vector.length;i++){
-            c+= alphaEmbedding_[ node.emID + i + node.y] * vector[i];
+        if(vector.length>0){
+            for (int i=0; i< vector.length;i++){
+                c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
+            }
+
         }
 
         node.cost = costFactor_ * c;
     }
+
+    /**
+     * 引入Embedding之后的Node的 代价计算函数, 对于非bigram 特征时无用处
+     * @param path
+     */
+    public void calcCostWithEmbedding(Path path){
+        path.cost = 0.0;
+        double c = 0.0;
+        for (int i = 0; path.fvector.get(i) != -1; i++) {
+            c += alpha_[path.fvector.get(i) + path.lnode.y * y_.size() + path.rnode.y];
+        }
+        path.cost = costFactor_ * c;
+
+    }
+
 
 
     public String makeTempls(List<String> unigramTempls, List<String> bigramTempls) {
@@ -324,8 +342,8 @@ FeatureIndex {
         for(int cur = 0; cur<tagger.size(); cur++){
             String embeddingStr = applyRule(template, cur, tagger); // 暂时还是 E00:每；
             embeddingStrs.add(embeddingStr);
-            int embeddingID = getEmbeddingID(embeddingStr);
-            embedingIDs.add(embeddingID);
+            //int embeddingID = getEmbeddingID(embeddingStr);
+            //embedingIDs.add(embeddingID);
         }
         return true;
     }
@@ -336,11 +354,19 @@ FeatureIndex {
         // embedding 所要支持的key;
         List<String> featureEmbeddingStrsCache= tagger.getFeatureEmbeddingStrsCache_();
         List<Integer> featureEmbeddingIdsCache= tagger.getFeatureEmbeddingIdsCache_();
-
         for (int cur = 0; cur < tagger.size(); cur++) {
             List<Integer> f = featureCache.get(fid++);  // 去除词的特征，词的特征列表对应特征模板里的Unigram特征
+
             String emStr = featureEmbeddingStrsCache.get(cur);
-            int emId = featureEmbeddingIdsCache.get(cur);
+            float[] vector = embedding.getStrEmbedding(emStr);
+            /*
+            StringBuffer sb  = new StringBuffer();
+            for(int i=0;i<f.size();i++){
+                sb.append(f.get(i)+",");
+            }
+            System.out.println(emStr+" featureCache: " + sb.toString());
+            */
+            //int emId = featureEmbeddingIdsCache.get(cur);
 
             for (int i = 0; i < y_.size(); i++) {  // label list
                 Node n = new Node();
@@ -349,7 +375,8 @@ FeatureIndex {
                 n.y = i;   // 设置为第几个label
                 n.fVector = f;    // 特征列表
                 n.emStr = emStr;
-                n.emID = emId;
+                //n.emID = emId;
+                //n.emVector = vector;
                 tagger.set_node(n, cur, i);   // TaggerImpl 中的二位数组node_存放该节点
             }
         }
@@ -497,7 +524,7 @@ FeatureIndex {
         return embedding.getVsize();
     }
     public int sizeEmbedding(){
-        return getMaxEmbeddingId_();
+        return getEmbeddingVectorSize() * ysize();
     }
     public void setAlphaEmbedding_(double[] alphaEmbedding_){
         this.alphaEmbedding_ = alphaEmbedding_;

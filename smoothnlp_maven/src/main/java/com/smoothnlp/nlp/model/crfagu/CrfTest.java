@@ -64,7 +64,7 @@ public class CrfTest {
                     } else if (TaggerImpl.ReadStatus.EOF == status && tagger.empty()) {
                         break;
                     }
-                    if (!tagger.parse()) {
+                    if (!tagger.parseEmbedding()) {
                         System.err.println("parse error");
                         return false;
                     }
