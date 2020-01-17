@@ -8,12 +8,22 @@ class smoothNlpRequest(object):
     def set_url(self,url):
         self.url = url
 
-    def __call__(self,text):
-        if len(text)>200:
+    def __call__(self,text,path = "/query",counter=0,max_size_limit = 200):
+        if len(text)>max_size_limit:
             raise ValueError("text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
+        if counter > 5:
+            raise Exception(
+                " exceed maximal attemps for parsing. ")
         content = {"text":text}
-        r = requests.get(self.url+"/query", params=content)
-        self.result = r.json()['payload']['response']
+        r = requests.get(self.url+path, params=content)
+        try:
+            self.result = r.json()
+            if isinstance(self.result,dict):
+                self.result = self.result['payload']['response']
+            return self.result
+        except KeyError:
+            counter+=1
+            return self.__call__(text,path = path, counter = counter, max_size_limit=max_size_limit)
 
     def dependencyrelationships(self,text):
         self.__call__(text)
@@ -73,13 +83,9 @@ class smoothNlpRequest(object):
         return r.json()['payload']['response']
 
     def split2sentences(self,text:str):
-        parameters = {"text": text}
-        r = requests.get(self.url + '/split2sentences', params=parameters)
-        return r.json()['payload']['response']
+        return self.__call__(text, path = '/split2sentences',max_size_limit=999999)
 
-    def processcorpus(self,url:str,text):
-        parameters = {"text": text}
-        r = requests.get(url + '/processcorpus', params=parameters)
-        return r.json()
+    def processcorpus(self,text):
+        return self.__call__(text, path='/processcorpus', max_size_limit=999999)
 
 

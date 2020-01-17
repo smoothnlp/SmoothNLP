@@ -53,8 +53,6 @@ public class MultiNersPipeline extends BaseEntityRecognizer {
             }
             if (!entityOverlaped){
                 int[] newRange ={en.charStart,en.charEnd};
-                System.out.print("added range: ");
-                System.out.println(UtilFns.toJson(newRange));
                 trackedRanges.add(newRange);
                 deDupledList.add(en);
             }

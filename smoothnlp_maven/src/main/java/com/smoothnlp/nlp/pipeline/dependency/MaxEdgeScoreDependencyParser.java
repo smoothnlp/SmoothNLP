@@ -78,10 +78,13 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 
     public static void main(String[] args) throws XGBoostError{
         MaxEdgeScoreDependencyParser dparser = new MaxEdgeScoreDependencyParser();
-        System.out.println(UtilFns.toJson(dparser.parse("AI创业公司“一览群智”完成1.5亿元融资，经纬中国、策源资本投资")));
-        System.out.println(UtilFns.toJson(dparser.parse("中共中央政治局召开会议,分析研究2019年经济工作")));
-        System.out.println(UtilFns.toJson(dparser.parse("阿里与腾讯达成合作协议")));
-        System.out.println(UtilFns.toJson(dparser.parse("文磨获得天使轮融资")));
+        for (DependencyRelationship e : dparser.parse("阿里巴巴是以曾担任英语教师的马云为首的18人于1999年在浙江杭州创立的公司")){
+            System.out.println(e);
+        }
+//        System.out.println(UtilFns.toJson(dparser.parse("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元")));
+//        System.out.println(UtilFns.toJson(dparser.parse("中共中央政治局召开会议,分析研究2019年经济工作")));
+//        System.out.println(UtilFns.toJson(dparser.parse("阿里与腾讯达成合作协议")));
+//        System.out.println(UtilFns.toJson(dparser.parse("阿里巴巴在英属开曼群岛注册成立")));
 
     }
 

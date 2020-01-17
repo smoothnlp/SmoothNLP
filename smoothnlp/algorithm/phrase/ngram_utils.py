@@ -41,7 +41,7 @@ def generate_ngram(corpus,n:int=2):
     :return:
     """
     def generate_ngram_str(text:str,n):
-        for i in range(0,len(text)-n):
+        for i in range(0, len(text)-n+1):
             yield text[i:i+n]
     if isinstance(corpus,str):
         for ngram in generate_ngram_str(corpus,n):
