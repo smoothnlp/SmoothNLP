@@ -80,7 +80,7 @@ def extract_all_debug(struct:dict):
 
     print("~~~~~~~~ event  ~~~~~~~~~")
     print("subject&verb:", event.extract_subj_and_verb(struct=struct, pretty=True))
-    print("prep event: ", event.extract_prep_event(struct=struct, pretty=True))
+    # print("prep event: ", event.extract_prep_event(struct=struct, pretty=True))
     # print("tmod event: ", event.extract_tmod_event(struct=struct, pretty=True))
     print("action event: ", event.extract_action_event(struct=struct, pretty=True))
     print("state event: ", event.extract_state_event(struct=struct, pretty=True))

@@ -275,7 +275,7 @@ def extract_all_event( struct: dict = None, pretty: bool = True):
     ea = extract_action_event(struct =  struct,
                                 pretty = False)
     es = extract_state_event(struct=struct, pretty=False)
-    events = extend_prep4event(struct=struct,events=ea+es)
+    events = extend_prep4event(struct=struct,events=ea+es,pretty = pretty)
     # ep = extract_prep_event(struct = struct, pretty=pretty)
     # et = extract_tmod_event(struct = struct, pretty= pretty)
     return events
