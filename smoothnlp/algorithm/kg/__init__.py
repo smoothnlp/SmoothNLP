@@ -109,14 +109,15 @@ def extract_related(struct,ners= {"GS","COMPANY_REGISTR"},keywords=[],pretty=Tru
     related_indexes=keyword_index.union(related_indexes)
     related_kgs = []
     for kg_piece in all_kgs:
-        for val in kg_piece.values():
-            val_indexes = set([v['index'] for v in val])
-            if len(val_indexes.intersection(related_indexes))>0:
-                if pretty:
-                    for k in kg_piece.keys():
-                        kg_piece[k] = phrase.prettify(kg_piece[k])
-                related_kgs.append(kg_piece)
-                break
+        val = kg_piece['subject']
+        # for val in kg_piece.values():
+        val_indexes = set([v['index'] for v in val])
+        if len(val_indexes.intersection(related_indexes))>0:
+            if pretty:
+                for k in kg_piece.keys():
+                    kg_piece[k] = phrase.prettify(kg_piece[k])
+            related_kgs.append(kg_piece)
+            break
     return related_kgs
 
 
