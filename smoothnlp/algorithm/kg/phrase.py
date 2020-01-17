@@ -290,7 +290,7 @@ def recursively_get_path(rel_map,
                                 invalid_rels = invalid_rels)
 
 @adapt_struct
-def extract_describer_phrase(struct: dict = None, valid_rel_set = {"assmod"} ,multi_token_only=False, pretty=False,
+def extract_phrase_by_rel(struct: dict = None, valid_rel_set = {"assmod"} ,multi_token_only=False, pretty=False,
                              rm_one_char=True, recursive_valid_rels:set = set(), recursively_invalid_rels:set = set()):
     rel_map = _get_rel_map(struct=struct)
     tokens = struct['tokens']
@@ -336,6 +336,7 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
 
     # print(" --- candidate desciber phrases: ", [prettify(p) for p in phrases])
 
+
     phrases = concat_consecutive_phrases(phrases)
 
 
@@ -351,7 +352,7 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
 @adapt_struct
 def extract_prep_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
-    return extract_describer_phrase(struct=struct,pretty=pretty,multi_token_only=multi_token_only,
+    return extract_phrase_by_rel(struct=struct,pretty=pretty,multi_token_only=multi_token_only,
                                     valid_rel_set={"prep"},rm_one_char=rm_one_char)
 
 
@@ -381,10 +382,10 @@ def extract_verb_phrase(struct:dict=None,
     # verb_connected_relationships = {'nsubj', 'dobj', "top", "range", 'attr', "prep"}  ## 谓语可以连接向外的依存关系
 
     if with_describer:
-        verb_phrases = extract_describer_phrase(struct=struct, pretty=False, multi_token_only=False,
+        verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
                                     valid_rel_set={"root"}, rm_one_char=False, recursive_valid_rels={"root","ccomp","conj","advmod"})
     else:
-        verb_phrases = extract_describer_phrase(struct=struct, pretty=False, multi_token_only=False,
+        verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
                                                 valid_rel_set={"root"}, rm_one_char=False,
                                                 recursive_valid_rels={"root", "ccomp", "conj"})
     verb_phrases = [phrase for phrase in verb_phrases if sum([token['postag'] in valid_verb_postags for token in phrase])>=0]

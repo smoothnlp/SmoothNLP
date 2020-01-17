@@ -2,6 +2,7 @@ from ...nlp import nlp
 from .entity import extract_subject,extract_object,extract_tmod_entity,_subject_rels,_object_rels,_num_rels
 from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct
 from .phrase import _split_conj_sents,_find_phrase_connected_rel
+from .phrase import recursively_get_path
 from copy import deepcopy
 
 @adapt_struct
@@ -48,6 +49,64 @@ def extract_subj_and_verb(struct: dict = None,
             event['subject'] = prettify(event['subject'])
             event['action'] = prettify(event['action'])
     return events
+
+@adapt_struct
+def extract_subj_and_verb(struct: dict = None,
+                   pretty: bool = False,
+                   valid_subject_rel={"nsubj", "top"}):
+    """
+    :param struct:
+    :param pretty: 该function为中间件function, 故pretty不使用
+    :param valid_subject_rel:
+    :return:
+    """
+    events = []
+    rels = struct['dependencyRelationships']
+    rel_map = _get_rel_map(struct)
+    verbs = extract_verb_phrase(struct, pretty=False)
+    subject_candidates = extract_subject(struct=struct, pretty=False)
+
+    recursively_get_path(rel_map)
+
+    def get_subject4vphrase(vphrase,subject_candidates,rel_map):
+        v_rels = _find_phrase_connected_rel(vphrase, rel_map)
+        v_rels = [rel for rel in v_rels if rel['relationship'] in valid_subject_rel]
+        subjects = []
+
+        for subject_candidate in subject_candidates:  ## loop 每一个主语
+            subject_candidate_indexes = set([t['index'] for t in subject_candidate])
+            subject = None
+            for rel in v_rels:
+                if rel['relationship'] in valid_subject_rel and rel['targetIndex'] in subject_candidate_indexes:
+                    subject = subject_candidate
+                    break
+            if subject is None:
+                continue
+            subjects.append(subject)
+        return subjects
+
+    for vphrase in verbs:  ## loop 每一个动词短语
+        subjects = get_subject4vphrase(vphrase,subject_candidates,rel_map)
+        if len(subjects)==0:
+            v_income_indexs = [rel['dependentIndex'] for rel in rels if rel['targetIndex'] in [vtoken['index'] for vtoken in vphrase]
+                               and rel['relationship'] in {"conj","cc"} ]
+            if len(v_income_indexs)==0:
+                continue
+            v_income_index = v_income_indexs[0]
+            for new_vphrase in verbs:
+                if v_income_index in [t['index'] for t in new_vphrase]:
+                    subjects+=get_subject4vphrase(new_vphrase,subject_candidates,rel_map)
+        for subj in subjects:
+            events.append({
+                "subject": subj,
+                "action": vphrase,
+            })
+    if pretty:
+        for event in events:
+            event['subject'] = prettify(event['subject'])
+            event['action'] = prettify(event['action'])
+    return events
+
 
 @adapt_struct
 def extract_obj_event(struct: dict = None,
