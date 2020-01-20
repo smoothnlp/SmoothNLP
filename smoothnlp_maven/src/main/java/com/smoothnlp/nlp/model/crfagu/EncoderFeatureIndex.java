@@ -79,7 +79,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
      * @param filename
      * @return
      */
-    private boolean openTemplate(String filename, String embeddingFile) {
+    private boolean openTemplate(String filename, String embeddingFile, String embeddingDefMode) {
         InputStreamReader isr = null;
         try {
             isr = new InputStreamReader(new FileInputStream(filename), "UTF-8");
@@ -96,7 +96,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
                     embeddingTempls_.add(line.trim());
                     if(embeddingFile !=null && embedding == null){
                         isSupportEmbedding = true;
-                        embedding = new EmbeddingImpl(embeddingFile); //初始化embeddingVector
+                        embedding = new EmbeddingImpl(embeddingFile,embeddingDefMode); //初始化embeddingVector
                     }
                 } else{
                     System.err.println("unknown type: " + line);
@@ -173,12 +173,12 @@ public class EncoderFeatureIndex extends FeatureIndex {
     // filename2 暂时为训练文件，用 openTagSet() 打开，用来找到目前的tag(label)集合
     public boolean open(String filename1, String filename2) {
         checkMaxXsize_ = true;
-        return openTemplate(filename1, null) && openTagSet(filename2);
+        return openTemplate(filename1, null ,null) && openTagSet(filename2);
     }
 
-    public boolean open(String filename1, String filename2,String filename3){
+    public boolean open(String template, String trainFile,String embeddingFile, String embeddingDefMode){
         checkMaxXsize_ = true;
-        return openTemplate(filename1, filename3) && openTagSet(filename2);
+        return openTemplate(template, embeddingFile,embeddingDefMode) && openTagSet(trainFile);
     }
 
     public boolean isSupportEmbedding() {

@@ -39,7 +39,8 @@ public class Encoder {
      */
     public boolean learn(String templFile, String trainFile, String modelFile, String embeddingFile, boolean textModelFile,
                          int maxitr, int freq, double eta, double C, int threadNum, int shrinkingSize,
-                         Algorithm algo) {
+                         Algorithm algo,
+                         String embeddingDefMode) {
         if (eta <= 0) {
             System.err.println("eta must be > 0.0");
             return false;
@@ -60,7 +61,7 @@ public class Encoder {
         List<TaggerImpl> x = new ArrayList<TaggerImpl>();
 
         if (embeddingFile != null){ //如果支持embedding, 则打开该文件并加载数据；
-            if(!featureIndex.open(templFile,trainFile,embeddingFile)){
+            if(!featureIndex.open(templFile,trainFile,embeddingFile, embeddingDefMode)){
                 System.err.println("Fail to open " + templFile + " " + trainFile+ " " + embeddingFile);
             }
         }else if (!featureIndex.open(templFile, trainFile)) {  // 打开模板文件和训练文件，并根据tempFile初始化了templs 和labels
@@ -491,7 +492,8 @@ public class Encoder {
         String embeddingFile = args[3];
         Encoder enc = new Encoder();
         long time1 = new Date().getTime();
-        if (!enc.learn(templFile, trainFile, modelFile, embeddingFile,false, 100000, 1, 0.0001, 1.0, 1, 20, Algorithm.CRF_L2)) {
+        String embeddingDefModule = "MAX";
+        if (!enc.learn(templFile, trainFile, modelFile, embeddingFile,false, 100000, 1, 0.0001, 1.0, 1, 20, Algorithm.CRF_L2,embeddingDefModule)) {
             System.err.println("error training model");
             return;
         }
