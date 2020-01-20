@@ -195,6 +195,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 xsize_ = Math.min(xsize_, max_xsize_);
             }
             oos.writeObject(xsize_);
+            oos.writeObject(embedding.getDefaultValueMode());
             oos.writeObject(y_);
             oos.writeObject(unigramTempls_);
             oos.writeObject(bigramTempls_);
@@ -243,6 +244,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 osw.write("cost-factor: " + costFactor_ + "\n");
                 osw.write("maxid: " + maxid_ + "\n");
                 osw.write("xsize: " + xsize_ + "\n");
+                osw.write("emb-defvalue-mode: " + embedding.getDefaultValueMode() + "\n");
                 osw.write("\n");
                 for (String y: y_) {
                     osw.write(y + "\n");
@@ -361,6 +363,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
             costFactor_ = Double.valueOf(br.readLine().substring("cost-factor: ".length()));
             maxid_ = Integer.valueOf(br.readLine().substring("maxid: ".length()));
             xsize_ = Integer.valueOf(br.readLine().substring("xsize: ".length()));
+            String embDefValueMode= br.readLine().substring("emb-defvalue-mode: ".length());
             System.out.println("Done reading meta-info");
             br.readLine();
 
@@ -436,6 +439,8 @@ public class EncoderFeatureIndex extends FeatureIndex {
             embedding = new EmbeddingImpl();
             embedding.setEmbeddingVector(embeddingMap);
             embedding.setVsize(vsize);
+            embedding.setDefaultValueMode(embDefValueMode);
+            embedding.calculateDefaultEmbeddingVector();
             System.out.println("Done reading embedding vectors");
 
             br.close();

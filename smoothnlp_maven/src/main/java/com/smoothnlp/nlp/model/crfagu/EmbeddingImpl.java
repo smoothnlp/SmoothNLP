@@ -16,20 +16,20 @@ public class EmbeddingImpl {
 
     public EmbeddingImpl(){
         embeddingVector = new HashMap<String, float[]>();
-        setDefaultEmbeddingVector();
+        calculateDefaultEmbeddingVector();
     }
     public EmbeddingImpl(String inputFile,String embeddingDefMode){
         this();
         loadEmbedding(inputFile);
         DEFAULT_VALUE_MODE = embeddingDefMode;
-        setDefaultEmbeddingVector();
+        calculateDefaultEmbeddingVector();
     }
     public EmbeddingImpl(String inputFile,String embeddingDefMode, String splitRegex){
         this();
         setSplitRegex(splitRegex);
         loadEmbedding(inputFile);
         DEFAULT_VALUE_MODE = embeddingDefMode;
-        setDefaultEmbeddingVector();
+        calculateDefaultEmbeddingVector();
     }
 
     public void setSplitRegex(String splitRegex){
@@ -108,7 +108,7 @@ public class EmbeddingImpl {
         return this.defaultEmbeddingVector;
     }
 
-    public void setDefaultEmbeddingVector(){
+    public void calculateDefaultEmbeddingVector(){
         float [] maxVector = new float[vsize];
         float [] avgVector = new float[vsize];
         float [] defVector = new float[vsize];
@@ -153,8 +153,11 @@ public class EmbeddingImpl {
     public void setVsize(int vsize){
         this.vsize = vsize;
     }
-    public void setDefaultValue(String defaultValue){
+    public void setDefaultValueMode(String defaultValue){
         DEFAULT_VALUE_MODE = defaultValue;
+    }
+    public String getDefaultValueMode(){
+        return DEFAULT_VALUE_MODE;
     }
 
     public static void main(String[]args){
