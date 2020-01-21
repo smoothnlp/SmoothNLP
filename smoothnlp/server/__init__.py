@@ -1,4 +1,5 @@
 import requests
+import time
 from smoothnlp import HOST_URL
 
 class smoothNlpRequest(object):
@@ -11,7 +12,7 @@ class smoothNlpRequest(object):
     def __call__(self,text,path = "/query",counter=0,max_size_limit = 200):
         if len(text)>max_size_limit:
             raise ValueError("text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
-        if counter > 5:
+        if counter > 10:
             raise Exception(
                 " exceed maximal attemps for parsing. ")
         content = {"text":text}
@@ -23,6 +24,7 @@ class smoothNlpRequest(object):
             return self.result
         except KeyError:
             counter+=1
+            time.sleep(0.05) ## 延迟50毫秒再调用
             return self.__call__(text,path = path, counter = counter, max_size_limit=max_size_limit)
 
     def dependencyrelationships(self,text):
