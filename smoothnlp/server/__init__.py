@@ -1,6 +1,6 @@
 import requests
 import time
-from smoothnlp.config import HOST,NUM_THREADS,logger
+from ..configurations import config
 from multiprocessing.pool import ThreadPool
 
 
@@ -12,25 +12,26 @@ def _request_single(text, path="/query", counter=0, max_size_limit=200):
         raise Exception(
             " exceed maximal attemps for parsing. ")
     content = {"text": text}
-    r = requests.get(HOST + path, params=content)
+    r = requests.get(config.HOST + path, params=content)
     result = r.json()
     if isinstance(result, dict) and "payload" in result:
         return result['payload']['response']
     else:
         counter += 1
-        logger.debug("Request QPS exceeds server limit")
-        logger.info("Request has been tried for {} times".format(counter))
+        config.logger.debug("Request QPS exceeds server limit")
+        config.logger.info("Request has been tried for {} times".format(counter))
         time.sleep(0.05)  ## 延迟50毫秒再调用
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
 
 def _request_concurent(texts:list,path,max_size_limit=200):
-    pool = ThreadPool(NUM_THREADS)
+    pool = ThreadPool(config.NUM_THREADS)
     params = [(text,path,0,max_size_limit) for text in texts]
     result = pool.map(_request_single,params)
     pool.close()
     return result
 
 def _request(text, path="/query", max_size_limit=200):
+    config.logger.info("request parameter: NUM_THREAD = {}".format(config.NUM_THREADS))
     if isinstance(text,list):
         return _request_concurent(text,path,max_size_limit)
     if isinstance(text,str):
@@ -106,7 +107,7 @@ class SmoothNLPRequest(object):
         parameters = {"givendate": givendate}
         if pubdate is not None or pubdate != "":
             parameters['pubdate'] = pubdate
-        r = requests.get(HOST+'/querydate', params=parameters)
+        r = requests.get(config.HOST+'/querydate', params=parameters)
         return r.json()['payload']['response']
 
     def split2sentences(self,text:str):

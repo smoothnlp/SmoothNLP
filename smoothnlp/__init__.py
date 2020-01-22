@@ -2,9 +2,7 @@ import sys
 
 import smoothnlp.algorithm
 from .algorithm import kg
-from .config import HOST,NUM_THREADS,logger
-
-logger.setLevel("CRITICAL")
+from .configurations import config
 
 if sys.version_info[0] != 3:
     # now support python version 3
