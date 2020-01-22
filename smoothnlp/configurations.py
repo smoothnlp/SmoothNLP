@@ -20,7 +20,7 @@ class Config():
     def setHost(self,host):
         self.HOST = host
 
-    def setPOOL_TYPE(self,ptype='process'):
+    def setPoolType(self,ptype='process'):
         self.POOL_TYPE = ptype
 
 config = Config()
