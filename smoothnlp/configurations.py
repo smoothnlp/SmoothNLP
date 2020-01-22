@@ -16,4 +16,7 @@ class Config():
     def setNumThreas(self,threads):
         self.NUM_THREADS = threads
 
+    def setHost(self,host):
+        self.HOST = host
+
 config = Config()
