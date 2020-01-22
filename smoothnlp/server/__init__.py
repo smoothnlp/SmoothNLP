@@ -96,7 +96,10 @@ class SmoothNLPRequest(object):
     def segment(self,text):
         result = _request(text)
         tokens = extract_meta(result, "tokens")
-        tokens = [[v['token']for v in token_set] for token_set in tokens]
+        if isinstance(text,str):
+            tokens = [v['token']for v in tokens]
+        else:
+            tokens = [[v['token']for v in token_set] for token_set in tokens]
         return tokens
 
     def postag(self,text):
