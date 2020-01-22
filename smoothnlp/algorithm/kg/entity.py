@@ -1,4 +1,5 @@
 from .phrase import _find_phrase_connected_rel,adapt_struct,extract_prep_describer_phrase,concat_consecutive_phrases,extract_noun_phrase,extract_all_describer_phrase,_get_rel_map,prettify,_split_conj_sents,extract_verb_phrase
+from .helper import *
 
 ## Deprecate 主语抽取Func
 # @adapt_struct
