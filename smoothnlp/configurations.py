@@ -3,7 +3,7 @@ import logging
 class Config():
     def __init__(self):
         self.NUM_THREADS = 2
-        self.POOL_TYPE = "process"
+        self.POOL_TYPE = "thread"
         self.LOG_LEVEL = 30
         self.HOST = "http://kong.smoothnlp.com/nlp"
         self.logger = logging.getLogger("SmoothNLP")
