@@ -1,6 +1,6 @@
 import requests
 import time
-from smoothnlp.config import HOST,NUM_THREADS
+from smoothnlp.config import HOST,NUM_THREADS,logger
 from multiprocessing.pool import ThreadPool
 
 
@@ -18,6 +18,8 @@ def _request_single(text, path="/query", counter=0, max_size_limit=200):
         return result['payload']['response']
     else:
         counter += 1
+        logger.debug("Request QPS exceeds server limit")
+        logger.info("Request has been tried for {} times".format(counter))
         time.sleep(0.05)  ## 延迟50毫秒再调用
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
 

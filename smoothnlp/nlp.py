@@ -1,4 +1,4 @@
-from .server import smoothNlpRequest
+from .server import SmoothNLPRequest
 
 global MODE, nlp
 MODE = 'server'
@@ -12,7 +12,7 @@ class SmoothNLP(object):
             _start_jvm_for_smoothnlp()
             self.nlp = SafeJClass('com.smoothnlp.nlp.SmoothNLP')
         else:
-            self.nlp= smoothNlpRequest()
+            self.nlp= SmoothNLPRequest()
 
     def set_mode(self,mode):
         self = SmoothNLP(mode)

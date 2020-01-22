@@ -1,13 +1,10 @@
 import sys
-import logging
-
-logger = logging.getLogger()
-
 
 import smoothnlp.algorithm
 from .algorithm import kg
-from .config import HOST,NUM_THREADS
+from .config import HOST,NUM_THREADS,logger
 
+logger.setLevel("CRITICAL")
 
 if sys.version_info[0] != 3:
     # now support python version 3
