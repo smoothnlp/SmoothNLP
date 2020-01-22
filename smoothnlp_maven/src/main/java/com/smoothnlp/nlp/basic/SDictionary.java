@@ -34,6 +34,7 @@ public class SDictionary implements IDictionary{
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                 while(reader.ready()) {
                     String word = reader.readLine();
+                    word = word.replace("\n","");
                     wordList.add(word);
                 }
                 this.wordLibrary.put(label,wordList);
@@ -116,8 +117,8 @@ public class SDictionary implements IDictionary{
             }
         };
         SDictionary dict = new SDictionary(SmoothNLP.regexLibraries);
-        System.out.println(UtilFns.toJson(dict.find("5月")));
-        System.out.println(UtilFns.toJson(dict.find("5月3日")));
+        System.out.println(UtilFns.toJson(dict.find("深圳市太阳卡通策划设计有限公司")));
+        System.out.println(UtilFns.toJson(dict.find("杭州阿里哈哈网络科技有限公司")));
     }
 
 }

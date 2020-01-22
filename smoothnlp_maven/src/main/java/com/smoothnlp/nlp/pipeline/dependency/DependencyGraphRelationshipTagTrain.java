@@ -20,7 +20,6 @@ import ml.dmlc.xgboost4j.java.XGBoost;
 
 public class DependencyGraphRelationshipTagTrain {
 
-
     public static Map<String, Float> tag2float;
     static {
         tag2float = new HashMap<>();
@@ -70,6 +69,7 @@ public class DependencyGraphRelationshipTagTrain {
         tag2float.put("comod", 43.0f);
         tag2float.put("neg", 44.0f);
         tag2float.put("cop", 45.0f);
+        tag2float.put("plmod", 46.0f);
     }
 
 
@@ -153,8 +153,8 @@ public class DependencyGraphRelationshipTagTrain {
             if (tag2float.containsKey(labels_array[i])){
                 labels_float[i] = tag2float.get(labels_array[i]);
             }else{
-//                System.out.println("unknown label");
-//                System.out.println(labels_array[i]);
+                System.out.print("unknown label ");
+                System.out.println(labels_array[i]);
                 labels_float[i] = 0.0f;
             }
             // 4 debug only; 检查 标签tag -> 对应label(float)对应情况
@@ -202,11 +202,11 @@ public class DependencyGraphRelationshipTagTrain {
                     put("eta", 1.0);
                     put("max_depth", 6);
                     put("silent", 0);
-                    put("objective", "multi:softmax");
-                    put("colsample_bytree",0.8);
-                    put("colsample_bylevel",0.9);
-                    put("eta",0.1);
-                    put("subsample",0.8);
+                    put("objective", "multi:softprob");
+                    put("colsample_bytree",0.95);
+                    put("colsample_bylevel",0.95);
+                    put("eta",0.2);
+                    put("subsample",0.95);
                     put("lambda",0.5);
 
                     // other parameters
@@ -215,6 +215,8 @@ public class DependencyGraphRelationshipTagTrain {
                     put("eval_metric", "merror");
                     put("tree_method","approx");
                     put("num_class",tag2float.size());
+
+                    put("min_child_weight",5);
                 }
             };
             Map<String, DMatrix> watches = new HashMap<String, DMatrix>() {
@@ -226,6 +228,9 @@ public class DependencyGraphRelationshipTagTrain {
             Booster booster = XGBoost.train(trainMatrix, params, nround, watches, null, null,null,earlyStop);
             OutputStream outstream = SmoothNLP.IOAdaptor.create(modelAddr);
             booster.saveModel(outstream);
+
+
+
         }catch(XGBoostError e){
             System.out.println(e);
         }
@@ -242,7 +247,7 @@ public class DependencyGraphRelationshipTagTrain {
             trainXgbModel(args[0],args[1],args[2], Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
         }
 
-//        trainXgbModel("dev.conllx","dev.conllx","dp_tagmodel.bin",10,10);
+//        trainXgbModel("dev.conllx","dev.conllx","dp_tagmodel.bin",10,10,2);
 
         // put in train, valid, model destination
 //        trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin",1);

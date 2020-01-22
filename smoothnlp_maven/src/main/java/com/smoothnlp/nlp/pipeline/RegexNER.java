@@ -53,6 +53,11 @@ public class RegexNER extends BaseEntityRecognizer {
         else{ // 处理如果强匹配找到entity的情况
             List<SEntity> entityList = new LinkedList<>();
             for (SEntity entity : hardEntities){
+
+                if (entity.nerTag.length()<6){
+                    continue;
+                }
+
                 if (entity.nerTag.substring(0,6).equals("COMMON")){
                     continue;
                 }

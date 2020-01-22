@@ -31,6 +31,7 @@ public class MultiNersPipeline extends BaseEntityRecognizer {
         for (BaseEntityRecognizer ner: this.nerPipelines){
             entityList.addAll(ner.process(inputText));
         }
+        System.out.println(" all"+UtilFns.toJson(entityList));
         entityList = deDupOverlapedEntity(entityList);
         return entityList;
     }
@@ -64,8 +65,8 @@ public class MultiNersPipeline extends BaseEntityRecognizer {
     }
 
     public static void main(String[] args){
-        MultiNersPipeline mner = new MultiNersPipeline(new BaseEntityRecognizer[]{SmoothNLP.CRF_NER,SmoothNLP.REGEX_NER});
-        System.out.println(UtilFns.toJson(mner.process("腾讯科技与上海文磨达成协议")));
+        MultiNersPipeline mner = new MultiNersPipeline(new BaseEntityRecognizer[]{SmoothNLP.REGEX_NER,SmoothNLP.CRF_NER});
+        System.out.println(UtilFns.toJson(mner.process("深圳市太阳卡通策划设计有限公司成立于2001年03月07日")));
     }
 
 }

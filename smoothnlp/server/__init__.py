@@ -2,6 +2,7 @@ import requests
 import time
 from ..configurations import config
 from multiprocessing.pool import ThreadPool
+from multiprocessing import Pool
 
 
 def _request_single(text, path="/query", counter=0, max_size_limit=200):
@@ -24,14 +25,17 @@ def _request_single(text, path="/query", counter=0, max_size_limit=200):
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
 
 def _request_concurent(texts:list,path,max_size_limit=200):
-    pool = ThreadPool(config.NUM_THREADS)
+    if config.POOL_TYPE=="process":
+        pool = Pool(config.NUM_THREADS)
+    else:
+        pool = ThreadPool(config.NUM_THREADS)
     params = [(text,path,0,max_size_limit) for text in texts]
     result = pool.map(_request_single,params)
     pool.close()
     return result
 
 def _request(text, path="/query", max_size_limit=200):
-    config.logger.info("request parameter: NUM_THREAD = {}".format(config.NUM_THREADS))
+    config.logger.info("request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS,config.POOL_TYPE))
     if isinstance(text,list):
         return _request_concurent(text,path,max_size_limit)
     if isinstance(text,str):

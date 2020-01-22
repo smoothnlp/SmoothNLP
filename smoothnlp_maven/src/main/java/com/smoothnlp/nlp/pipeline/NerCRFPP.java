@@ -8,6 +8,7 @@ import com.smoothnlp.nlp.model.crfpp.ModelImpl;
 import com.smoothnlp.nlp.model.crfpp.Tagger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,12 +58,15 @@ public class NerCRFPP extends BaseEntityRecognizer{
 
         List<SEntity> ners = new LinkedList<>();
         List<SToken> temTokens = new LinkedList<>();
+        List<Integer> temIndexes = new LinkedList<>();
 
         String prev_ytag = "O";
 
 //        int charEnd = 0;
         int charCounter = 0;
         for (int i = 0; i<stokens.size();i++){
+
+            int index = i+1; // <- stoken index
 
             String ytag  = tagger.yname(tagger.y(i));
             if (ytag.contains("-")){
@@ -73,13 +77,20 @@ public class NerCRFPP extends BaseEntityRecognizer{
 
                 SEntity entity = new SEntity(0,charCounter,temTokens,prev_ytag);
                 entity.charStart = entity.charEnd - entity.text.length();
+
+                entity.sTokenList = new HashMap<>();
+                for (int j = 0;j< temIndexes.size();j+=1){
+                    entity.sTokenList.put(temIndexes.get(j),temTokens.get(j));
+                }
+
                 ners.add(entity);
                 temTokens = new LinkedList<>();
+                temIndexes = new LinkedList<>();
             }
 
             if (!ytag.equals("O")){
                 temTokens.add(stokens.get(i));
-
+                temIndexes.add(index);
             }
             prev_ytag = ytag;
             charCounter += stokens.get(i).getToken().length();

@@ -5,15 +5,11 @@ import com.smoothnlp.nlp.basic.CoNLLToken;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
 
-import java.awt.datatransfer.SystemFlavorMap;
 import java.util.*;
 
 import ml.dmlc.xgboost4j.java.DMatrix;
 import ml.dmlc.xgboost4j.java.XGBoostError;
 import ml.dmlc.xgboost4j.java.Booster;
-import ml.dmlc.xgboost4j.java.XGBoost;
-import scala.Int;
-import scala.tools.nsc.transform.patmat.Logic;
 
 public class CoNLLDependencyGraph {
 
@@ -26,6 +22,53 @@ public class CoNLLDependencyGraph {
     public float[][] edgeScores;
     private int posNegSampleRate = 2;
     private LinkedList<int[]> selectedIndexes = null;
+
+    private static float FloatRange = 1l << 32;
+
+    private static Map<String, Integer> postag2index;
+    static {
+        postag2index = new HashMap<>();
+        postag2index.put("AD",0);
+        postag2index.put("AS",1);
+        postag2index.put("BA",0);
+        postag2index.put("CC",2);
+        postag2index.put("CD",3);
+        postag2index.put("CS",0);
+        postag2index.put("DEC",4);
+        postag2index.put("DEG",4);
+        postag2index.put("DER",4);
+        postag2index.put("DEV",4);
+        postag2index.put("DT",5);
+        postag2index.put("ETC",0);
+        postag2index.put("FRAG",0);
+        postag2index.put("FW",0);
+        postag2index.put("IJ",6);
+        postag2index.put("JJ",7);
+        postag2index.put("LB",0);
+        postag2index.put("LC",8);
+        postag2index.put("M",9);
+        postag2index.put("MSP",0);
+        postag2index.put("NN",10);
+        postag2index.put("NOI",0);
+        postag2index.put("NR",11);
+        postag2index.put("NT",12);
+        postag2index.put("OD",0);
+        postag2index.put("ON",0);
+        postag2index.put("P",13);
+        postag2index.put("PN",14);
+        postag2index.put("PU",15);
+        postag2index.put("SB",0);
+        postag2index.put("SP",16);
+        postag2index.put("URL",0);
+        postag2index.put("VA",17);
+        postag2index.put("VC",18);
+        postag2index.put("VE",19);
+        postag2index.put("VV",20);
+        postag2index.put("LOC",21);
+        postag2index.put("CTY",22);
+        postag2index.put("DTR",23);
+        postag2index.put("DTA",24);
+    }
 
     public static Map<Float,String> float2tag;
     static {
@@ -76,6 +119,7 @@ public class CoNLLDependencyGraph {
         float2tag.put(43.0f, "comod");
         float2tag.put(44.0f, "neg");
         float2tag.put(45.0f, "cop");
+        float2tag.put(46.0f, "plmod");
     }
 
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
@@ -108,18 +152,56 @@ public class CoNLLDependencyGraph {
 
 
     public boolean check2edgeCrossed(DependencyRelationship rel1, DependencyRelationship rel2){
-
         int rel1_start = Math.min(rel1.targetIndex,rel1.dependentIndex);
         int rel1_end = Math.max(rel1.targetIndex,rel1.dependentIndex);
-
         int rel2_start = Math.min(rel2.targetIndex,rel2.dependentIndex);
         int rel2_end = Math.max(rel2.targetIndex,rel2.dependentIndex);
 
+//        if (rel1.dependentIndex==0 | rel2.dependentIndex==0){
+//            return false;
+//        }
+//
+//        if (rel2_start<rel1_start & rel1_end<rel2_end){
+//            return false;
+//        }
+//        if (rel1_start<rel2_start & rel2_end<rel1_end){
+//            return false;
+//        }
+//        if (rel1_start>rel2_end){
+//            return false;
+//        }
+//        if (rel2_start>rel1_end){
+//            return false;
+//        }
+//        if (rel1.dependentIndex==rel2.dependentIndex | rel1.targetIndex==rel2.targetIndex ){
+//            return false;
+//        }
+//        return true;
+//        if (rel1.dependentIndex==rel2.targetIndex){
+//            int joint = rel1.dependentIndex;
+//            if (rel1.targetIndex > joint & rel2.dependentIndex < joint){
+//                return false;
+//            }
+//            if (rel1.targetIndex < joint & rel2.dependentIndex > joint){
+//                return false;
+//            }
+//        }
+//        if (rel1.targetIndex == rel2.dependentIndex){
+//            int joint = rel1.targetIndex;
+//            if (rel1.dependentIndex > joint & rel2.targetIndex < joint){
+//                return false;
+//            }
+//            if (rel1.dependentIndex < joint & rel2.targetIndex > joint){
+//                return false;
+//            }
+//        }
         int range1 = rel1_end-rel1_start;
         int range2 = rel2_end - rel2_start;
         Set<Integer> covered_range = new HashSet<>();
         for (int i = rel1_start; i < rel1_end;i++){covered_range.add(i);}
         for (int i = rel2_start; i < rel2_end;i++){covered_range.add(i);}
+
+//        System.out.print(" -- " + covered_range.size()+" vs "+Math.max(range1,range2)+" --- ");
 
         if (covered_range.size()==Math.max(range1,range2)){
             return false;
@@ -148,31 +230,52 @@ public class CoNLLDependencyGraph {
         for (int j = 1; j<this.nodeSize; j++){
             edgePQ.add(new ScoreEdge(0,j,this.edgeScores[0][j]));
         }
-//        for (int i = 0; i<this.nodeSize; i++){
-//            for (int j = 1; j<this.nodeSize; j++){
-//                edgePQ.add(new ScoreEdge(i,j,this.edgeScores[i][j]));
-//            }
-//        }
+
+//        System.out.println(UtilFns.toJson(this.edgeScores[16][10]));
+//        System.out.println(UtilFns.toJson(this.edgeScores[2][10]));
+//        System.out.println(UtilFns.toJson(this.edgeScores[0]));
+//        System.out.println(UtilFns.toJson(this.edgeScores[16]));
+
 
         // construct a set to keep track of unreached indexes
         HashSet<Integer> unreachedIndexes = new HashSet<Integer>();
 
         for (int i = 1; i<this.nodeSize; i++) { unreachedIndexes.add(i);};
 
-//        List<DependencyRelationship> relationships = new ArrayList<DependencyRelationship>();
-
         DependencyRelationship[] relationships = new DependencyRelationship[this.tokens.length-1];
+        List<DependencyRelationship> relationships_list = new LinkedList<>();
 
-        while (!unreachedIndexes.isEmpty()){
+        List<ScoreEdge> passedonEdges = new LinkedList<>();
+
+        while (!unreachedIndexes.isEmpty() & !edgePQ.isEmpty()){  // | !edgePQ.isEmpty()
             ScoreEdge selectedEdge = edgePQ.poll();  // 不断从pq中抽出 candidate edge
+            if (selectedEdge==null){
+                continue;
+            }
+
+            if (unreachedIndexes.isEmpty() & !passedonEdges.isEmpty()){
+                edgePQ.addAll(passedonEdges);
+                passedonEdges =  new LinkedList<>();
+            }
+
+            try{
+                if (unreachedIndexes.isEmpty() & selectedEdge.score<0.3){
+                    continue;
+                }
+            }catch(Exception e){
+                System.out.println(unreachedIndexes);
+                System.out.println(selectedEdge);
+                throw e;
+            }
 
 
-            if (unreachedIndexes.contains(selectedEdge.target)){
-
+            if (unreachedIndexes.contains(selectedEdge.target) | unreachedIndexes.isEmpty() ){
+//                System.out.println();
 //                System.out.print("Attempt insert: ");
 //                System.out.print(selectedEdge.source);
 //                System.out.print(":");
 //                System.out.print(selectedEdge.target);
+//                System.out.println();
 //                System.out.print("  ;;; check range index: ");
 
                 boolean projectable = true;
@@ -189,85 +292,230 @@ public class CoNLLDependencyGraph {
                 }
 
                 if (!projectable){  // 存在交叉的情况, skip 这条edge
+//                    System.out.print(" -- projectable failed");
+//                    System.out.println();
                     continue;
                 }
 
+                // check-cycles
+//                if (traverseMap[candidate_rel.targetIndex][candidate_rel.dependentIndex]==1){
+//                    System.out.print(" -- cycle failed");
+//                    System.out.println();
+//                    continue;
+//                }
+
+                // ------------------   update traverse map     ------------
+//                for (int j=0;j<this.nodeSize;j++) {
+//                    if (traverseMap[j][candidate_rel.dependentIndex]==1) {
+//                        System.out.println(" -- history traverse add "+j+ ":"+candidate_rel.targetIndex);
+//                        traverseMap[j][candidate_rel.targetIndex]=1;
+//                    }
+//                    if (traverseMap[candidate_rel.targetIndex][j]==1){
+//                        System.out.println(" -- history traverse add "+candidate_rel.dependentIndex+ ":"+j);
+//                        traverseMap[candidate_rel.dependentIndex][j]=1;
+//                    }
+//                }
+//
+//                for  (int i = 0;i < this.nodeSize; i++){
+//                    for (int j = 0; j< this.nodeSize;j++){
+//                        if (i!=j){
+//                            if (traverseMap[i][candidate_rel.dependentIndex]==1 & traverseMap[candidate_rel.targetIndex][j]==1){
+//                                traverseMap[i][j]=1;
+//                                System.out.println(" -- history traverse add (more)"+i+ ":"+j);
+//                            }
+//                        }
+//
+//                    }
+//                }
+//                traverseMap[candidate_rel.dependentIndex][candidate_rel.targetIndex]=1;
+                // ------------------   update traverse map     ------------
+
+
+//                boolean rootReachable_violation = false;
+//                for (int j = Math.min(candidate_rel.dependentIndex,candidate_rel.targetIndex)+1; j< Math.max(candidate_rel.dependentIndex,candidate_rel.targetIndex); j++){  // 确认candidate_rel 跨度之间的node, 可以被接下来的edge 达到 root_reachable
+//                    if (traverseMap[0][j]!=1){
+//                        System.out.println(" : check unreached "+j);
+//                        boolean node_rootReachable = false;
+//                        for (int i = 1; i< this.nodeSize ; i++){
+//                            if (traverseMap[0][i]==1){
+//                                DependencyRelationship tmp_rel = new DependencyRelationship(i,j);
+//                                if (! this.check2edgeCrossed(candidate_rel,tmp_rel)){
+//                                    node_rootReachable=true;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        if (!node_rootReachable){
+//                            System.out.println(" : "+j+" is root unreachable");
+//                            rootReachable_violation = true;
+//                            break;
+//                        }
+//
+//                    }
+//                }
+//                if (rootReachable_violation){
+//                    System.out.print(" -- root reachable failed");
+//                    System.out.println();
+//                    continue;
+//                }
 
 
                 // 计算tag model需要的特征+模型
-
                 // construct edge, 放入 array中
-                relationships[selectedEdge.target-1] = new DependencyRelationship(selectedEdge.source,selectedEdge.target,this.tokens[selectedEdge.source],this.tokens[selectedEdge.target]);
 
-                // 对CoNLLToken进行dependentIndex的更新
-                this.tokens[selectedEdge.target].dependentIndex= selectedEdge.source;
+                DependencyRelationship new_rel = candidate_rel;
+                new_rel._edge_score = selectedEdge.score;
 
-                // track 连接到的token
-                unreachedIndexes.remove(selectedEdge.target);
 
-                // 基于 selectedEdge.target 添加下一轮的candidate 放入 priority queue
+                relationships_list.add(new_rel);
 
-                if (selectedEdge.source==0){  // 第一轮root 找到后, 清空 priority queue
-                    edgePQ =  new PriorityQueue<ScoreEdge>();
-                }
 
-                int start = 1;
-                int end = this.nodeSize;
-                for (int i = 1; i < selectedEdge.target; i++){
-                    if (relationships[i-1] != null){
-                        start = i+1;
+                if (!unreachedIndexes.isEmpty()){
+
+                    relationships[selectedEdge.target-1] = new_rel;
+
+                    // 对CoNLLToken进行dependentIndex的更新
+                    this.tokens[selectedEdge.target].dependentIndex= selectedEdge.source;
+
+                    // track 连接到的token
+                    unreachedIndexes.remove(selectedEdge.target);
+
+                    // 基于 selectedEdge.target 添加下一轮的candidate 放入 priority queue
+
+                    if (selectedEdge.source==0){  // 第一轮root 找到后, 清空 priority queue
+                        edgePQ =  new PriorityQueue<ScoreEdge>();
+//                        for (int i = 1; i< this.nodeSize;i+=1){
+//                            for (int j = 1; j<this.nodeSize; j++){
+//                                if (i!=j){
+//                                    edgePQ.add(new ScoreEdge(i,j,this.edgeScores[i][j]));
+//                                }
+//
+//                            }
+//                        }
                     }
-                }
 
-                for (int i = this.nodeSize-1 ; i > selectedEdge.target; i--){
-                    if (relationships[i-1] != null){
-                        end = i -1;
+                    // 根据最新插入的edge, 加入以新token为dependent 的 edge
+                    int start = 1;
+                    int end = this.nodeSize;
+                    for (int i = 1; i < selectedEdge.target; i++){
+                        if (relationships[i-1] != null){
+                            start = i+1;
+                        }
                     }
-                }
 
-                for (int j = start; j<end; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
-                    edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
+                    for (int i = this.nodeSize-1 ; i > selectedEdge.target; i--){
+                        if (relationships[i-1] != null){
+                            end = i;
+                        }
+                    }
+
+//                    System.out.print("-- add range : ");
+//                    System.out.print(start);
+//                    System.out.print(":");
+//                    System.out.print(end);
+//                    System.out.println();
+
+                    for (int j = start; j<end; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
+                        edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
+                    }
                 }
 
 //                for (int j = 1; j<this.nodeSize; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
 //                    edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
 //                }
 
-
-
+            }else if (!unreachedIndexes.isEmpty()){
+                passedonEdges.add(selectedEdge);  // 如果dp_tree 尚未 full-span, 且该edge invalid, 暂时存起来
             }
         }
 
-        Float[][] allftrs = this.buildAllTagFtrs();
+
+
+//
 
         try{
+            // 处理 depedency_relaitonship Tree
+
+
+
+            Float[][] allftrs = this.buildAllTagFtrs();
             DMatrix dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
-            float[][] predictScores = edgeTagModel.predict(dmatrix);
-            float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
-//            System.out.println("score size");
-//            System.out.println(predictScores.length);
-//            System.out.println("token size");
-//            System.out.println(this.tokens.length);
-//            System.out.println("relation size");
-//            System.out.println(relationships.size());
+
+            float[][] predictprobas = edgeTagModel.predict(dmatrix,false,SmoothNLP.XGBoost_DP_tag_Model_Predict_Tree_Limit);
+
+//            System.out.println(predictprobas.length);
+//            System.out.println(predictprobas[0].length);
+
+//            float[][] predictScores = edgeTagModel.predict(dmatrix);
+//            float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
             for (int i=1 ; i< this.tokens.length; i++){
-                this.tokens[i].relationship = float2tag.get(predictScoresFlatten[i-1]);
-                relationships[i-1].relationship = float2tag.get(predictScoresFlatten[i-1]);
+
+                float[] probas = predictprobas[i-1];
+                int max_index = 0;
+                for (int index =0; index<probas.length; index+=1 ){
+                    if (probas[index] > probas[max_index]){
+                        max_index = index;
+                    }
+                }
+
+
+                this.tokens[i].relationship = float2tag.get((float) max_index);
+                relationships[i-1].relationship = float2tag.get((float) max_index);
+                relationships[i-1]._tag_score = predictprobas[i-1][max_index];
+//                System.out.println(UtilFns.toJson(relationships[i-1]));
 //                relationships.get(i-1).relationship = float2tag.get(predictScoresFlatten[i-1]);
             }
+
+            // -------------- 处理 depedency_relaitonship Graph --------------
+//            List<int[]> selected_index_pair = new LinkedList<>();
+//            for (DependencyRelationship rel : relationships_list){
+//                selected_index_pair.add(new int[]{rel.dependentIndex,rel.targetIndex});
+//            }
+//
+//            int ftr_size = buildFtrs(0,0).length;
+//            allftrs = new Float[relationships_list.size()][ftr_size];
+//            int count = 0;
+//            for (int[] index : selected_index_pair){
+//                int i = index[0];
+//                int j = index[1];
+//                allftrs[count] = buildFtrs(i,j);
+//                count+=1;
+//            }
+//
+//            dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
+//            predictprobas = edgeTagModel.predict(dmatrix,false);
+//            count = 0;
+//            for (DependencyRelationship rel: relationships_list){
+//                float[] probas = predictprobas[count];
+//                int max_index = 0;
+//                for (int index =0; index<probas.length; index+=1 ){
+//                    if (probas[index] > probas[max_index]){
+//                        max_index = index;
+//                    }
+//                }
+//                rel.relationship = float2tag.get((float)max_index);
+//                rel._tag_score = predictprobas[count][max_index];
+//                count+=1;
+//            }
+            // -------------- 处理 depedency_relaitonship Graph --------------
 
         }catch(XGBoostError e){
             System.out.println(e);
         }
 
-
-
         return relationships;
+//        return relationships_list.toArray(new DependencyRelationship[relationships_list.size()]);
     }
 
 
     public int size(){
         return this.nodeSize;
+    }
+
+    public static float hashString(String text){
+//        return text.hashCode();
+        String sHash = "0."+Math.abs(text.hashCode());
+        return Float.valueOf(sHash);
     }
 
     public Float[] buildFtrs(int dependentIndex, int targetIndex){
@@ -277,35 +525,79 @@ public class CoNLLDependencyGraph {
          */
         List<Float> ftrs = new LinkedList<>();
         // 两个token 的 hashcode
-        float dhashcode = this.tokens[dependentIndex].getToken().hashCode();
-        float thashcode = this.tokens[targetIndex].getToken().hashCode();
-        ftrs.add(dhashcode);
-        ftrs.add(thashcode);
+//        float dhashcode = this.tokens[dependentIndex].getToken().hashCode();
+//        float thashcode = this.tokens[targetIndex].getToken().hashCode();
+//        float dhashcode = hashString(this.tokens[dependentIndex].getToken());
+//        float thashcode = hashString(this.tokens[targetIndex].getToken());
+//        ftrs.add(dhashcode);
+//        ftrs.add(thashcode);
 
         // 两个postag 的 hashcode
-        float dpostag_hcode = this.tokens[dependentIndex].getPostag().hashCode();
-        float tpostag_hcode = this.tokens[targetIndex].getPostag().hashCode();
+//        float dpostag_hcode = this.tokens[dependentIndex].getPostag().hashCode();
+//        float tpostag_hcode = this.tokens[targetIndex].getPostag().hashCode();
+        float dpostag_hcode = hashString(this.tokens[dependentIndex].getPostag());
+        float tpostag_hcode = hashString(this.tokens[targetIndex].getPostag());
         ftrs.add(dpostag_hcode);
         ftrs.add(tpostag_hcode);
 
         // 特征之间的 位置差
-        ftrs.add((float) dependentIndex - targetIndex);
-//        ftrs.add(((float) dependentIndex - targetIndex)/this.tokens.length);
+        ftrs.add((float)dependentIndex - targetIndex);
+        ftrs.add(((float)dependentIndex - targetIndex)/this.tokens.length);
 
         // 两个token本身在句子中的位置
         ftrs.add(((float)dependentIndex)/this.tokens.length);
         ftrs.add(((float)targetIndex)/this.tokens.length);
 
         // 新特征: depedent 与 target 之间是否存在"逗号"
-        int start_index = Math.min(dependentIndex,targetIndex);
-        int end_index = Math.max(dependentIndex,targetIndex);
-        float fccounter = 0.0f;
-        for (int i = start_index; i<end_index;i++){
-            if (this.tokens[i].token == "," | this .tokens[i].token =="，" ){
-                fccounter+=1;
+//        int start_index = Math.min(dependentIndex,targetIndex);
+//        int end_index = Math.max(dependentIndex,targetIndex);
+//        float fccounter = 0.0f;
+//        for (int i = start_index; i<end_index;i++){
+//            if (this.tokens[i].token == "," | this .tokens[i].token =="，" ){
+//                fccounter+=1;
+//            }
+//        }
+//        ftrs.add(fccounter);
+
+        // 添加 dependent 与 target 词邻近词的 postag
+        for (int index: new int[]{dependentIndex,targetIndex}){
+            for (int shift: new int[]{1,2,3}){
+                int left_neighbor_index = index-shift;
+                int right_neighbor_index = index+shift;
+                float leftFtr = 0.0f;
+                if (left_neighbor_index<0){
+                    leftFtr = "start".hashCode();
+                }else{
+//                    leftFtr = this.tokens[left_neighbor_index].getPostag().hashCode();
+                    leftFtr = hashString(this.tokens[left_neighbor_index].getPostag());
+                }
+                ftrs.add(leftFtr);
+                float rightFtr = 0.0f;
+                if (right_neighbor_index<this.tokens.length){
+//                    rightFtr = this.tokens[right_neighbor_index].getPostag().hashCode();
+                    rightFtr = hashString(this.tokens[right_neighbor_index].getPostag());
+                }else{
+                    rightFtr = "end".hashCode();
+                }
+                ftrs.add(rightFtr);
             }
         }
-        ftrs.add(fccounter);
+
+        // dependent 与 target 之间token postag的count
+//        float[] interval_postag_counts = new float[Collections.max(postag2index.values())+1];
+//        for (int i = 1; i < this.nodeSize;i++){
+//            try{
+//                int postag_index = postag2index.get(this.tokens[i].getPostag());
+//                interval_postag_counts[postag_index]+=1;
+//            }catch (Exception e){
+//                System.out.println(this.tokens[i].getPostag());
+//                throw e;
+//            }
+//        }
+//        for (float f: interval_postag_counts){
+//            ftrs.add(f);
+//        }
+
 
         // embedding 特征
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
@@ -513,7 +805,7 @@ public class CoNLLDependencyGraph {
 //        System.out.println(UtilFns.toJson(g.selectedIndexes));
 //
 ////        System.out.println(g);
-//        System.out.println(g.buildAllFtrs().length);
+        System.out.println(UtilFns.toJson(g.buildAllTagFtrs()));
 //        System.out.println(g.buildAllFtrs()[0].length);
 //        System.out.println(g.getAllLabel().length);
 //

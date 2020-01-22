@@ -1,35 +1,36 @@
 package com.smoothnlp.nlp;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Logger;
 
 
 import com.smoothnlp.nlp.basic.*;
 import com.smoothnlp.nlp.io.*;
-import com.smoothnlp.nlp.pipeline.ISequenceTagger;
 import com.smoothnlp.nlp.pipeline.*;
 import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
+
+import ml.dmlc.xgboost4j.java.DMatrix;
 
 public class SmoothNLP{
 
     public SmoothNLP(){ }
 
     public static String NAME = "SmoothNLP";
-
     public static Logger LOGGER = Logger.getLogger("SmoothNLP");
-
     public static IIOAdapter IOAdaptor = new ResourceIOAdapter();
 
     // static libraries based on word dictionaries
     public static Map<String, String> dictLibraries = new HashMap<String, String>() {
         {
-            put("COMPANY_NAME", "financial_agencies.txt");
+            put("GS", "financial_agencies.txt");
             put("FINANCE_METRIX", "financial_metrics.txt");
             put("METRIX_ACTION", "metric_action.txt");
             put("COMPANY_METRIX","organization_metrics.txt");
             put("COMMON","common_tokens.txt");
+            put("COMMON_CHENGYU","common_chengyu.txt");
             put("COMMON_FINANCE","common_finance_tokens.txt");
         }
     };
@@ -39,6 +40,7 @@ public class SmoothNLP{
         {
             put("RELATIVE_TIME","datetime_relative.txt");
             put("DATETIME","datetime.txt");
+            put("COMPANY_REGISTR","company_registr.txt");
         }
     };
 
@@ -46,22 +48,24 @@ public class SmoothNLP{
     public static IDictionary trieDict = new TrieDictionary(dictLibraries);
 
     // static Dictionary
-    public static IDictionary DICTIONARIES = new MultiDictionary(new IDictionary[]{regexDict,trieDict});
+    public static IDictionary DICTIONARIES = new MultiDictionary(new IDictionary[]{trieDict,regexDict});
 
     // static model files
-    public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
-    public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
-    public static String CRF_NER_MODEL = "model/ner_crfpp_4gram_x00_linux.bin";
-    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model.bin";
-    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model.bin";
+//    public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
+    public static String CRF_SEGMENT_MODEL = "model/segment_ctb_4gram_f5_e4_B.bin";
+//    public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
+    public static String CRF_POSTAG_MODEL = "model/postag_3gram_B_f10_e5.bin";
+    public static String CRF_NER_MODEL = "model/ner_4gram_B_200110.bin";
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr82.bin";
+    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr82.bin";
 
+    public static int XGBoost_DP_Edge_Model_Predict_Tree_Limit = 64;
+    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 32;
 
-    public static String WordEmbedding_MODEL = "embedding/vectors_dim64_window15.txt";
-
+    public static String WordEmbedding_MODEL = "embedding/vectors_dim32_win15.txt";
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
-
 
     public static BaseSequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
     public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
@@ -85,11 +89,37 @@ public class SmoothNLP{
 
         SmoothNLPResult res = new SmoothNLPResult();
 
+        long start = System.currentTimeMillis();
         List<SToken> sTokensPOS = POSTAG_PIPELINE.process(inputText);
         res.tokens = sTokensPOS;
+        long end = System.currentTimeMillis();
+        System.out.print("segment+postag time: ");
+        System.out.println(end-start);
+
+        start = System.currentTimeMillis();
+        res.entities = NER_PIPELINE.process(res.tokens);
+        end = System.currentTimeMillis();
+        System.out.print("ner time: ");
+        System.out.println(end-start);
+
+//        for (SEntity en : res.entities){
+//            int min_key  = Collections.min(en.sTokenList.keySet());
+//            for (int index : en.sTokenList.keySet()){
+//                if (index == min_key){
+//                    res.tokens.get(index-1).setPostag("NR");
+//                }else{
+//                    res.tokens.get(index-1).setPostag("NN");
+//                }
+//            }
+//        }
+
+        start = System.currentTimeMillis();
         DependencyRelationship[] dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
         res.dependencyRelationships = dependencyRelationships;
-        res.entities = NER_PIPELINE.process(res.tokens);
+        end = System.currentTimeMillis();
+        System.out.print("dependency time: ");
+        System.out.println(end-start);
+        System.out.println(res.tokens.size());
         return res;
     }
 
@@ -111,7 +141,7 @@ public class SmoothNLP{
         return UtilFns.toJson(NER_PIPELINE.process(inputText));
     }
 
-     public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception{
          //System.out.println(process("纳斯达克100指数跌1%。纳指跌0.89%，标普500指数跌0.78%，道指跌约250点。"));
          //System.out.println(UtilFns.toJson(process("广汽集团一季度营收27.78亿").entities));
          //System.out.println(UtilFns.toJson(process("广汽集团一季度营收上涨30%").entities));
@@ -141,12 +171,51 @@ public class SmoothNLP{
 //
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
 //
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("A轮融资")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("深圳厚屹照明有限公司坐落于深圳经济特区")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("安徽(钰诚)控股集团、钰诚国际控股集团有限公司")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州(钰诚)控股集团、钰诚国际控股集团有限公司")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("上海(钰诚)控股集团、钰诚国际控股集团有限公司")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("扬州(钰诚)控股集团、钰诚国际控股集团有限公司")));
 
-         System.out.println(UtilFns.toJson(SmoothNLP.process("上海文磨获得腾讯科技投资")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州(阿里哈哈)网络科技有限公司")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州（网易）网络科技有限公司")));
 
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("第四范式9月25日")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州阿里哈哈网络科技有限公司")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("星晖新能源智能汽车生产基地是省重点发展项目之一，总投资超过200亿元，于2018年1月在黄冈产业园正式开工。")));
+
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司建于一九八九年，位于河北永年高新技术工业园区，拥有固定资产1200万元，现有职工280名")));
+
+         System.out.println(UtilFns.toJson(SmoothNLP.process("中国第一家股份制企业北京天桥百货股份有限公司成立；")));
+       System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元")));
+////
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("9月25日,第四范式")));
+
+//         System.out.println(55680);
+//         System.out.println(11455530);
+//         System.out.println(55680*11455530);
+//
+//         BigInteger bi1 = BigInteger.valueOf(11455530);
+//         BigInteger bi2 = BigInteger.valueOf(55680);
+//         System.out.println(bi1.multiply(bi2));
+//         System.out.println(Integer.MAX_VALUE);
+//         System.out.println(bi1.multiply(bi2).intValue());
+//
+//
+//         System.out.println(55680);
+//         System.out.println(10198960);
+//         System.out.println(55680*10198960);
+//
+//         System.out.println("---");
+//         System.out.println(189);
+//         System.out.println(10198960);
+//         System.out.println(189*10198960);
+//         System.out.println(Integer.MAX_VALUE);
+//
+//         System.out.println("---");
+//         System.out.println(189);
+//         System.out.println(11455530);
+//         System.out.println(189*11455530);
+//         System.out.println(Integer.MAX_VALUE);
 
 
      }

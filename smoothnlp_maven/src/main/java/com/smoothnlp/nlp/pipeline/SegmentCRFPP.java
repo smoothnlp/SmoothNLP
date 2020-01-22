@@ -171,6 +171,8 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("这周仅三天时间价格指数就已下跌将近10美元/吨。"));
         System.out.println(s.process("新建一个400万吨/年的选矿厂。"));
         System.out.println(s.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元"));
+        System.out.println(s.process("我的狗吃苹果"));
+
     }
 
 }
