@@ -35,13 +35,14 @@ def _request_concurent(texts:list,path,max_size_limit=200):
     return result
 
 def _request(text, path="/query", max_size_limit=200):
-    config.logger.info("request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS,config.POOL_TYPE))
     if isinstance(text,list):
+        config.logger.info(
+            "request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS, config.POOL_TYPE))
         return _request_concurent(text,path,max_size_limit)
     if isinstance(text,str):
         return _request_single(text,path,counter=0,max_size_limit=max_size_limit)
     else:
-        TypeError(" Unsupported Type of ")
+        TypeError(" Unsupported Type of text input")
 
 def extract_meta(meta,key):
     if isinstance(meta,dict):
