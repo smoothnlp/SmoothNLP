@@ -12,7 +12,7 @@ import re
 ## attribute function ##
 ########################
 def localSupportCatch(func):
-    @wraps(func)gi
+    @wraps(func)
     def trycatch(text):
         if MODE !="server":
             config.logger.error("This function does not support local mode : %s " % func.__name__)
