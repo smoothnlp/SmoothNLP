@@ -24,7 +24,7 @@ class smoothNlpRequest(object):
             return self.result
         except KeyError:
             counter+=1
-            time.sleep(0.05) ## 延迟50毫秒再调用
+            time.sleep(0.2) ## 延迟50毫秒再调用
             return self.__call__(text,path = path, counter = counter, max_size_limit=max_size_limit)
 
     def dependencyrelationships(self,text):
