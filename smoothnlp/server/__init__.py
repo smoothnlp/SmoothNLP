@@ -10,20 +10,22 @@ def _request_single(text, path="/query", counter=0, max_size_limit=200):
     if len(text) > max_size_limit:
         raise ValueError(
             "text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
-    if counter > 20:
+    if counter > 9999:
         raise Exception(
             " exceed maximal attemps for parsing. ")
     content = {"text": text}
     r = requests.get(config.HOST + path, params=content)
     result = r.json()
-    if isinstance(result, dict) and "payload" in result:
-        return result['payload']['response']
-    else:
+    if r.status_code==429:
         counter += 1
         config.logger.debug("Request QPS exceeds server limit")
         config.logger.info("Request has been tried for {} times".format(counter))
         time.sleep(0.05)  ## 延迟50毫秒再调用
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
+    elif isinstance(result, dict) and "payload" in result:
+        return result['payload']['response']
+    else:
+        raise Exception(r.text)
 
 def _request_concurent(texts:list,path,max_size_limit=200):
     if config.POOL_TYPE=="process":
