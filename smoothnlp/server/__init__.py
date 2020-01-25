@@ -1,5 +1,6 @@
 import requests
 import time
+import re
 from ..configurations import config
 from multiprocessing.pool import ThreadPool
 from multiprocessing import Pool
@@ -9,7 +10,7 @@ def _request_single(text, path="/query", counter=0, max_size_limit=200):
     if len(text) > max_size_limit:
         raise ValueError(
             "text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
-    if counter > 10:
+    if counter > 20:
         raise Exception(
             " exceed maximal attemps for parsing. ")
     content = {"text": text}
@@ -39,8 +40,10 @@ def _request(text, path="/query", max_size_limit=200):
         config.logger.info(
             "request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS, config.POOL_TYPE))
         return _request_concurent(text,path,max_size_limit)
-    if isinstance(text,str):
+    elif isinstance(text,str):
         return _request_single(text,path,counter=0,max_size_limit=max_size_limit)
+    elif isinstance(text,dict):
+        return text
     else:
         TypeError(" Unsupported Type of text input")
 
@@ -119,9 +122,14 @@ class SmoothNLPRequest(object):
         return r.json()['payload']['response']
 
     def split2sentences(self,text:str):
-        return _request(text, path = '/split2sentences',max_size_limit=999999)
+        split_pattern = "[。;!?！？;\n\rn]+"
+        return re.split(split_pattern,text)
+        # return _request(text, path = '/split2sentences',max_size_limit=999999)
 
     def processcorpus(self,text):
-        return _request(text, path='/processcorpus', max_size_limit=999999)
+        texts = self.split2sentences(text)
+        texts = [t for t in texts if len(t)>=3]
+        return self.analyze(texts)
+        # return _request(text, path='/processcorpus', max_size_limit=999999)
 
 
