@@ -102,7 +102,9 @@ class SmoothNLPRequest(object):
     def segment(self,text):
         result = _request(text)
         tokens = extract_meta(result, "tokens")
-        if isinstance(text,str) or isinstance(text,dict):
+        if tokens is None:
+            return []
+        elif isinstance(text,str) or isinstance(text,dict):
             tokens = [v['token']for v in tokens]
         else:
             tokens = [[v['token']for v in token_set] for token_set in tokens]
