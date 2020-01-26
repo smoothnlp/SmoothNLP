@@ -6,7 +6,7 @@ from multiprocessing.pool import ThreadPool
 from multiprocessing import Pool
 
 
-def _request_single(text, path="/query", counter=0, max_size_limit=200):
+def _request_single(text, path, counter=0, max_size_limit=200):
     if len(text) > max_size_limit:
         raise ValueError(
             "text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
@@ -33,7 +33,7 @@ def _request_concurent(texts:list,path,max_size_limit=200):
     else:
         pool = ThreadPool(config.NUM_THREADS)
     params = [(text,path,0,max_size_limit) for text in texts]
-    result = pool.map(_request_single,params)
+    result = pool.starmap(_request_single,params)
     pool.close()
     return result
 
@@ -133,6 +133,7 @@ class SmoothNLPRequest(object):
     def processcorpus(self,text):
         texts = self.split2sentences(text)
         texts = [t for t in texts if len(t)>=3]
+        print(texts)
         return self.analyze(texts)
         # return _request(text, path='/processcorpus', max_size_limit=999999)
 
