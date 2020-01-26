@@ -37,7 +37,7 @@ def _request_concurent(texts:list,path,max_size_limit=200):
     pool.close()
     return result
 
-def _request(text, path="/query", max_size_limit=200):
+def _request(text, path="/query", max_size_limit=500):
     if isinstance(text,list):
         config.logger.info(
             "request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS, config.POOL_TYPE))
@@ -132,8 +132,7 @@ class SmoothNLPRequest(object):
 
     def processcorpus(self,text):
         texts = self.split2sentences(text)
-        texts = [t for t in texts if len(t)>=3]
-        print(texts)
+        texts = [t for t in texts if len(t)>=3 and len(t)<=200]
         return self.analyze(texts)
         # return _request(text, path='/processcorpus', max_size_limit=999999)
 
