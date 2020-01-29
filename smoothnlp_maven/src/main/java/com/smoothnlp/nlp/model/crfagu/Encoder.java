@@ -101,10 +101,11 @@ public class Encoder {
                     continue;
                 }
                 if (++lineNo % 100 == 0) {
-                    System.out.println(lineNo + ".. ");
+                    System.out.print(lineNo + ".. ");
                 }
             }
             br.close();
+            System.out.println();
         } catch(Exception e) {
             e.printStackTrace();
             return false;
