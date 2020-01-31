@@ -1,5 +1,7 @@
 package com.smoothnlp.nlp.model.crfagu;
 
+import com.smoothnlp.nlp.basic.UtilFns;
+
 import java.io.*;
 import java.util.*;
 
@@ -147,6 +149,7 @@ public class TaggerImpl extends Tagger {
 //        System.out.print("verterbi node get result: ");
 //        System.out.println(x_.size() - 1);
 //        System.out.println(node_.get(x_.size() - 1));
+//        System.out.println(UtilFns.toJson(node_.get(4)));
 
         cost_ = -node_.get(x_.size() - 1).get(result_.get(x_.size() - 1)).bestCost;
     }
@@ -713,7 +716,7 @@ public class TaggerImpl extends Tagger {
 
     public boolean parseEmbedding(){
 
-        if (!feature_index_.buildEmbeddingFeature(this)) {
+        if (!feature_index_.buildEmbeddingFeature(this)) {  // 构建 Unigram,Bigram 与 Embedding特征
             System.err.println("fail to build featureIndex");
             return false;
         }

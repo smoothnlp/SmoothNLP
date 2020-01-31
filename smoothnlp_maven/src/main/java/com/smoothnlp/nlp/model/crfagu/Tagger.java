@@ -40,7 +40,8 @@ public abstract class Tagger {
     public List<Integer> prevTransitionVector(int i, int j, int k) {return null;}
 
     public double Z() {return 0.0;}
-    public boolean parse() {return true;}
+    public boolean parse() {return parseEmbedding();}
+    public boolean parseEmbedding() {return true;}
     public boolean empty() {return true;}
     public boolean clear() {return true;}
     public boolean next() {return true;}
