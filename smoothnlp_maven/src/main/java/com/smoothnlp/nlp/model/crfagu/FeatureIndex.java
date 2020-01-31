@@ -309,6 +309,9 @@ FeatureIndex {
 
     /**
      * embeddingTempls,仅取第一个构建,且默认为E00:[0,0]
+     *
+     * 构建包括 Unigram, Bigram, 和 Embedding 特征
+     *
      * @param tagger
      * @return
      */
@@ -338,13 +341,19 @@ FeatureIndex {
         ArrayList<String> embeddingStrs = tagger.getFeatureEmbeddingStrsCache_();
         ArrayList<Integer> embedingIDs = tagger.getFeatureEmbeddingIdsCache_();
 
-        String template = embeddingTempls_.get(0); // 仅支持一个embedding特征；
-        for(int cur = 0; cur<tagger.size(); cur++){
-            String embeddingStr = applyRule(template, cur, tagger); // 暂时还是 E00:每；
-            embeddingStrs.add(embeddingStr);
-            //int embeddingID = getEmbeddingID(embeddingStr);
-            //embedingIDs.add(embeddingID);
+        if (embeddingTempls_.size()>=1){  // 如果模板中存在Embedding特征, 处理Embedding特征, <- 对不添加Embedding特征的模型进行兼容
+            String template = embeddingTempls_.get(0); // 仅支持一个embedding特征；
+            for(int cur = 0; cur<tagger.size(); cur++){
+                String embeddingStr = applyRule(template, cur, tagger); // 暂时还是 E00:每；
+                embeddingStrs.add(embeddingStr);
+                //int embeddingID = getEmbeddingID(embeddingStr);
+                //embedingIDs.add(embeddingID);
+            }
+        }else{
+            System.err.println("目前crfagu仅仅支持拥有Embedding特征的选项, 暂不支持没有Embedding模型的情况");
         }
+
+
         return true;
     }
 
@@ -359,6 +368,8 @@ FeatureIndex {
 
             String emStr = featureEmbeddingStrsCache.get(cur);
             float[] vector = embedding.getStrEmbedding(emStr);
+
+
             /*
             StringBuffer sb  = new StringBuffer();
             for(int i=0;i<f.size();i++){
