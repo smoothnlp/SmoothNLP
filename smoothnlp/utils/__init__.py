@@ -2,7 +2,7 @@ from functools import wraps
 import requests
 import json
 
-from smoothnlp import logger
+from smoothnlp import config
 from ..nlp import MODE
 from ..nlp import set_mode
 import re
@@ -15,7 +15,7 @@ def localSupportCatch(func):
     @wraps(func)
     def trycatch(text):
         if MODE !="server":
-            logger.error("This function does not support local mode : %s " % func.__name__)
+            config.logger.error("This function does not support local mode : %s " % func.__name__)
             raise AttributeError("This function does not support local mode : %s ")
         return func(text)
     return trycatch

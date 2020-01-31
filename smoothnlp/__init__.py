@@ -1,18 +1,12 @@
 import sys
-import logging
-
-HOST_URL = "http://kong.smoothnlp.com/nlp"
-logger = logging.getLogger()
 
 import smoothnlp.algorithm
 from .algorithm import kg
-
+from .configurations import config
 
 if sys.version_info[0] != 3:
     # now support python version 3
     raise EnvironmentError("~~ SmoothNLP supports Python3 ONLY for now ~~~")
-
-
 
 
 ################################
@@ -60,5 +54,6 @@ def split2sentences(text:str):
 @localSupportCatch
 def dep_parsing(text:str):
     return nlp.dependencyrelationships(text)
+
 
 

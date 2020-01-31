@@ -17,6 +17,8 @@ import ml.dmlc.xgboost4j.java.XGBoostError;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.XGBoost;
 
+import java.math.BigInteger;
+
 public class DependencyGraghEdgeCostTrain {
 
     public DependencyGraghEdgeCostTrain(){
@@ -76,6 +78,8 @@ public class DependencyGraghEdgeCostTrain {
 
         int ftr_size = ftrCollection.get(0)[0].length;
 
+        System.out.println("ftry array size: "+record_counter*ftr_size);
+
         float[] ftrs_array = new float[record_counter*ftr_size];
         counter = 0;
 
@@ -93,7 +97,6 @@ public class DependencyGraghEdgeCostTrain {
         System.out.println(String.format("~~ Ftr and Label preparation ready: %d %d", labels_array.length, ftrs_array.length));
         System.out.println(String.format("~~ Ftr Size: %d ~~",ftr_size));
         try{
-
             final DMatrix dmatrix = new DMatrix(ftrs_array,record_counter,ftr_size,Float.NaN);
 
             dmatrix.setLabel(labels_array);
@@ -116,11 +119,11 @@ public class DependencyGraghEdgeCostTrain {
                     put("max_depth", 6);
                     put("silent", 0);
                     put("objective", "binary:logistic");
-                    put("colsample_bytree",0.8);
+                    put("colsample_bytree",0.9);
                     put("colsample_bylevel",0.9);
-                    put("eta",0.1);
-                    put("subsample",0.8);
-                    put("lambda",1);
+                    put("eta",0.2);
+                    put("subsample",0.9);
+                    put("lambda",0.5);
 
                     // other parameters
                     // "objective" -> "multi:softmax", "num_class" -> "6"

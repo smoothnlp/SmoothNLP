@@ -1,5 +1,6 @@
 from .phrase import prettify,_find_phrase_connected_rel,extract_noun_phrase,extract_num_phrase,_get_rel_map,adapt_struct,extract_verb_phrase
 from .entity import extract_subject
+from .helper import *
 
 def check_2phrase_connected(phrase1,phrase2,rel_map,valid_rels={}):
 
@@ -16,7 +17,7 @@ def check_2phrase_connected(phrase1,phrase2,rel_map,valid_rels={}):
         return False,-1
 
 @adapt_struct
-def extract_attr_num(struct: dict = None, pretty: bool = True):
+def extract_attr_num(struct: dict = None, pretty: bool = False):
     rel_map = _get_rel_map(struct)
     attrs = []
     noun_phrases = extract_noun_phrase(struct = struct, pretty = False, multi_token_only=False,with_describer=False)
@@ -26,6 +27,7 @@ def extract_attr_num(struct: dict = None, pretty: bool = True):
 
     for num_phrase in num_phrases:
         min_distance = 9999
+        print(noun_phrases + verb_phrases)
         for noun_phrase in noun_phrases + verb_phrases:
             num_noun_flag,distance = check_2phrase_connected(num_phrase,noun_phrase,rel_map)
             if num_noun_flag and distance <= min_distance:

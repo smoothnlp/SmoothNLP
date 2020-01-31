@@ -1,20 +1,23 @@
 from ...nlp import nlp
 from functools import wraps
 from copy import deepcopy
+from .helper import *
 
 _object_rels = {"dobj","range","attr"}
 _subject_rels = {"nsubj","top"}
 _num_rels = {"range","nummod"}
 
-prettify = lambda l: "".join([t['token'] for t in l])
+
 phrase_index_range = lambda l: [t['index'] for t in l]
 
 
-def _find_phrase_connected_rel(phrase, rel_map):
+def _find_phrase_connected_rel(phrase, rel_map, valid_rels = set()):
     rels = []
     for token in phrase:
         if token['index'] in rel_map:
             rels += rel_map[token['index']]
+    if len(valid_rels)>0:
+        rels = [rel for rel in rels if rel['relationship'] in valid_rels]
     return rels
 
 def _split_conj_sents(struct:dict = None):
@@ -227,41 +230,55 @@ def concat_consecutive_phrases(phrases):
 
 
 
+# @adapt_struct
+# def extract_noun_phrase(struct: dict = None,
+#                         multi_token_only=True,
+#                         pretty=False,
+#                         with_describer: bool = True, ## 如果with_desciber 为true, pretty 必须=False
+#                         ):
+#
+#     if not with_describer:
+#         noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
+#                                       valid_postags={"NN", "NR", "NT", "LOC", "DT", "JJ", "CTY","OD","DTA",
+#                                                      "CC"  ## "和"
+#                                                      },
+#                                       invalid_postags={"PU", "M", "VC","VV", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
+#                                       valid_rels={'nn', "dobj", "dep","range","amod","cc"},
+#                                       rm_one_char=False,
+#                                       )
+#         return noun_phrases
+#     else:
+#         ## 抽取带有修饰性的名词
+#         noun_phrases = extract_noun_phrase(struct = struct, multi_token_only=False, pretty=False, with_describer=False)
+#         describer_phrases = extract_all_describer_phrase(struct = struct, pretty=False)
+#
+#         describer_phrases = [p for p in describer_phrases if sum(
+#             [(p[-1]["index"]+1 == np[0]["index"]
+#               ) for np in noun_phrases])==1]  ## 只考虑修饰词后紧跟名词短语的情况
+#
+#         phrases = noun_phrases + describer_phrases
+#         phrases = deduple_phrases(phrases)
+#         phrases = concat_consecutive_phrases(phrases)
+#         if multi_token_only:
+#             phrases = [p for p in phrases if len(p) > 1]
+#
+#         if pretty:
+#             phrases = [prettify(p) for p in phrases]
+#         return phrases
+
+
 @adapt_struct
 def extract_noun_phrase(struct: dict = None,
                         multi_token_only=True,
                         pretty=False,
                         with_describer: bool = True, ## 如果with_desciber 为true, pretty 必须=False
+                        rm_one_char:bool = True
                         ):
-
-    if not with_describer:
-        noun_phrases = extract_phrase(struct=struct, multi_token_only = multi_token_only, pretty= pretty,
-                                      valid_postags={"NN", "NR", "NT", "LOC", "DT", "JJ", "CTY","OD","DTA",
-                                                     "CC"  ## "和"
-                                                     },
-                                      invalid_postags={"PU", "M", "VC","VV", "VE" ,"DEG", "DEV", "DER", "AS", "SP","P"},
-                                      valid_rels={'nn', "dobj", "dep","range","amod","cc"},
-                                      rm_one_char=False,
-                                      )
-        return noun_phrases
-    else:
-        ## 抽取带有修饰性的名词
-        noun_phrases = extract_noun_phrase(struct = struct, multi_token_only=False, pretty=False, with_describer=False)
-        describer_phrases = extract_all_describer_phrase(struct = struct, pretty=False)
-
-        describer_phrases = [p for p in describer_phrases if sum(
-            [(p[-1]["index"]+1 == np[0]["index"]
-              ) for np in noun_phrases])==1]  ## 只考虑修饰词后紧跟名词短语的情况
-
-        phrases = noun_phrases + describer_phrases
-        phrases = deduple_phrases(phrases)
-        phrases = concat_consecutive_phrases(phrases)
-        if multi_token_only:
-            phrases = [p for p in phrases if len(p) > 1]
-
-        if pretty:
-            phrases = [prettify(p) for p in phrases]
-        return phrases
+    phrase = extract_phrase_by_rel(struct=struct,
+                                   valid_rel_set={"nsubj","dobj","top","attr","nn","pobj"},
+                                   pretty = pretty,
+                                   recursive_valid_rels={},rm_one_char=rm_one_char)
+    return phrase
 
 def recursively_get_path(rel_map,
                          source_indexes = set(),
@@ -291,7 +308,7 @@ def recursively_get_path(rel_map,
 
 @adapt_struct
 def extract_phrase_by_rel(struct: dict = None, valid_rel_set = {"assmod"} ,multi_token_only=False, pretty=False,
-                             rm_one_char=True, recursive_valid_rels:set = set(), recursively_invalid_rels:set = set()):
+                             rm_one_char=False, recursive_valid_rels:set = set(), recursively_invalid_rels:set = set()):
     rel_map = _get_rel_map(struct=struct)
     tokens = struct['tokens']
     rels = struct['dependencyRelationships']
@@ -309,6 +326,9 @@ def extract_phrase_by_rel(struct: dict = None, valid_rel_set = {"assmod"} ,multi
 
     if multi_token_only:
         phrases = [p for p in phrases if len(p) > 1]
+
+    if rm_one_char:
+        phrases = [p for p in phrases if not (len(p)==1 and len(p[0]['token'])==1)]
 
     if pretty:
         phrases = [prettify(p) for p in phrases]
@@ -373,48 +393,46 @@ def get_dp_rel(struct:dict=None,rel:str="nsubj"):
             target_tokens.append(tokens[target_index-1])
     return target_tokens
 
+
+@options
 @adapt_struct
 def extract_verb_phrase(struct:dict=None,
-                        pretty:bool = True,
                         with_describer:bool=True
                         ):
+    rels = struct["dependencyRelationships"]
     valid_verb_postags = {"VV", "VC", "VE"}
     # verb_connected_relationships = {'nsubj', 'dobj', "top", "range", 'attr', "prep"}  ## 谓语可以连接向外的依存关系
 
     if with_describer:
         verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
-                                    valid_rel_set={"root"}, rm_one_char=False, recursive_valid_rels={"root","ccomp","conj","advmod"})
+                                    valid_rel_set={"root"}, rm_one_char=False, recursive_valid_rels={"root","ccomp","conj","advmod","rcomp"})
     else:
         verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
                                                 valid_rel_set={"root"}, rm_one_char=False,
                                                 recursive_valid_rels={"root", "ccomp", "conj"})
     verb_phrases = [phrase for phrase in verb_phrases if sum([token['postag'] in valid_verb_postags for token in phrase])>=0]
-    if pretty:
-        verb_phrases = [prettify(vphrase) for vphrase in verb_phrases]
+    ## 对于和主要verb不仅靠的verb作为从句补充ccomp, 过滤掉他们作为动词的可能
+    verb_phrases = [phrase for phrase in verb_phrases if {"root", "conj"}.intersection(set([rel['relationship'] for rel in rels if rel['targetIndex'] in [t['index'] for t in phrase]])) ]
     return verb_phrases
 
 
-
+@options
 @adapt_struct
 def extract_num_phrase(struct: dict = None,
                         multi_token_only=False,
-                        pretty=False,
+                       pretty:bool = False,
                         rm_one_char=True,  ## need to impliment
                         ):
-    num_phrases = extract_phrase(struct=struct, multi_token_only = False, pretty= False,
-                                  valid_postags={"CD","M","DTA","OD"},
-                                  invalid_postags={},
-                                  valid_rels={"range","nummod","dep"}
-                                  ,rm_one_char=False)
 
-    num_phrases = concat_consecutive_phrases(num_phrases)
-    num_phrases = [p for p in num_phrases if
-                   not (len(p) == 1 and p[0]['postag'] == "M")]  ## 去除只有一个token, 且token为"单位"的case
-
-    if rm_one_char:
-        num_phrases = [p for p in num_phrases if not(len(p)==1 and len(p[0]['token']) ==1)]
-
-    if pretty:
-        num_phrases = [prettify(p) for p in num_phrases]
-
-    return num_phrases
+    phrases = extract_phrase_by_rel(struct = struct,
+                                   valid_rel_set={"nummod","range",'punct'},
+                                   multi_token_only=multi_token_only,
+                                   rm_one_char= True,
+                                   pretty = False)
+    for i in range(len(phrases)):
+        if phrases[i][0]['postag']=="PU":
+            phrases[i] = phrases[i][1:]
+        if phrases[i][-1]['postag'] == "PU":
+            phrases[i] = phrases[i][:-1]
+    phrases = [p for p in phrases if len(p)>=1]
+    return phrases
