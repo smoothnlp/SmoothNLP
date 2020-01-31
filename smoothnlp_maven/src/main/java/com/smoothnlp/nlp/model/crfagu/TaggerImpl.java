@@ -41,7 +41,8 @@ public class TaggerImpl extends Tagger {
 
     //support embedding;
     ArrayList<String> featureEmbeddingStrsCache_;
-    ArrayList<Integer> featureEmbeddingIdsCache_;
+    //List<ArrayList<String>> featureEmbeddingStrsCache_;
+    //ArrayList<Integer> featureEmbeddingIdsCache_;
 
     public TaggerImpl(Mode mode) {
         mode_ = mode;
@@ -63,7 +64,6 @@ public class TaggerImpl extends Tagger {
 
 
         featureEmbeddingStrsCache_ = new ArrayList<String>();
-        featureEmbeddingIdsCache_ = new ArrayList<Integer>();
     }
 
     public void clearNodes() {
@@ -579,13 +579,6 @@ public class TaggerImpl extends Tagger {
         this.featureEmbeddingStrsCache_ = featureEmbeddingStrsCache_;
     }
 
-    public ArrayList<Integer> getFeatureEmbeddingIdsCache_(){
-        return featureEmbeddingIdsCache_;
-    }
-    public void setFeatureEmbeddingIdsCache_(ArrayList<Integer> featureEmbeddingIdsCache_){
-        this.featureEmbeddingIdsCache_ = featureEmbeddingIdsCache_;
-    }
-
 
     public int size() {
         return x_.size();
@@ -746,7 +739,6 @@ public class TaggerImpl extends Tagger {
         result_.clear();
         featureCache_.clear();
         featureEmbeddingStrsCache_.clear();
-        featureEmbeddingIdsCache_.clear();;
         Z_ = cost_ = 0.0;
         return true;
     }
