@@ -22,6 +22,7 @@ public class Node {
 
     public List<String> emKey;
     public String emStr; //仅支持一个
+    public ArrayList<String> emStrs;
     public int emID; // 仅支持一个
     public float[] emVector ; // support embedding vector
 
