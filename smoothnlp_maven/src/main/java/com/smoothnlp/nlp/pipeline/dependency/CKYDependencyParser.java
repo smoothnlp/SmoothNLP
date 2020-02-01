@@ -26,6 +26,8 @@ public class CKYDependencyParser implements IDependencyParser {
     private Booster edgeScoreModel;
     private Booster edgeTagModel;
 
+    HashMap<Integer,ProjectiveTree> AcedTrees;
+
     public CKYDependencyParser() {
         init(SmoothNLP.DP_EDGE_SCORE_XGBOOST, SmoothNLP.DP_EDGE_TAG_XGBOOST);
     }
@@ -33,6 +35,7 @@ public class CKYDependencyParser implements IDependencyParser {
     private void init(String edgeScoreModel, String edgeTagModel) {
         this.edgeScoreModel = UtilFns.loadXgbModel(edgeScoreModel);
         this.edgeTagModel = UtilFns.loadXgbModel(edgeTagModel);
+        this.AcedTrees = new HashMap<>();
     }
 
     public DependencyRelationship[] parse(String input) throws Exception {
@@ -70,22 +73,10 @@ public class CKYDependencyParser implements IDependencyParser {
         System.out.println("cgraph size: "+cgraph.size());
 
         long start = System.currentTimeMillis();
+        this.AcedTrees = new HashMap<>();
         ProjectiveTree ptree = new ProjectiveTree(0, cgraph.size()-1, 0);
-        ptree.A(edgeScores);
+        ptree.A(edgeScores,this);
         long end = System.currentTimeMillis();
-
-//        ProjectiveTree ptree2 = new ProjectiveTree(1, 2, 2);
-//        ptree2.A(edgeScores);
-//        System.out.println("self tree2: "+UtilFns.toJson(ptree2.arch)+" -- " +UtilFns.toJson(ptree2));
-
-//        System.out.println("self tree: "+UtilFns.toJson(ptree.arch)+" -- " +UtilFns.toJson(ptree));
-//        System.out.println("left tree: "+UtilFns.toJson(ptree.leftTree.arch)+" -- " +UtilFns.toJson(ptree.leftTree));
-//        System.out.println("right tree: "+UtilFns.toJson(ptree.rightTree.arch)+" -- " +UtilFns.toJson(ptree.rightTree));
-//        System.out.println("right left tree: "+UtilFns.toJson(ptree.rightTree.leftTree.arch)+" -- " +UtilFns.toJson(ptree.rightTree.leftTree));
-//        System.out.println("right right tree: "+UtilFns.toJson(ptree.rightTree.rightTree.arch)+" -- " +UtilFns.toJson(ptree.rightTree.rightTree));
-//
-//        System.out.println("right right left tree: "+UtilFns.toJson(ptree.rightTree.rightTree.leftTree.arch)+" -- "+UtilFns.toJson(ptree.rightTree.rightTree.leftTree));
-//        System.out.println("right right right tree: "+UtilFns.toJson(ptree.rightTree.rightTree.rightTree.arch)+" -- "+UtilFns.toJson(ptree.rightTree.rightTree.rightTree));
 
         System.out.println("Arches: "+UtilFns.toJson(ptree.getArchs()));
 
@@ -95,7 +86,7 @@ public class CKYDependencyParser implements IDependencyParser {
         System.out.println("tree score: "+ptree.score);
         System.out.println("tree probas: "+ptree.probas);
 
-        System.out.println("tree calcualted total: "+ptree.AcedTrees.size());
+        System.out.println("tree calcualted total: "+this.AcedTrees.size());
 
         return null;
     }
@@ -121,7 +112,6 @@ public class CKYDependencyParser implements IDependencyParser {
         float score;
         ProjectiveTree leftTree, rightTree;
         float[] arch;
-        HashMap<Integer,ProjectiveTree> AcedTrees;
 
         public ProjectiveTree(int left, int right, int root) {
             this.left = left;
@@ -129,7 +119,6 @@ public class CKYDependencyParser implements IDependencyParser {
             this.root = root;
             probas = new LinkedList<>();
             this.score = -9999f;
-            this.AcedTrees = new HashMap<>();
             this.key = key();
         }
 
@@ -139,7 +128,6 @@ public class CKYDependencyParser implements IDependencyParser {
             this.root = root;
             probas = new LinkedList<>();
             this.score = -9999f;
-            this.AcedTrees = AcedTrees;
             this.key = key();
         }
 
@@ -147,19 +135,19 @@ public class CKYDependencyParser implements IDependencyParser {
             return this.root*10000+this.left*100+this.right;
         }
 
-        public void addSelf2AcedTrees(){
-            this.AcedTrees.put(this.key, this);
+        public void addSelf2AcedTrees(CKYDependencyParser ckyParser){
+            ckyParser.AcedTrees.put(this.key, this);
         }
 
-        public boolean checkAlreadyAcedATree(ProjectiveTree tree){
-            return this.AcedTrees.containsKey(tree.key);
+        public boolean checkAlreadyAcedATree(CKYDependencyParser ckyParser,ProjectiveTree tree){
+            return ckyParser.AcedTrees.containsKey(tree.key);
         }
 
-        public ProjectiveTree getAcedATree(ProjectiveTree tree){
-            return this.AcedTrees.get(tree.key);
+        public ProjectiveTree getAcedATree(CKYDependencyParser ckyParser,ProjectiveTree tree){
+            return ckyParser.AcedTrees.get(tree.key);
         }
 
-        public void A(float[][] X) {
+        public void A(float[][] X, CKYDependencyParser ckyParser) {
             // Dynamic Programming Stop Conditon
             // 动态规划的停止条件
 
@@ -171,7 +159,7 @@ public class CKYDependencyParser implements IDependencyParser {
                     this.probas.add(X[root][left]);
                     this.arch = new float[]{root,left};
                     this.score = computeScore(this.probas);
-                    this.addSelf2AcedTrees();
+                    this.addSelf2AcedTrees(ckyParser);
                     return;
                 }
             }
@@ -188,7 +176,7 @@ public class CKYDependencyParser implements IDependencyParser {
                     this.probas.add(X[root][target]);
                     this.arch = new float[]{root,target};
                     this.score = computeScore(this.probas);
-                    this.addSelf2AcedTrees();
+                    this.addSelf2AcedTrees(ckyParser);
                     return;
                 }
             }
@@ -201,38 +189,29 @@ public class CKYDependencyParser implements IDependencyParser {
                 for (int q = left; q < right; q += 1) {
                     ProjectiveTree tree1, tree2;
                     if (j > root) {
-                        tree1 = new ProjectiveTree(left, q, root,this.AcedTrees);
-                        tree2 = new ProjectiveTree(q + 1, right, j,this.AcedTrees);
+                        tree1 = new ProjectiveTree(left, q, root);
+                        tree2 = new ProjectiveTree(q + 1, right, j);
                     } else { // j<root
-                        tree1 = new ProjectiveTree(left, q, j,this.AcedTrees);
-                        tree2 = new ProjectiveTree(q + 1, right, root,this.AcedTrees);
+                        tree1 = new ProjectiveTree(left, q, j);
+                        tree2 = new ProjectiveTree(q + 1, right, root);
                     }
 
                     List<Float> _probas = new LinkedList<>();
-                    if (this.checkAlreadyAcedATree(tree1)){
-                        tree1 = this.getAcedATree(tree1);
+                    if (this.checkAlreadyAcedATree(ckyParser,tree1)){
+                        tree1 = this.getAcedATree(ckyParser,tree1);
                     }else{
-                        tree1.A(X);
+                        tree1.A(X,ckyParser);
                     }
 
-                    if (this.checkAlreadyAcedATree(tree2)){
-                        tree2 = this.getAcedATree(tree2);
+                    if (this.checkAlreadyAcedATree(ckyParser,tree2)){
+                        tree2 = this.getAcedATree(ckyParser,tree2);
                     }else{
-                        tree2.A(X);
+                        tree2.A(X,ckyParser);
                     }
-//                    tree1.A(X);
-//                    tree2.A(X);
-                    tree1.addSelf2AcedTrees();
-                    tree2.addSelf2AcedTrees();
+                    tree1.addSelf2AcedTrees(ckyParser);
+                    tree2.addSelf2AcedTrees(ckyParser);
                     _probas.addAll(tree1.probas);
                     _probas.addAll(tree2.probas);
-
-                    this.AcedTrees.putAll(tree1.AcedTrees);
-                    this.AcedTrees.putAll(tree2.AcedTrees);
-
-//                    System.out.println(this.AcedTrees.size());
-
-
                     _probas.add(X[root][j]);
 
                     float _score = computeScore(_probas);
@@ -267,7 +246,7 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-        List<SToken> tokens = SmoothNLP.POSTAG_PIPELINE.process("阿里巴巴由马云与蔡崇信在杭州成立");
+        List<SToken> tokens = SmoothNLP.POSTAG_PIPELINE.process("在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。");
         long start = System.currentTimeMillis();
         dparser.parse(tokens);
 //        for (DependencyRelationship e : dparser.parse("阿里巴巴成立")) {
