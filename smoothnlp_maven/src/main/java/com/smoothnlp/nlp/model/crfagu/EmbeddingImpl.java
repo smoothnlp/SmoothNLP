@@ -3,8 +3,7 @@ package com.smoothnlp.nlp.model.crfagu;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public class EmbeddingImpl {
 
@@ -104,6 +103,18 @@ public class EmbeddingImpl {
         }
     }
 
+    public float[] getArrayStrEmbedding(List<String> Strs){
+        int size = Strs.size() * getVsize();
+        float[] vector = new float[size];
+        int desPos = 0;
+        for(String Str: Strs){
+            float[] vs = getStrEmbedding(Str);
+            System.arraycopy(vs, 0 , vector, desPos, getVsize());
+            desPos += getVsize();
+        }
+        return vector;
+    }
+
     public float[] getDefaultEmbeddingVector(){
         return this.defaultEmbeddingVector;
     }
@@ -188,6 +199,12 @@ public class EmbeddingImpl {
         for(int i =0;i< embeddingImpl.getVsize();i++){
             System.out.println(embeddingImpl.getStrEmbedding("一美")[i]);
         }
+
+        ArrayList<String> list = new ArrayList<>();
+        list.add("眼镜");
+        list.add("si");
+
+        System.out.println(Arrays.toString(embeddingImpl.getArrayStrEmbedding(list)));
 
     }
 

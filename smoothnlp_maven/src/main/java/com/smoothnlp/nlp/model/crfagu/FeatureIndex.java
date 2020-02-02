@@ -111,20 +111,14 @@ FeatureIndex {
         }
 
         //float [] vector = embedding.getStrEmbedding(node.emStr);
-        float[] vector = new float[embedding.getVsize() * node.emStrs.size()];
-        int desPos=0;
-        int emSize = embedding.getVsize();
-        for(String emStr: node.emStrs){
-            float[] vs = embedding.getStrEmbedding(emStr);
-            System.arraycopy(vs,0,vector,desPos,emSize);
-            desPos += emSize;
-        }
-        System.out.println(node.emStrs);
-        System.out.println(Arrays.toString(vector));
+        float[] vector = embedding.getArrayStrEmbedding(node.emStrs);
+        int vectorSize = vector.length;
 
         if(vector.length>0){
             for (int i=0; i< vector.length;i++){
-                c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
+                //c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
+                c+= alphaEmbedding_[i + node.y * vectorSize] * vector[i];
+                //System.out.println(vector.length+ " :: " + vectorSize);
             }
 
         }

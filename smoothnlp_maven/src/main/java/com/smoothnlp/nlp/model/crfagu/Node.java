@@ -75,14 +75,15 @@ public class Node {
     }
 
     // support embedding templates
-    public void calcExpectation(double[] expected, double [] expectedEmbedding,float[] vectorNode, int vecSize, double Z, int size){
+    public void calcExpectation(double[] expected, double [] expectedEmbedding,float[] vectorNode, double Z, int size){
         double c = Math.exp(alpha + beta - cost -Z);
         for (int i = 0; fVector.get(i) != -1; i++) {
             int idx = fVector.get(i) + y;
             expected[idx] += c;
         }
 
-        if(expectedEmbedding.length>0 && vectorNode.length>0 && vecSize == vectorNode.length){
+        if(expectedEmbedding.length>0 && vectorNode.length>0 ){
+            int vecSize = vectorNode.length;
             for(int i=0;i<vectorNode.length;i++){
                 int idx = i + y * vecSize;
                 expectedEmbedding[idx] += c * vectorNode[i];

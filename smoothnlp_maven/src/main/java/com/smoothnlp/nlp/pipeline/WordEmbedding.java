@@ -1,16 +1,15 @@
 package com.smoothnlp.nlp.pipeline;
 
 import com.smoothnlp.nlp.SmoothNLP;
-import com.smoothnlp.nlp.basic.CoNLLToken;
-import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
-import scala.Array;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Arrays;
 
 public class WordEmbedding implements IEmbedding{
     public static Map<String, float[]> wordEmbedding ;
@@ -55,7 +54,6 @@ public class WordEmbedding implements IEmbedding{
                 wordEmbedding.put(word, embedding);
 
             }
-            System.out.println(dimen+" dimension size");
             this.embedding_size = dimen;
             System.out.println("Embedding 读入条数" + index + ", 耗时" + (System.currentTimeMillis()-start) + "ms");
         }catch (IOException e){
@@ -68,73 +66,6 @@ public class WordEmbedding implements IEmbedding{
      * @param input
      * @return
      */
-    public float[] processToken(String input){
-        if(wordEmbedding.containsKey(input)) {
-            return wordEmbedding.get(input);
-        }else{
-            LinkedList<float[]> vectors = new LinkedList<>();
-            char[] charArray = input.toCharArray();
-            for (char c : charArray){
-                if (wordEmbedding.containsKey(Character.toString(c))) {
-                    vectors.add(wordEmbedding.get(Character.toString(c)));
-                }
-            }
-            if (vectors.size()==0){
-                float[] dummy_vec = new float[this.embedding_size];
-                Arrays.fill(dummy_vec,0f);
-                return dummy_vec;
-            }else{
-                float[] agg_vector = new float[this.embedding_size];
-                Arrays.fill(agg_vector,0f);
-                for (int i=0;i<this.embedding_size;i++){
-                    for (float[] vec: vectors){
-                        agg_vector[i]+=vec[i];
-                    }
-                    agg_vector[i] = agg_vector[i]/vectors.size();
-                }
-                return agg_vector;
-            }
-
-        }
-    }
-
-    public float[] processToken(CoNLLToken token){
-        return processToken(token.token);
-    }
-
-    public float[] processToken(SToken token){
-        return processToken(token.token);
-    }
-
-    public float[] processTokens(CoNLLToken[] tokens){
-        float[] vector = new float[this.embedding_size];
-        Arrays.fill(vector,-99f);
-        for (CoNLLToken token : tokens){
-            float[] tokenVector = this.processToken(token);
-            for (int i=0;i<this.embedding_size;i++){
-                vector[i]  = Math.max(vector[i],tokenVector[i]);
-            }
-        }
-        return vector;
-    }
-
-    public float[] processTokens(List<SToken> tokens){
-        float[] vector = new float[this.embedding_size];
-        Arrays.fill(vector,-99f);
-        for (SToken token : tokens){
-            float[] tokenVector = this.processToken(token);
-            for (int i=0;i<this.embedding_size;i++){
-                vector[i]  = Math.max(vector[i],tokenVector[i]);
-            }
-        }
-        return vector;
-    }
-
-    public float[] processSentence(String sentence){
-        List<SToken> stokens = SmoothNLP.SEGMENT_PIPELINE.process(sentence);
-        return processTokens(stokens);
-    }
-
     public float[] process(String input){
         if(wordEmbedding.containsKey(input)) {
             return wordEmbedding.get(input);
@@ -145,15 +76,13 @@ public class WordEmbedding implements IEmbedding{
         }
     }
 
-
     /**
      * test path
      */
 
     public static void main(String[] args){
-        WordEmbedding wordEmbedding = new WordEmbedding(SmoothNLP.WordEmbedding_MODEL);
-        System.out.println(UtilFns.toJson(wordEmbedding.processSentence("嗅问")));
-        System.out.println(UtilFns.toJson(wordEmbedding.processSentence("嗅问将会是一款优秀的产品")));
+        WordEmbedding wordEmbedding = new WordEmbedding("/Users/junyin/polyglot-zh.txt");
+        System.out.println(UtilFns.toJson(wordEmbedding.process("的")));
     }
 
 }
