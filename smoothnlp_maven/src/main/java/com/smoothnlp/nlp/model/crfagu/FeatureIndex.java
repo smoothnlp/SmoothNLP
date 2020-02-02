@@ -2,6 +2,7 @@ package com.smoothnlp.nlp.model.crfagu;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -109,7 +110,18 @@ FeatureIndex {
             c += alpha_[node.fVector.get(i) + node.y];
         }
 
-        float [] vector = embedding.getStrEmbedding(node.emStr);
+        //float [] vector = embedding.getStrEmbedding(node.emStr);
+        float[] vector = new float[embedding.getVsize() * node.emStrs.size()];
+        int desPos=0;
+        int emSize = embedding.getVsize();
+        for(String emStr: node.emStrs){
+            float[] vs = embedding.getStrEmbedding(emStr);
+            System.arraycopy(vs,0,vector,desPos,emSize);
+            desPos += emSize;
+        }
+        System.out.println(node.emStrs);
+        System.out.println(Arrays.toString(vector));
+
         if(vector.length>0){
             for (int i=0; i< vector.length;i++){
                 c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
@@ -393,9 +405,8 @@ FeatureIndex {
                 n.y = i;   // 设置为第几个label
                 n.fVector = f;    // 特征列表
                 n.emStrs = emStrs;
-                //n.emID = emId;
-                //n.emVector = vector;
                 tagger.set_node(n, cur, i);   // TaggerImpl 中的二位数组node_存放该节点
+               // System.out.println(n.emStrs);
             }
         }
 
@@ -542,7 +553,7 @@ FeatureIndex {
         return embedding.getVsize();
     }
     public int sizeEmbedding(){
-        return getEmbeddingVectorSize() * ysize();
+        return getEmbeddingVectorSize() * ysize() * embeddingTempls_.size();
     }
     public void setAlphaEmbedding_(double[] alphaEmbedding_){
         this.alphaEmbedding_ = alphaEmbedding_;

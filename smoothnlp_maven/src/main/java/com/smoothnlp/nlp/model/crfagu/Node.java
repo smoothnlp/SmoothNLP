@@ -21,7 +21,7 @@ public class Node {
     public static int MINUS_LOG_EPSILON = 50;
 
     public List<String> emKey;
-    public String emStr; //仅支持一个
+    //public String emStr; //仅支持一个
     public ArrayList<String> emStrs;
     public int emID; // 仅支持一个
     public float[] emVector ; // support embedding vector

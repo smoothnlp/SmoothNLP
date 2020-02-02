@@ -291,13 +291,22 @@ public class TaggerImpl extends Tagger {
         forwardbackward();  // 前向-后向算法
 
         double s = 0.0;
-        int vecSize = feature_index_.embedding.getVsize();
+        int emSize = feature_index_.embedding.getVsize(); // embedding size
+        int vectorSize = emSize * featureEmbeddingStrsCache_.get(0).size(); // embeddingSize * |embedding-template|
         //计算期望
         for(int i = 0 ; i< x_.size(); i++){
             for (int j = 0 ; j< ysize_; j++){
-                float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(j).emStr);
+                //float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(j).emStr);
+                float[] vector = new float[vectorSize];
+                int desPos=0;
+                for(String emStr: node_.get(i).get(j).emStrs){ 
+                    float[] vs = feature_index_.embedding.getStrEmbedding(emStr);
+                    System.arraycopy(vs,0,vector,desPos,emSize);
+                    desPos += emSize;
+                }
+
                 //System.out.println(node_.get(i).get(j).emStr +" <" + expected.length + "<" +expectedEmbedding.length);
-                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, vector, vecSize, Z_ ,ysize_);
+                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, vector, emSize, Z_ ,ysize_);
             }
         }
 
@@ -309,9 +318,18 @@ public class TaggerImpl extends Tagger {
                 expected[idx]--;
             }
 
-            float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(answer_.get(i)).emStr);
+            //float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(answer_.get(i)).emStr);
+            float[] vector = new float[vectorSize];
+            int desPos=0;
+
+            for(String emStr: node_.get(i).get(answer_.get(i)).emStrs){
+                float[] vs = feature_index_.embedding.getStrEmbedding(emStr);
+                System.arraycopy(vs,0,vector,desPos,emSize);
+                desPos += emSize;
+            }
+
             for (int j = 0; j < vector.length; j++){
-                int idx = j + answer_.get(i) * vecSize;
+                int idx = j + answer_.get(i) * emSize;
                 expectedEmbedding[idx] -= vector[j] ;
             }
 

@@ -125,7 +125,8 @@ public class Encoder {
 
         System.out.println("Number of sentences: " + x.size());
         System.out.println("Number of features:  " + featureIndex.size());
-        System.out.println("NUmber of emebedding vector size: " + featureIndex.sizeEmbedding());
+        System.out.println("Number of embedding vector size:" + featureIndex.getEmbeddingVectorSize());
+        System.out.println("NUmber of embedding template vector size: " + featureIndex.sizeEmbedding());
         System.out.println("Number of y:" + featureIndex.ysize() );
         System.out.println("Number of thread(s): " + threadNum);
         System.out.println("Freq:                " + freq);
