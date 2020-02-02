@@ -1,10 +1,15 @@
 package com.smoothnlp.nlp.basic;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.smoothnlp.nlp.SmoothNLP;
+import ml.dmlc.xgboost4j.java.Booster;
+import ml.dmlc.xgboost4j.java.XGBoost;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
@@ -12,6 +17,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UtilFns {
+
+    public static Booster loadXgbModel(String modelAddr) {
+
+        try{
+            InputStream modelIS = SmoothNLP.IOAdaptor.open(modelAddr);
+            Booster booster = XGBoost.loadModel(modelIS);
+            return booster;
+        }catch(Exception e){
+            // add proper warnings later
+            System.out.println(e);
+            return null;
+        }
+    }
 
     public static String join(String delimeter, Collection<String> contents){
         if (contents.size()<=0){return "";}
