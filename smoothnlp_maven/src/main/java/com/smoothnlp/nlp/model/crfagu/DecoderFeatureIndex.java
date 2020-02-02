@@ -32,6 +32,7 @@ public class DecoderFeatureIndex extends FeatureIndex {
             costFactor_ = (Double)ois.readObject();
             maxid_ = (Integer)ois.readObject();
             xsize_ = (Integer)ois.readObject();
+            String embDefValueMode = (String) ois.readObject();
             y_ = (List<String>)ois.readObject();
             unigramTempls_ = (List<String>)ois.readObject();
             bigramTempls_ = (List<String>)ois.readObject();
@@ -52,6 +53,8 @@ public class DecoderFeatureIndex extends FeatureIndex {
             HashMap<String, float[]> vector = (HashMap<String, float[]>)ois.readObject();
             embedding.setEmbeddingVector(vector);
             embedding.setVsize(embeddingSize);
+            embedding.setDefaultValueMode(embDefValueMode);
+            embedding.calculateDefaultEmbeddingVector();
             ois.close();
             return true;
         } catch(Exception e) {
@@ -159,6 +162,7 @@ public class DecoderFeatureIndex extends FeatureIndex {
             costFactor_ = Double.valueOf(br.readLine().substring("cost-factor: ".length()));
             maxid_ = Integer.valueOf(br.readLine().substring("maxid: ".length()));
             xsize_ = Integer.valueOf(br.readLine().substring("xsize: ".length()));
+            String embDefValueMode = (br.readLine().substring("emb-defvalue-mode: ".length()));
             System.out.println("Done reading meta-info");
             br.readLine();
 
@@ -205,6 +209,7 @@ public class DecoderFeatureIndex extends FeatureIndex {
                 oos.writeObject(costFactor_);
                 oos.writeObject(maxid_);
                 oos.writeObject(xsize_);
+                oos.writeObject(embDefValueMode);
                 oos.writeObject(y_);
                 oos.writeObject(unigramTempls_);
                 oos.writeObject(bigramTempls_);

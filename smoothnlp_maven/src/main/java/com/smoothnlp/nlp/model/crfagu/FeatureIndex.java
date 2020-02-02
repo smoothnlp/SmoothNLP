@@ -2,6 +2,7 @@ package com.smoothnlp.nlp.model.crfagu;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -109,10 +110,15 @@ FeatureIndex {
             c += alpha_[node.fVector.get(i) + node.y];
         }
 
-        float [] vector = embedding.getStrEmbedding(node.emStr);
+        //float [] vector = embedding.getStrEmbedding(node.emStr);
+        float[] vector = embedding.getArrayStrEmbedding(node.emStrs);
+        int vectorSize = vector.length;
+
         if(vector.length>0){
             for (int i=0; i< vector.length;i++){
-                c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
+                //c+= alphaEmbedding_[i + node.y * getEmbeddingVectorSize()] * vector[i];
+                c+= alphaEmbedding_[i + node.y * vectorSize] * vector[i];
+                //System.out.println(vector.length+ " :: " + vectorSize);
             }
 
         }
@@ -240,7 +246,13 @@ FeatureIndex {
     }
 
     // 根据模板 unigramTempls \bigramTempls\  embeddingTempls 构建 features
-
+    private boolean buildFeatureFromEmbeddingTempl(ArrayList<String> embeddingStrs, List<String> templs, int curPos, TaggerImpl tagger){
+        for(String template:templs){
+            String embeddingStr = applyRule(template, curPos, tagger);
+            embeddingStrs.add(embeddingStr);
+        }
+        return true;
+    }
     /**
      * featureCache 未起实质性作用，EncoderFeatureIndex中更新了maxid 和 dic_
      * featureCache 中存储的是对应与单句中每行对应于生成的特征(id list)
@@ -338,17 +350,29 @@ FeatureIndex {
             feature = new ArrayList<Integer>();
         }
         // embedding feature ;
-        ArrayList<String> embeddingStrs = tagger.getFeatureEmbeddingStrsCache_();
-        ArrayList<Integer> embedingIDs = tagger.getFeatureEmbeddingIdsCache_();
+        ArrayList<String> embeddingStrs = new ArrayList<>();
+        List<ArrayList<String>> embeddingStrsCache = tagger.getFeatureEmbeddingStrsCache_();
 
         if (embeddingTempls_.size()>=1){  // 如果模板中存在Embedding特征, 处理Embedding特征, <- 对不添加Embedding特征的模型进行兼容
-            String template = embeddingTempls_.get(0); // 仅支持一个embedding特征；
-            for(int cur = 0; cur<tagger.size(); cur++){
-                String embeddingStr = applyRule(template, cur, tagger); // 暂时还是 E00:每；
-                embeddingStrs.add(embeddingStr);
-                //int embeddingID = getEmbeddingID(embeddingStr);
-                //embedingIDs.add(embeddingID);
+            //String template = embeddingTempls_.get(0); // 仅支持一个embedding特征；
+            //for(int cur = 0; cur<tagger.size(); cur++){
+            //    String embeddingStr = applyRule(template, cur, tagger); // 暂时还是 E00:每；
+            //    embeddingStrs.add(embeddingStr);
+            //}
+            for(int cur = 0 ; cur < tagger.size(); cur++){
+                if(!buildFeatureFromEmbeddingTempl(embeddingStrs,embeddingTempls_,cur,tagger)){
+                    System.err.println("error in build embedding templates");
+                    return false;
+                }
+                embeddingStrsCache.add(embeddingStrs);
+                embeddingStrs = new ArrayList<>();
             }
+            //StringBuffer sb = new StringBuffer();
+            //for(ArrayList<String> str:embeddingStrsCache){
+            //    sb.append(str+"\t");
+            //}
+            //System.out.println(sb.toString());
+
         }else{
             System.err.println("目前crfagu仅仅支持拥有Embedding特征的选项, 暂不支持没有Embedding模型的情况");
         }
@@ -361,23 +385,12 @@ FeatureIndex {
         int fid = tagger.getFeature_id_();
         List<List<Integer>> featureCache = tagger.getFeatureCache_();
         // embedding 所要支持的key;
-        List<String> featureEmbeddingStrsCache= tagger.getFeatureEmbeddingStrsCache_();
-        List<Integer> featureEmbeddingIdsCache= tagger.getFeatureEmbeddingIdsCache_();
+        List<ArrayList<String>> featureEmbeddingStrsCache= tagger.getFeatureEmbeddingStrsCache_();
+
         for (int cur = 0; cur < tagger.size(); cur++) {
             List<Integer> f = featureCache.get(fid++);  // 去除词的特征，词的特征列表对应特征模板里的Unigram特征
 
-            String emStr = featureEmbeddingStrsCache.get(cur);
-            float[] vector = embedding.getStrEmbedding(emStr);
-
-
-            /*
-            StringBuffer sb  = new StringBuffer();
-            for(int i=0;i<f.size();i++){
-                sb.append(f.get(i)+",");
-            }
-            System.out.println(emStr+" featureCache: " + sb.toString());
-            */
-            //int emId = featureEmbeddingIdsCache.get(cur);
+            ArrayList<String> emStrs = featureEmbeddingStrsCache.get(cur);
 
             for (int i = 0; i < y_.size(); i++) {  // label list
                 Node n = new Node();
@@ -385,10 +398,9 @@ FeatureIndex {
                 n.x = cur;  // 一个句子中的第几行，即第几个词
                 n.y = i;   // 设置为第几个label
                 n.fVector = f;    // 特征列表
-                n.emStr = emStr;
-                //n.emID = emId;
-                //n.emVector = vector;
+                n.emStrs = emStrs;
                 tagger.set_node(n, cur, i);   // TaggerImpl 中的二位数组node_存放该节点
+               // System.out.println(n.emStrs);
             }
         }
 
@@ -535,7 +547,7 @@ FeatureIndex {
         return embedding.getVsize();
     }
     public int sizeEmbedding(){
-        return getEmbeddingVectorSize() * ysize();
+        return getEmbeddingVectorSize() * ysize() * embeddingTempls_.size();
     }
     public void setAlphaEmbedding_(double[] alphaEmbedding_){
         this.alphaEmbedding_ = alphaEmbedding_;
