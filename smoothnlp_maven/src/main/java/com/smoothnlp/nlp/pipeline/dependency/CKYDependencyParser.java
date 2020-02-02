@@ -7,9 +7,7 @@ import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.DMatrix;
 import ml.dmlc.xgboost4j.java.XGBoostError;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -60,6 +58,7 @@ public class CKYDependencyParser implements IDependencyParser {
 
         float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
         float[][] edgeScores = new float[cgraph.size()][cgraph.size()];
+
         for (int i = 0; i < cgraph.size(); i++) {
             for (int j = 0; j < cgraph.size(); j++) {
 //                if (i!=j){  // 过滤一个token 自己依赖自己的情况
@@ -97,7 +96,7 @@ public class CKYDependencyParser implements IDependencyParser {
         float logSum = 0f;
         for (float  proba : probas){
 //            System.out.println(proba +" add score: "+Math.log(proba));
-            logSum+=Math.log(proba);
+            logSum+=Math.log(proba)+2;
 //            logSum+=proba;
         }
         return logSum/probas.size();
@@ -181,11 +180,35 @@ public class CKYDependencyParser implements IDependencyParser {
                 }
             }
 
+
+            float archThreshold;
+            if (right - left <= 3) {
+                archThreshold = 0f;
+            }else{
+                float sum = 0;
+                int counter = 0;
+                for (int i = left; i <= right; i++){
+                    if  (root!=i){
+                        sum+=X[root][i];
+                        counter+=1;
+                    }
+                }
+                archThreshold  = Math.min(0.2f, sum/counter*0.7f);
+            }
+
+
             // 一般情况 Dynamic Programming
             for (int j = left; j <= right; j++) {  // other root
                 if (j == root) {
                     continue;
                 }
+
+                if (X[root][j]<archThreshold){
+//                    System.out.println("skipped: "+X[root][j]);
+                    continue;
+                }
+
+
                 for (int q = left; q < right; q += 1) {
                     ProjectiveTree tree1, tree2;
                     if (j > root) {
@@ -197,12 +220,12 @@ public class CKYDependencyParser implements IDependencyParser {
                     }
 
                     List<Float> _probas = new LinkedList<>();
+
                     if (this.checkAlreadyAcedATree(ckyParser,tree1)){
                         tree1 = this.getAcedATree(ckyParser,tree1);
                     }else{
                         tree1.A(X,ckyParser);
                     }
-
                     if (this.checkAlreadyAcedATree(ckyParser,tree2)){
                         tree2 = this.getAcedATree(ckyParser,tree2);
                     }else{
