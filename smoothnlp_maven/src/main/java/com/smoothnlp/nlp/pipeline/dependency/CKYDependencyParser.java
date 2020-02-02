@@ -78,6 +78,7 @@ public class CKYDependencyParser implements IDependencyParser {
         long end = System.currentTimeMillis();
 
         System.out.println("Arches: "+UtilFns.toJson(ptree.getArchs()));
+        System.out.println("Arch size: "+UtilFns.toJson(ptree.getArchs().size()));
 
         System.out.print("parse PTree time: ");
         System.out.println(end-start);
@@ -96,8 +97,8 @@ public class CKYDependencyParser implements IDependencyParser {
         float logSum = 0f;
         for (float  proba : probas){
 //            System.out.println(proba +" add score: "+Math.log(proba));
-            logSum+=Math.log(proba)+2;
-//            logSum+=proba;
+//            logSum+=Math.log(proba)+2;
+            logSum+=proba;
         }
         return logSum/probas.size();
     }
@@ -111,6 +112,7 @@ public class CKYDependencyParser implements IDependencyParser {
         float score;
         ProjectiveTree leftTree, rightTree;
         float[] arch;
+//        HashSet<Integer> reachedIndexes = new HashSet<>();
 
         public ProjectiveTree(int left, int right, int root) {
             this.left = left;
@@ -211,10 +213,19 @@ public class CKYDependencyParser implements IDependencyParser {
 
                 for (int q = left; q < right; q += 1) {
                     ProjectiveTree tree1, tree2;
+
+
+
                     if (j > root) {
+                        if(q==j){
+                            continue;
+                        }
                         tree1 = new ProjectiveTree(left, q, root);
                         tree2 = new ProjectiveTree(q + 1, right, j);
                     } else { // j<root
+                        if(q+1==j | j==right){
+                            continue;
+                        }
                         tree1 = new ProjectiveTree(left, q, j);
                         tree2 = new ProjectiveTree(q + 1, right, root);
                     }
@@ -253,6 +264,7 @@ public class CKYDependencyParser implements IDependencyParser {
         public List<float[]> getArchs(){
             List<float[]> arches = new LinkedList<>();
             if (this.arch != null){
+                System.out.println(UtilFns.toJson(this.arch)+" : "+UtilFns.toJson(this));
                 arches.add(this.arch);
             }
             if (this.leftTree != null){
@@ -269,7 +281,7 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-        List<SToken> tokens = SmoothNLP.POSTAG_PIPELINE.process("在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。");
+        List<SToken> tokens = SmoothNLP.POSTAG_PIPELINE.process("百度推出基于搜索的推广服务");
         long start = System.currentTimeMillis();
         dparser.parse(tokens);
 //        for (DependencyRelationship e : dparser.parse("阿里巴巴成立")) {
