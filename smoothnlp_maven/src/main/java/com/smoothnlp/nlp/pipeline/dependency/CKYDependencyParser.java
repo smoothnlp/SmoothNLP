@@ -114,6 +114,11 @@ public class CKYDependencyParser implements IDependencyParser {
             cgraph.tokens[i].relationship = cgraph.float2tag.get((float) max_index);
             relationships[i-1].relationship = cgraph.float2tag.get((float) max_index);
             relationships[i-1]._tag_score = predictprobas[i-1][max_index];
+            if (cgraph.tokens[i].dependentIndex==0){
+                cgraph.tokens[i].relationship = "root";
+                relationships[i-1].relationship ="root";
+                relationships[i-1]._tag_score = 1.0f;
+            }
        }
 
 
@@ -316,8 +321,8 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
-//        String text = "阿里巴巴与腾讯达成合作协议";
+//        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
+        String text = "百度还创新性地推出了基于搜索的营销推广服务";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
