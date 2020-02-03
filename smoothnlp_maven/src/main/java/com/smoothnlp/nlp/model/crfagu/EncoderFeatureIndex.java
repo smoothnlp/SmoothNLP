@@ -79,7 +79,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
      * @param filename
      * @return
      */
-    private boolean openTemplate(String filename, String embeddingFile, String embeddingDefMode) {
+    private boolean openTemplate(String filename, String embeddingFile) {
         InputStreamReader isr = null;
         try {
             isr = new InputStreamReader(new FileInputStream(filename), "UTF-8");
@@ -96,7 +96,7 @@ public class EncoderFeatureIndex extends FeatureIndex {
                     embeddingTempls_.add(line.trim());
                     if(embeddingFile !=null && embedding == null){
                         isSupportEmbedding = true;
-                        embedding = new EmbeddingImpl(embeddingFile,embeddingDefMode); //初始化embeddingVector
+                        embedding = new EmbeddingImpl(embeddingFile); //初始化embeddingVector
                     }
                 } else{
                     System.err.println("unknown type: " + line);
@@ -173,12 +173,12 @@ public class EncoderFeatureIndex extends FeatureIndex {
     // filename2 暂时为训练文件，用 openTagSet() 打开，用来找到目前的tag(label)集合
     public boolean open(String filename1, String filename2) {
         checkMaxXsize_ = true;
-        return openTemplate(filename1, null ,null) && openTagSet(filename2);
+        return openTemplate(filename1, null) && openTagSet(filename2);
     }
 
-    public boolean open(String template, String trainFile,String embeddingFile, String embeddingDefMode){
+    public boolean open(String filename1, String filename2,String filename3){
         checkMaxXsize_ = true;
-        return openTemplate(template, embeddingFile,embeddingDefMode) && openTagSet(trainFile);
+        return openTemplate(filename1, filename3) && openTagSet(filename2);
     }
 
     public boolean isSupportEmbedding() {
@@ -195,7 +195,6 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 xsize_ = Math.min(xsize_, max_xsize_);
             }
             oos.writeObject(xsize_);
-            oos.writeObject(embedding.getDefaultValueMode());
             oos.writeObject(y_);
             oos.writeObject(unigramTempls_);
             oos.writeObject(bigramTempls_);
@@ -244,7 +243,6 @@ public class EncoderFeatureIndex extends FeatureIndex {
                 osw.write("cost-factor: " + costFactor_ + "\n");
                 osw.write("maxid: " + maxid_ + "\n");
                 osw.write("xsize: " + xsize_ + "\n");
-                osw.write("emb-defvalue-mode: " + embedding.getDefaultValueMode() + "\n");
                 osw.write("\n");
                 for (String y: y_) {
                     osw.write(y + "\n");
@@ -363,7 +361,6 @@ public class EncoderFeatureIndex extends FeatureIndex {
             costFactor_ = Double.valueOf(br.readLine().substring("cost-factor: ".length()));
             maxid_ = Integer.valueOf(br.readLine().substring("maxid: ".length()));
             xsize_ = Integer.valueOf(br.readLine().substring("xsize: ".length()));
-            String embDefValueMode= br.readLine().substring("emb-defvalue-mode: ".length());
             System.out.println("Done reading meta-info");
             br.readLine();
 
@@ -439,8 +436,6 @@ public class EncoderFeatureIndex extends FeatureIndex {
             embedding = new EmbeddingImpl();
             embedding.setEmbeddingVector(embeddingMap);
             embedding.setVsize(vsize);
-            embedding.setDefaultValueMode(embDefValueMode);
-            embedding.calculateDefaultEmbeddingVector();
             System.out.println("Done reading embedding vectors");
 
             br.close();

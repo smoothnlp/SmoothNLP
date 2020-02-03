@@ -40,9 +40,8 @@ public class TaggerImpl extends Tagger {
     List<List<Integer>> featureCache_;
 
     //support embedding;
-    //ArrayList<String> featureEmbeddingStrsCache_;
-    List<ArrayList<String>> featureEmbeddingStrsCache_;
-    //ArrayList<Integer> featureEmbeddingIdsCache_;
+    ArrayList<String> featureEmbeddingStrsCache_;
+    ArrayList<Integer> featureEmbeddingIdsCache_;
 
     public TaggerImpl(Mode mode) {
         mode_ = mode;
@@ -63,8 +62,8 @@ public class TaggerImpl extends Tagger {
         featureCache_ = new ArrayList<List<Integer>>();
 
 
-        //featureEmbeddingStrsCache_ = new ArrayList<String>();
-        featureEmbeddingStrsCache_ = new ArrayList<ArrayList<String>>();
+        featureEmbeddingStrsCache_ = new ArrayList<String>();
+        featureEmbeddingIdsCache_ = new ArrayList<Integer>();
     }
 
     public void clearNodes() {
@@ -291,14 +290,13 @@ public class TaggerImpl extends Tagger {
         forwardbackward();  // 前向-后向算法
 
         double s = 0.0;
-
+        int vecSize = feature_index_.embedding.getVsize();
         //计算期望
         for(int i = 0 ; i< x_.size(); i++){
             for (int j = 0 ; j< ysize_; j++){
-                //float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(j).emStr);
-                float[] vector = feature_index_.embedding.getArrayStrEmbedding(node_.get(i).get(j).emStrs);
+                float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(j).emStr);
                 //System.out.println(node_.get(i).get(j).emStr +" <" + expected.length + "<" +expectedEmbedding.length);
-                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, vector, Z_ ,ysize_);
+                node_.get(i).get(j).calcExpectation(expected, expectedEmbedding, vector, vecSize, Z_ ,ysize_);
             }
         }
 
@@ -310,12 +308,9 @@ public class TaggerImpl extends Tagger {
                 expected[idx]--;
             }
 
-            //float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(answer_.get(i)).emStr);
-            float[] vector = feature_index_.embedding.getArrayStrEmbedding(node_.get(i).get(answer_.get(i)).emStrs);
-            int vectorSize = vector.length;
-
+            float[] vector = feature_index_.embedding.getStrEmbedding(node_.get(i).get(answer_.get(i)).emStr);
             for (int j = 0; j < vector.length; j++){
-                int idx = j + answer_.get(i) * vectorSize;
+                int idx = j + answer_.get(i) * vecSize;
                 expectedEmbedding[idx] -= vector[j] ;
             }
 
@@ -576,12 +571,19 @@ public class TaggerImpl extends Tagger {
     }
 
 
-    public List<ArrayList<String>> getFeatureEmbeddingStrsCache_(){
+    public ArrayList<String> getFeatureEmbeddingStrsCache_(){
         return featureEmbeddingStrsCache_;
     }
 
-    public void setFeatureEmbeddingStrsCache_(List<ArrayList<String>> featureEmbeddingStrsCache_){
+    public void setFeatureEmbeddingStrsCache_(ArrayList<String> featureEmbeddingStrsCache_){
         this.featureEmbeddingStrsCache_ = featureEmbeddingStrsCache_;
+    }
+
+    public ArrayList<Integer> getFeatureEmbeddingIdsCache_(){
+        return featureEmbeddingIdsCache_;
+    }
+    public void setFeatureEmbeddingIdsCache_(ArrayList<Integer> featureEmbeddingIdsCache_){
+        this.featureEmbeddingIdsCache_ = featureEmbeddingIdsCache_;
     }
 
 
@@ -744,6 +746,7 @@ public class TaggerImpl extends Tagger {
         result_.clear();
         featureCache_.clear();
         featureEmbeddingStrsCache_.clear();
+        featureEmbeddingIdsCache_.clear();;
         Z_ = cost_ = 0.0;
         return true;
     }

@@ -39,8 +39,7 @@ public class Encoder {
      */
     public boolean learn(String templFile, String trainFile, String modelFile, String embeddingFile, boolean textModelFile,
                          int maxitr, int freq, double eta, double C, int threadNum, int shrinkingSize,
-                         Algorithm algo,
-                         String embeddingDefMode) {
+                         Algorithm algo) {
         if (eta <= 0) {
             System.err.println("eta must be > 0.0");
             return false;
@@ -61,7 +60,7 @@ public class Encoder {
         List<TaggerImpl> x = new ArrayList<TaggerImpl>();
 
         if (embeddingFile != null){ //如果支持embedding, 则打开该文件并加载数据；
-            if(!featureIndex.open(templFile,trainFile,embeddingFile, embeddingDefMode)){
+            if(!featureIndex.open(templFile,trainFile,embeddingFile)){
                 System.err.println("Fail to open " + templFile + " " + trainFile+ " " + embeddingFile);
             }
         }else if (!featureIndex.open(templFile, trainFile)) {  // 打开模板文件和训练文件，并根据tempFile初始化了templs 和labels
@@ -125,8 +124,7 @@ public class Encoder {
 
         System.out.println("Number of sentences: " + x.size());
         System.out.println("Number of features:  " + featureIndex.size());
-        System.out.println("Number of embedding vector size:" + featureIndex.getEmbeddingVectorSize());
-        System.out.println("NUmber of embedding template vector size: " + featureIndex.sizeEmbedding());
+        System.out.println("NUmber of emebedding vector size: " + featureIndex.sizeEmbedding());
         System.out.println("Number of y:" + featureIndex.ysize() );
         System.out.println("Number of thread(s): " + threadNum);
         System.out.println("Freq:                " + freq);
@@ -494,8 +492,7 @@ public class Encoder {
         String embeddingFile = args[3];
         Encoder enc = new Encoder();
         long time1 = new Date().getTime();
-        String embeddingDefModule = "MAX";
-        if (!enc.learn(templFile, trainFile, modelFile, embeddingFile,false, 100000, 1, 0.0001, 1.0, 1, 20, Algorithm.CRF_L2,embeddingDefModule)) {
+        if (!enc.learn(templFile, trainFile, modelFile, embeddingFile,false, 100000, 1, 0.0001, 1.0, 1, 20, Algorithm.CRF_L2)) {
             System.err.println("error training model");
             return;
         }

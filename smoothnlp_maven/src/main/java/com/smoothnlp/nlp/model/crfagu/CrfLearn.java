@@ -20,7 +20,6 @@ public class CrfLearn {
         options.addOption("a", "algorithm", true, "(CRF|CRF-L1|CRF-L2|MIRA)\", \"select training algorithm");
         options.addOption("p", "thread", true, "number of threads(default auto detect)");
         options.addOption("H", "shrinking-size", true, "set INT for number of iterations variable needs to be optimal before considered for shrinking. (default 20)");
-        options.addOption("o","embed-defvalue-mode", true, "support default embedding vector value mode, support MAX ,AVG or zero.(default AVG)");
         options.addOption("h", "help", false, "show this help and exit");
 
         CommandLine cmd = null;
@@ -65,9 +64,6 @@ public class CrfLearn {
             System.err.println("unknown algorithm: " + algorithm);
             return false;
         }
-
-        String embDefMode = cmd.getOptionValue('o', "AVG");
-
         if (convert) {
             EncoderFeatureIndex featureIndex = new EncoderFeatureIndex(1);
             if (!featureIndex.convert(restArgs[0], restArgs[1])) {
@@ -84,7 +80,7 @@ public class CrfLearn {
             Encoder encoder = new Encoder();
             System.out.println("start learning...");
             if (!encoder.learn(restArgs[0], restArgs[1], restArgs[2], restArgs[3],
-                textmodel, maxiter, freq, eta, C, threadNum, shrinkingSize, algo, embDefMode)) {
+                textmodel, maxiter, freq, eta, C, threadNum, shrinkingSize, algo)) {
                 System.err.println("fail to learn model");
                 return false;
             }
