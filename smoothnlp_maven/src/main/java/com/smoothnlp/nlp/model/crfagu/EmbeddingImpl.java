@@ -3,26 +3,32 @@ package com.smoothnlp.nlp.model.crfagu;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public class EmbeddingImpl {
 
     private HashMap<String,float[]> embeddingVector;  // string , float[]
     private String splitRegex = "[\t| ]";
     private int vsize;  // embedding size
+    private static String DEFAULT_VALUE_MODE = "MAX";
+    private float[] defaultEmbeddingVector;
 
     public EmbeddingImpl(){
         embeddingVector = new HashMap<String, float[]>();
+        calculateDefaultEmbeddingVector();
     }
-    public EmbeddingImpl(String inputFile){
+    public EmbeddingImpl(String inputFile,String embeddingDefMode){
         this();
         loadEmbedding(inputFile);
+        DEFAULT_VALUE_MODE = embeddingDefMode;
+        calculateDefaultEmbeddingVector();
     }
-    public EmbeddingImpl(String inputFile,String splitRegex){
+    public EmbeddingImpl(String inputFile,String embeddingDefMode, String splitRegex){
         this();
         setSplitRegex(splitRegex);
         loadEmbedding(inputFile);
+        DEFAULT_VALUE_MODE = embeddingDefMode;
+        calculateDefaultEmbeddingVector();
     }
 
     public void setSplitRegex(String splitRegex){
@@ -93,11 +99,54 @@ public class EmbeddingImpl {
         if(embeddingVector.containsKey(key)){
             return embeddingVector.get(key);
         }else{
-            float[] vector = new float[vsize];
-            for(int i = 0; i<vsize;i++){
-                vector[i]=0;
+            return getDefaultEmbeddingVector();
+        }
+    }
+
+    public float[] getArrayStrEmbedding(List<String> Strs){
+        int size = Strs.size() * getVsize();
+        float[] vector = new float[size];
+        int desPos = 0;
+        for(String Str: Strs){
+            float[] vs = getStrEmbedding(Str);
+            System.arraycopy(vs, 0 , vector, desPos, getVsize());
+            desPos += getVsize();
+        }
+        return vector;
+    }
+
+    public float[] getDefaultEmbeddingVector(){
+        return this.defaultEmbeddingVector;
+    }
+
+    public void calculateDefaultEmbeddingVector(){
+        float [] maxVector = new float[vsize];
+        float [] avgVector = new float[vsize];
+        float [] defVector = new float[vsize];
+
+        for(int i=0; i<vsize; i++){
+            defVector[i] = 0;
+            maxVector[i] = Float.NEGATIVE_INFINITY ;
+            avgVector[i] = 0 ;
+        }
+        for(String key:embeddingVector.keySet()){
+            float[] vector = embeddingVector.get(key);
+            for(int i = 0 ; i<vsize;i++){
+                if(vector[i]> maxVector[i]){
+                    maxVector[i] = vector[i];
+                }
+                avgVector[i] += vector[i];
             }
-            return vector;
+        }
+        if (DEFAULT_VALUE_MODE.equals("MAX")){
+            this.defaultEmbeddingVector = maxVector;
+        }else if(DEFAULT_VALUE_MODE.equals("AVG")){
+            for(int i = 0 ;i<vsize; i++){
+                avgVector[i] = avgVector[i]/embeddingVector.size();
+            }
+            this.defaultEmbeddingVector = avgVector;
+        }else{
+            this.defaultEmbeddingVector = defVector;
         }
     }
 
@@ -115,10 +164,16 @@ public class EmbeddingImpl {
     public void setVsize(int vsize){
         this.vsize = vsize;
     }
+    public void setDefaultValueMode(String defaultValue){
+        DEFAULT_VALUE_MODE = defaultValue;
+    }
+    public String getDefaultValueMode(){
+        return DEFAULT_VALUE_MODE;
+    }
 
     public static void main(String[]args){
         String file = "embedding.txt";
-        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file);
+        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"AVG");
         System.out.println(embeddingImpl.getVsize());
 
         for(String key:embeddingImpl.embeddingVector.keySet()){
@@ -134,6 +189,23 @@ public class EmbeddingImpl {
             System.out.println("-----");
             System.out.println(sum);
         }
+
+        System.out.println("----------------------");
+
+        for(int i =0;i< embeddingImpl.getVsize();i++){
+            System.out.println(embeddingImpl.getDefaultEmbeddingVector()[i]);
+        }
+
+        for(int i =0;i< embeddingImpl.getVsize();i++){
+            System.out.println(embeddingImpl.getStrEmbedding("一美")[i]);
+        }
+
+        ArrayList<String> list = new ArrayList<>();
+        list.add("眼镜");
+        list.add("si");
+
+        System.out.println(Arrays.toString(embeddingImpl.getArrayStrEmbedding(list)));
+
     }
 
 }
