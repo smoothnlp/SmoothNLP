@@ -10,7 +10,7 @@ public class EmbeddingImpl {
     private HashMap<String,float[]> embeddingVector;  // string , float[]
     private String splitRegex = "[\t| ]";
     private int vsize;  // embedding size
-    private static String DEFAULT_VALUE_MODE = "MAX";
+    private static String DEFAULT_VALUE_MODE = "MAX"; //support MAX , AVG , ZERO, SPLIT
     private float[] defaultEmbeddingVector;
 
     public EmbeddingImpl(){
@@ -20,7 +20,7 @@ public class EmbeddingImpl {
     public EmbeddingImpl(String inputFile,String embeddingDefMode){
         this();
         loadEmbedding(inputFile);
-        DEFAULT_VALUE_MODE = embeddingDefMode;
+        DEFAULT_VALUE_MODE = embeddingDefMode.toUpperCase();
         calculateDefaultEmbeddingVector();
     }
     public EmbeddingImpl(String inputFile,String embeddingDefMode, String splitRegex){
@@ -98,6 +98,8 @@ public class EmbeddingImpl {
     public float[] getStrEmbedding(String key){
         if(embeddingVector.containsKey(key)){
             return embeddingVector.get(key);
+        }else if(DEFAULT_VALUE_MODE == "SPLIT"){
+            return getWordSplitEmbeddingVector(key);
         }else{
             return getDefaultEmbeddingVector();
         }
@@ -150,6 +152,29 @@ public class EmbeddingImpl {
         }
     }
 
+    public float[] getWordSplitEmbeddingVector(String str){
+        float [] splitVector = new float[vsize];
+        Arrays.fill(splitVector,0);
+        int count = 0 ;
+        for(int i = 0 ;i<str.length();i++){
+            String substr = str.substring(i,i+1);
+            if(embeddingVector.containsKey(substr)){
+                float[] sVector = embeddingVector.get(substr);
+                for (int j = 0; j < vsize; j++) {
+                    splitVector[j] +=sVector[j];
+                }
+                count += 1;
+            }
+        }
+        if(count>=1){
+            for (int j = 0;j<vsize; j++){
+                splitVector[j] = splitVector[j]/count;
+            }
+        }
+        return splitVector;
+
+    }
+
     public Set<String> getEmbeddingKeySet(){
         return embeddingVector.keySet();
     }
@@ -173,7 +198,7 @@ public class EmbeddingImpl {
 
     public static void main(String[]args){
         String file = "embedding.txt";
-        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"AVG");
+        EmbeddingImpl embeddingImpl = new EmbeddingImpl(file,"MAX");
         System.out.println(embeddingImpl.getVsize());
 
         for(String key:embeddingImpl.embeddingVector.keySet()){
@@ -205,6 +230,15 @@ public class EmbeddingImpl {
         list.add("si");
 
         System.out.println(Arrays.toString(embeddingImpl.getArrayStrEmbedding(list)));
+
+        System.out.println("------");
+        System.out.println(Arrays.toString(embeddingImpl.getWordSplitEmbeddingVector("si")));
+        System.out.println(Arrays.toString(embeddingImpl.getStrEmbedding("si")));
+        String si = "si";
+
+        for (int i = 0; i <si.length() ; i++) {
+            System.out.println(si.substring(i,i+1));
+        }
 
     }
 
