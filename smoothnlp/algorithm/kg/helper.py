@@ -43,9 +43,7 @@ def options(func):
                 target_indexes = set([t['index'] for t in target_phrase])
                 _pair_scores = [rel['_edge_score'] for rel in rels if rel['targetIndex'] in target_indexes and
                                 rel['dependentIndex'] not in target_indexes]
-                print("pair scores:",_pair_scores)
                 _scores.append(min(_pair_scores))
-            print("_scores:", _scores)
             return min(_scores)
 
             # _scores = []
