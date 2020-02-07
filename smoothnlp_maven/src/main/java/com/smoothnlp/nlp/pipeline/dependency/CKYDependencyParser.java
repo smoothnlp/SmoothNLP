@@ -5,7 +5,6 @@ import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.DMatrix;
-import ml.dmlc.xgboost4j.java.XGBoostError;
 
 import java.util.*;
 
@@ -25,10 +24,15 @@ public class CKYDependencyParser implements IDependencyParser {
     private Booster edgeTagModel;
 
     HashMap<Integer,ProjectiveTree> AcedTrees;
-    private static float thresholdRatioStatic = 1.2f;
+    private static float thresholdRatioStatic = 1.0f;
+    public float[] targetAvgProbas;
 
     public CKYDependencyParser() {
         init(SmoothNLP.DP_EDGE_SCORE_XGBOOST, SmoothNLP.DP_EDGE_TAG_XGBOOST);
+    }
+
+    public void setThresholdRatioStatic(float thresholdRatioStatic) {
+        this.thresholdRatioStatic = thresholdRatioStatic;
     }
 
     private void init(String edgeScoreModel, String edgeTagModel) {
@@ -67,28 +71,34 @@ public class CKYDependencyParser implements IDependencyParser {
                 edgeScores[i][j] = predictScoresFlatten[i * cgraph.size() + j];
                 nodeSums[j]+=edgeScores[i][j];
             }
-            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
+            // For debug, print out score matrix
+//            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
         }
 
-        System.out.println("tokens: "+UtilFns.toJson(stokens));
-        System.out.println("cgraph size: "+cgraph.size());
+        this.targetAvgProbas = new float[cgraph.size()];
+        for (int j = 0; j < cgraph.size(); j++) {
+            float targetSum = 0f;
+            for (int i = 0; i < cgraph.size(); i++) {
+                if (i!=j){
+                    targetSum+=edgeScores[i][j];
+                }
+            }
+            this.targetAvgProbas[j]=targetSum/(cgraph.size()-1);
+        }
 
-        long start = System.currentTimeMillis();
+//        long start = System.currentTimeMillis();
         this.AcedTrees = new HashMap<>();
         ProjectiveTree ptree = new ProjectiveTree(0, cgraph.size()-1, 0);
         ptree.A(edgeScores,this);
-        long end = System.currentTimeMillis();
+//        long end = System.currentTimeMillis();
+//        // evaluate CKY-Algorithm run-time
+//        System.out.print("parse PTree time: ");
+//        System.out.println(end-start);
 
-        System.out.println("Arches: "+UtilFns.toJson(ptree.getArchs()));
-        System.out.println("Arch size: "+UtilFns.toJson(ptree.getArchs().size()));
-
-        System.out.print("parse PTree time: ");
-        System.out.println(end-start);
-
-        System.out.println("tree score: "+ptree.score);
-        System.out.println("tree probas: "+ptree.probas);
-
-        System.out.println("tree calcualted total: "+this.AcedTrees.size());
+//        // print out tree score
+//        System.out.println("tree score: "+ptree.score);
+//        // print out total tree calculated during optimization for debug
+//        System.out.println("tree calcualted total: "+this.AcedTrees.size());
 
         DependencyRelationship[] relationships = new DependencyRelationship[cgraph.size()-1];
         for (int[] arch :  ptree.getArchs()){
@@ -100,7 +110,6 @@ public class CKYDependencyParser implements IDependencyParser {
 
         // 计算Relationship的tag
         Float[][] allftrs = cgraph.buildAllTagFtrs();
-        System.out.println(" all tag feture size: "+allftrs.length);
         dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
         float[][] predictprobas = edgeTagModel.predict(dmatrix,false,SmoothNLP.XGBoost_DP_tag_Model_Predict_Tree_Limit);
         for (int i=1 ; i< cgraph.tokens.length; i++){
@@ -111,10 +120,10 @@ public class CKYDependencyParser implements IDependencyParser {
                     max_index = index;
                 }
             }
-            cgraph.tokens[i].relationship = cgraph.float2tag.get((float) max_index);
+            cgraph.tokens[i].relationship = cgraph.float2tag.get((float) max_index);  // update cgraph object
             relationships[i-1].relationship = cgraph.float2tag.get((float) max_index);
             relationships[i-1]._tag_score = predictprobas[i-1][max_index];
-            if (cgraph.tokens[i].dependentIndex==0){
+            if (cgraph.tokens[i].dependentIndex==0){  // 从root出发的relationship, tag强制为"root"
                 cgraph.tokens[i].relationship = "root";
                 relationships[i-1].relationship ="root";
                 relationships[i-1]._tag_score = 1.0f;
@@ -125,20 +134,22 @@ public class CKYDependencyParser implements IDependencyParser {
         return relationships;
     }
 
-    ;
-
+    /**
+     * 计算每个Projective Tree 的 evaluation score
+     * @param probas
+     * @return
+     */
     public static float computeScore(Iterable<Float> probas) {
+
         float sum = 0f;
         int counter = 0;
         for (float  proba : probas){
-//            sum+=Math.log(proba)+2;
-            sum+=proba;
+//            sum+=Math.log(proba)+2; // 计算时间过长
+            sum+=proba*proba;
             counter+=1;
         }
         return sum/counter;
     }
-
-
 
     protected class ProjectiveTree {
         int left, right;
@@ -148,8 +159,8 @@ public class CKYDependencyParser implements IDependencyParser {
         ProjectiveTree leftTree, rightTree;
         int[] arch;
         private float thresholdRatio = CKYDependencyParser.thresholdRatioStatic;
-        private float thresholdDelta = 0.1f;
-//        HashSet<Integer> reachedIndexes = new HashSet<>();
+        private float thresholdDelta = 0.05f;
+        HashSet<Integer> reachedIndexes = new HashSet<>();
 
         public ProjectiveTree(int left, int right, int root) {
             this.left = left;
@@ -188,6 +199,7 @@ public class CKYDependencyParser implements IDependencyParser {
                     this.arch = new int[]{root,left};
                     this.score = computeScore(this.probas);
                     this.addSelf2AcedTrees(ckyParser);
+                    this.reachedIndexes.add(left);
                     return;
                 }
             }
@@ -205,6 +217,7 @@ public class CKYDependencyParser implements IDependencyParser {
                     this.arch = new int[]{root,target};
                     this.score = computeScore(this.probas);
                     this.addSelf2AcedTrees(ckyParser);
+                    this.reachedIndexes.add(target);
                     return;
                 }
             }
@@ -212,7 +225,7 @@ public class CKYDependencyParser implements IDependencyParser {
             // 计算gready算法所需要的log
             float archThreshold = 0f;
             float archThresholdUpperBound = 1.0f;
-            if (right - left >= 8) {  // 对于一定长度以下的tree, 不做greedy处理
+            if (right - left >= 10) {  // 对于一定长度以下的tree, 不做greedy处理
                 float sum1= 0;
                 int counter1 = 0;
                 for (int i = left; i <= right; i++){
@@ -240,6 +253,10 @@ public class CKYDependencyParser implements IDependencyParser {
                     continue;
                 }
 
+                if (X[root][j] < ckyParser.targetAvgProbas[j]*this.thresholdRatio-this.thresholdDelta){
+                    continue;
+                }
+
                 for (int q = left; q < right; q += 1) {
                     ProjectiveTree tree1, tree2;
                     if (j > root) {
@@ -257,10 +274,10 @@ public class CKYDependencyParser implements IDependencyParser {
                     }
 
                     HashSet<Float> _probas = new HashSet<>();
-                    if (this.checkAlreadyAcedATree(ckyParser,tree1)){
+                    if (this.checkAlreadyAcedATree(ckyParser,tree1)){  // 如果 tree1 已经被计算, 从cache中取出定义object
                         tree1 = this.getAcedATree(ckyParser,tree1);
-                    }else{
-                        tree1.A(X,ckyParser);
+                    }else {
+                        tree1.A(X, ckyParser);
                         tree1.addSelf2AcedTrees(ckyParser);
                     }
 
@@ -271,11 +288,16 @@ public class CKYDependencyParser implements IDependencyParser {
                         tree2.addSelf2AcedTrees(ckyParser);
                     }
 
+                    if (tree1.reachedIndexes.contains(j) | tree2.reachedIndexes.contains(j)){
+                        // 如果tree1/tree2 中 "j"已经被覆盖, 跳过
+                        continue;
+                    }
+
                     _probas.addAll(tree1.probas);
                     _probas.addAll(tree2.probas);
                     _probas.add(X[root][j]);
 
-                    float _score = computeScore(_probas);
+                    float _score = computeScore(_probas);  // 计算score
 
                     if (_score > this.score) {
                         this.score = _score;
@@ -287,7 +309,7 @@ public class CKYDependencyParser implements IDependencyParser {
                 }
             }
 
-            if (this.score < 0){
+            if (this.score < 0){  // 如果当前threshold过于严格, 则降低 by this.thresholdDelta
                 this.thresholdRatio -= thresholdDelta;
                 if (this.thresholdRatio>=0.0f){
                     this.A(X,ckyParser);
@@ -297,6 +319,10 @@ public class CKYDependencyParser implements IDependencyParser {
             }
             else{
                 this.addSelf2AcedTrees(ckyParser);
+                // 记录已经被reached node, 避免重复reach
+                this.reachedIndexes.add(this.arch[1]);
+                this.reachedIndexes.addAll(this.leftTree.reachedIndexes);
+                this.reachedIndexes.addAll(this.rightTree.reachedIndexes);
             }
 
         }
@@ -304,7 +330,8 @@ public class CKYDependencyParser implements IDependencyParser {
         public List<int[]> getArchs(){
             List<int[]> arches = new LinkedList<>();
             if (this.arch != null){
-                System.out.println(UtilFns.toJson(this.arch)+" : "+UtilFns.toJson(this));
+                // print out arches for debugging
+//                System.out.println(UtilFns.toJson(this.arch)+" : "+UtilFns.toJson(this));
                 arches.add(this.arch);
             }
             if (this.leftTree != null){
@@ -321,8 +348,8 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-//        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
-        String text = "百度还创新性地推出了基于搜索的营销推广服务";
+        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
+//        String text = "百度还创新性地推出了基于搜索的营销推广服务";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
