@@ -84,6 +84,7 @@ def extract_all_debug(struct:dict):
     # print("tmod event: ", event.extract_tmod_event(struct=struct, pretty=True))
     print("action event: ", event.extract_action_event(struct=struct, pretty=True))
     print("state event: ", event.extract_state_event(struct=struct, pretty=True))
+    print("attr event: ", event.extract_attr_event(struct=struct, pretty=True))
 
     print("~~~~~~~~ all  ~~~~~~~~~")
     print("all: ", extract_all(struct=struct, pretty=True))

@@ -341,7 +341,6 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
     rels = struct['dependencyRelationships']
     modifier_rels = [rel for rel in rels if "mod" in rel['relationship'] or rel['relationship'] in {"dep","dvpm","dvpmod","rcmod"}]
     mod_core_token_indexes = [rel['targetIndex'] for rel in modifier_rels]
-
     phrases = []
 
     # print(mod_core_token_indexes)

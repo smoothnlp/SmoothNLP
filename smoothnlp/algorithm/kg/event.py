@@ -1,6 +1,6 @@
 from ...nlp import nlp
 from .entity import extract_subject,extract_object,extract_prep_describer_phrase
-from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,prettify,_get_rel_map,adapt_struct,extract_num_phrase
+from .phrase import extract_verb_phrase,phrase_index_range,extract_noun_phrase,extract_all_describer_phrase,_get_rel_map,extract_num_phrase
 from .phrase import _split_conj_sents,_find_phrase_connected_rel
 from .phrase import recursively_get_path
 from copy import deepcopy
@@ -32,6 +32,9 @@ def extract_subj_and_verb(struct: dict = None,
     def get_subject4vphrase(vphrase,subject_candidates,rel_map):
         v_rels = _find_phrase_connected_rel(vphrase, rel_map)
         v_rels = [rel for rel in v_rels if rel['relationship'] in valid_subject_rel]
+
+        # print("vpharase:", prettify(vphrase),[vrel['targetIndex'] for vrel in v_rels])
+
         subjects = []
 
         for subject_candidate in subject_candidates:  ## loop 每一个主语
@@ -49,8 +52,16 @@ def extract_subj_and_verb(struct: dict = None,
     for vphrase in verbs:  ## loop 每一个动词短语
         subjects = get_subject4vphrase(vphrase,subject_candidates,rel_map)
         if len(subjects)==0:
-            v_income_indexs = [rel['dependentIndex'] for rel in rels if rel['targetIndex'] in [vtoken['index'] for vtoken in vphrase]
-                               and rel['relationship'] in {"conj","cc"} ]
+            v_valid_indexes = set(vtoken['index'] for vtoken in vphrase)
+            ## extend 那些由conj连接的动词
+            extra_valid_indexes = set(rel['dependentIndex'] for rel in rels if rel['targetIndex'] in v_valid_indexes and rel['relationship'] in {"conj","cc"})
+            while len(extra_valid_indexes)>=1 and set(extra_valid_indexes)-set(v_valid_indexes):
+                v_valid_indexes = v_valid_indexes|extra_valid_indexes
+                extra_valid_indexes = set(rel['dependentIndex'] for rel in rels if
+                                       rel['targetIndex'] in v_valid_indexes and rel['relationship'] in {"conj", "cc"})
+
+            v_income_indexs = [rel['dependentIndex'] for rel in rels if rel['targetIndex'] in v_valid_indexes
+                               and rel['relationship'] in {"conj","cc"}]
             if len(v_income_indexs)==0:
                 continue
             v_income_index = v_income_indexs[0]
@@ -71,9 +82,8 @@ def extract_subj_and_verb(struct: dict = None,
 @options
 @adapt_struct
 def extract_obj_event(struct: dict = None,
-                  valid_object_rel={},
-                  event_type:str = "",
-                      pretty:bool = False,
+                      valid_object_rel={},
+                      event_type:str = "",
                     object_extract_func = extract_object):
     """
     抽取包含(宾语)的三元组事件
@@ -105,6 +115,7 @@ def extract_obj_event(struct: dict = None,
             for rel in v_rels:
                 if rel['relationship'] in valid_object_rel and rel[
                     'targetIndex'] not in subject_candidate_indexes and rel['targetIndex'] in object_indexes:
+
                     object = object_candidate
                     ## 添加event之前检查是否跨句
                     subj_index = phrase_index_range(subject)[0]
@@ -133,12 +144,6 @@ def extract_obj_event(struct: dict = None,
                         'type' : event_type,
                     })
                     break
-    # if pretty:
-    #     for event in events:
-    #         event['subject'] = prettify(event['subject'])
-    #         event['action'] = prettify(event['action'])
-    #         event['object'] = prettify(event['object'])
-    #         event['type'] = event_type
     return events
 
 @adapt_struct
@@ -164,14 +169,14 @@ def extend_prep4event( events ,struct:dict = None,pretty:bool = True, event_type
 
 @options
 @adapt_struct
-def extract_action_event(struct: dict = None, pretty: bool = False):
+def extract_action_event(struct: dict = None):
     return extract_obj_event( struct=struct,
                          valid_object_rel={"dobj"},
                          event_type="action")
 
 @options
 @adapt_struct
-def extract_state_event(struct: dict = None, pretty: bool = False):
+def extract_state_event(struct: dict = None):
     return extract_obj_event( struct=struct,
                          valid_object_rel={"attr","dep"},
                          event_type="state" ,
@@ -179,21 +184,44 @@ def extract_state_event(struct: dict = None, pretty: bool = False):
 
 @options
 @adapt_struct
-def extract_num_event(struct: dict = None, pretty: bool = False):
+def extract_attr_event(struct: dict = None):
     return extract_obj_event( struct=struct,
-                         valid_object_rel={"range"},
-                         event_type="num" ,
-                         object_extract_func= lambda struct,pretty: extract_num_phrase(struct = struct))
+                         valid_object_rel={"attr","dep"},
+                         event_type="attr" ,
+                         object_extract_func= lambda struct,pretty: extract_all_describer_phrase(struct = struct))
 
 
 @options
 @adapt_struct
-def extract_all_event( struct: dict = None):
+def extract_num_event(struct: dict = None, pretty: bool = False):
+    return extract_obj_event( struct=struct,
+                         valid_object_rel={"range"},
+                         event_type="num",
+                         object_extract_func= lambda struct,pretty: extract_num_phrase(struct = struct))
+
+@options
+@adapt_struct
+def extract_prep_event(struct: dict = None, pretty: bool = False):
+    return extract_obj_event( struct=struct,
+                         valid_object_rel={"prep"},
+                         event_type="prep",
+                         object_extract_func= lambda struct,pretty: extract_prep_describer_phrase(struct = struct))
+
+
+
+@options
+@adapt_struct
+def extract_all_event(struct: dict = None,_with_conf_score=True):
     ea = extract_action_event(struct =  struct,
-                                pretty = False)
-    es = extract_state_event(struct=struct)
-    en = extract_num_event(struct = struct)
-    events = extend_prep4event(struct=struct,events=ea+es+en)
+                              _with_conf_score=True,
+                            pretty = False)
+    es = extract_state_event(struct=struct,_with_conf_score=_with_conf_score)
+    en = extract_num_event(struct = struct,_with_conf_score = _with_conf_score)
+    e_attr = extract_attr_event(struct=struct,_with_conf_score = _with_conf_score)
+    events = extend_prep4event(struct=struct,events=ea+es+en+e_attr)
+
+    e_prep = extract_prep_event(struct = struct, _with_conf_score = _with_conf_score)
+    events += e_prep
     # ep = extract_prep_event(struct = struct, pretty=pretty)
     # et = extract_tmod_event(struct = struct, pretty= pretty)
     return events
