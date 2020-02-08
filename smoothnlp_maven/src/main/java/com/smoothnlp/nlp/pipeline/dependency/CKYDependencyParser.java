@@ -89,6 +89,7 @@ public class CKYDependencyParser implements IDependencyParser {
 //        long start = System.currentTimeMillis();
         this.AcedTrees = new HashMap<>();
         ProjectiveTree ptree = new ProjectiveTree(0, cgraph.size()-1, 0);
+        ptree.setAllowSourceFromRoot(true);
         ptree.A(edgeScores,this);
 //        long end = System.currentTimeMillis();
 //        // evaluate CKY-Algorithm run-time
@@ -161,6 +162,7 @@ public class CKYDependencyParser implements IDependencyParser {
         private float thresholdRatio = CKYDependencyParser.thresholdRatioStatic;
         private float thresholdDelta = 0.05f;
         HashSet<Integer> reachedIndexes = new HashSet<>();
+        private boolean allowSourceFromRoot = false;
 
         public ProjectiveTree(int left, int right, int root) {
             this.left = left;
@@ -169,6 +171,10 @@ public class CKYDependencyParser implements IDependencyParser {
             probas = new HashSet<>();
             this.score = -9999f;
             this.key = key();
+        }
+
+        public void setAllowSourceFromRoot(boolean allowSourceFromRoot) {
+            this.allowSourceFromRoot = allowSourceFromRoot;
         }
 
         public int key(){
@@ -188,6 +194,11 @@ public class CKYDependencyParser implements IDependencyParser {
         }
 
         public void A(float[][] X, CKYDependencyParser ckyParser) throws Exception{
+
+            if (!this.allowSourceFromRoot & root==0){
+                return;  // 只允许root有一条outcomming-edge
+            }
+
             // Dynamic Programming Stop Conditon
             // 动态规划的停止条件
             if (left == right){
@@ -225,7 +236,7 @@ public class CKYDependencyParser implements IDependencyParser {
             // 计算gready算法所需要的log
             float archThreshold = 0f;
             float archThresholdUpperBound = 1.0f;
-            if (right - left >= 10) {  // 对于一定长度以下的tree, 不做greedy处理
+            if (right - left >= 8) {  // 对于一定长度以下的tree, 不做greedy处理
                 float sum1= 0;
                 int counter1 = 0;
                 for (int i = left; i <= right; i++){
@@ -348,8 +359,9 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
+//        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
 //        String text = "百度还创新性地推出了基于搜索的营销推广服务";
+        String text = "一度被政策冷落的油电混合动力汽车，有可能被重新加注鼓励的法码。";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
