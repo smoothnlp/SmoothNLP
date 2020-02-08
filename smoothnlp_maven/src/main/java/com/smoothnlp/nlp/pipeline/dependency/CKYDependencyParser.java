@@ -86,8 +86,9 @@ public class CKYDependencyParser implements IDependencyParser {
             this.targetAvgProbas[j]=targetSum/(cgraph.size()-1);
         }
 
-//        long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         this.AcedTrees = new HashMap<>();
+
         ProjectiveTree ptree = new ProjectiveTree(0, cgraph.size()-1, 0);
         ptree.setAllowSourceFromRoot(true);
         ptree.A(edgeScores,this);
@@ -100,9 +101,19 @@ public class CKYDependencyParser implements IDependencyParser {
 //        System.out.println("tree score: "+ptree.score);
 //        // print out total tree calculated during optimization for debug
 //        System.out.println("tree calcualted total: "+this.AcedTrees.size());
+//
+//        // print out token size
+//        System.out.println("token size: "+stokens.size());
+//        // print out total tree calculated during optimization for debug
+//        System.out.println("arch size: "+ptree.getArchs().size());
+
+        List<int[]> arches = ptree.getArchs();
+        if (arches.size()!=stokens.size()){
+            throw new Exception("CKY Dependency Parser: tree arches size does not match token size");
+        }
 
         DependencyRelationship[] relationships = new DependencyRelationship[cgraph.size()-1];
-        for (int[] arch :  ptree.getArchs()){
+        for (int[] arch : arches){
             DependencyRelationship rel = new DependencyRelationship(arch[0],arch[1],cgraph.tokens[arch[0]],cgraph.tokens[arch[1]]);
             rel._edge_score = edgeScores[arch[0]][arch[1]];
             cgraph.tokens[arch[1]].dependentIndex = arch[0];
@@ -146,7 +157,8 @@ public class CKYDependencyParser implements IDependencyParser {
         int counter = 0;
         for (float  proba : probas){
 //            sum+=Math.log(proba)+2; // 计算时间过长
-            sum+=proba*proba;
+//            sum += proba*proba;  // 过度penalize 较小的proba, favor 较大的proba, 结果从(root/动词)出发的edge偏多
+            sum+=proba;
             counter+=1;
         }
         return sum/counter;
@@ -160,7 +172,8 @@ public class CKYDependencyParser implements IDependencyParser {
         ProjectiveTree leftTree, rightTree;
         int[] arch;
         private float thresholdRatio = CKYDependencyParser.thresholdRatioStatic;
-        private float thresholdDelta = 0.05f;
+        private float thresholdDelta = 0.1f;
+        private int greedyCountThreshold = 8;
         HashSet<Integer> reachedIndexes = new HashSet<>();
         private boolean allowSourceFromRoot = false;
 
@@ -195,8 +208,11 @@ public class CKYDependencyParser implements IDependencyParser {
 
         public void A(float[][] X, CKYDependencyParser ckyParser) throws Exception{
 
-            if (!this.allowSourceFromRoot & root==0){
-                return;  // 只允许root有一条outcomming-edge
+            if (!allowSourceFromRoot){
+//                left = Math.max(left,1);
+                if (right<left){
+                    return;
+                }
             }
 
             // Dynamic Programming Stop Conditon
@@ -236,7 +252,7 @@ public class CKYDependencyParser implements IDependencyParser {
             // 计算gready算法所需要的log
             float archThreshold = 0f;
             float archThresholdUpperBound = 1.0f;
-            if (right - left >= 8) {  // 对于一定长度以下的tree, 不做greedy处理
+            if (right - left >= greedyCountThreshold) {  // 对于一定长度以下的tree, 不做greedy处理
                 float sum1= 0;
                 int counter1 = 0;
                 for (int i = left; i <= right; i++){
@@ -259,14 +275,18 @@ public class CKYDependencyParser implements IDependencyParser {
                     continue;
                 }
 
+                if (!this.allowSourceFromRoot & root==0){
+                    continue;  // 只允许root有一条outcomming-edge
+                }
+
                 if ( X[root][j] > archThresholdUpperBound | X[root][j] < archThreshold){
                     // greedy 的部分, 对于candidate arch X[root][j] 不在阈值范围内, 则跳过
                     continue;
                 }
 
-                if (X[root][j] < ckyParser.targetAvgProbas[j]*this.thresholdRatio-this.thresholdDelta){
-                    continue;
-                }
+//                if (X[root][j] < ckyParser.targetAvgProbas[j]*this.thresholdRatio-this.thresholdDelta){
+//                    continue;
+//                }
 
                 for (int q = left; q < right; q += 1) {
                     ProjectiveTree tree1, tree2;
@@ -276,6 +296,9 @@ public class CKYDependencyParser implements IDependencyParser {
                         }
                         tree1 = new ProjectiveTree(left, q, root);
                         tree2 = new ProjectiveTree(q + 1, right, j);
+                        if (root == 0 & this.allowSourceFromRoot){ // root 只有一条outcoming-edge
+                            tree1 = new ProjectiveTree(1, q, j);
+                        }
                     } else { // j<root
                         if(j>=q+1 | j==right){
                             continue;
@@ -283,6 +306,7 @@ public class CKYDependencyParser implements IDependencyParser {
                         tree1 = new ProjectiveTree(left, q, j);
                         tree2 = new ProjectiveTree(q + 1, right, root);
                     }
+
 
                     HashSet<Float> _probas = new HashSet<>();
                     if (this.checkAlreadyAcedATree(ckyParser,tree1)){  // 如果 tree1 已经被计算, 从cache中取出定义object
@@ -320,29 +344,37 @@ public class CKYDependencyParser implements IDependencyParser {
                 }
             }
 
-            if (this.score < 0){  // 如果当前threshold过于严格, 则降低 by this.thresholdDelta
+            if (this.score < 0 & right-left >= greedyCountThreshold){  // 如果当前threshold过于严格, 则降低 by this.thresholdDelta
                 this.thresholdRatio -= thresholdDelta;
                 if (this.thresholdRatio>=0.0f){
                     this.A(X,ckyParser);
-                } else{
-                    throw new Exception(archThreshold+" threshold:ratio  "+ this.thresholdRatio +UtilFns.toJson(this));
                 }
-            }
-            else{
+//                else{
+//                    throw new Exception(archThreshold+" threshold:ratio  "+ this.thresholdRatio +UtilFns.toJson(this));
+//                }
+            }else{
                 this.addSelf2AcedTrees(ckyParser);
                 // 记录已经被reached node, 避免重复reach
-                this.reachedIndexes.add(this.arch[1]);
-                this.reachedIndexes.addAll(this.leftTree.reachedIndexes);
-                this.reachedIndexes.addAll(this.rightTree.reachedIndexes);
+                if (this.arch!=null){
+                    this.reachedIndexes.add(this.arch[1]);
+                    this.reachedIndexes.addAll(this.leftTree.reachedIndexes);
+                    this.reachedIndexes.addAll(this.rightTree.reachedIndexes);
+                }
             }
+
+//            if (right-left!= this.reachedIndexes.size()){
+//                System.out.println(this);
+//            }
 
         }
 
         public List<int[]> getArchs(){
             List<int[]> arches = new LinkedList<>();
             if (this.arch != null){
-                // print out arches for debugging
+//                //print out arches for debugging
 //                System.out.println(UtilFns.toJson(this.arch)+" : "+UtilFns.toJson(this));
+//                System.out.println("      : "+UtilFns.toJson(this.leftTree));
+//                System.out.println("      : "+UtilFns.toJson(this.rightTree));
                 arches.add(this.arch);
             }
             if (this.leftTree != null){
@@ -359,9 +391,9 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-//        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
+        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
 //        String text = "百度还创新性地推出了基于搜索的营销推广服务";
-        String text = "一度被政策冷落的油电混合动力汽车，有可能被重新加注鼓励的法码。";
+//        String text = "一度被政策冷落的油电混合动力汽车，有可能被重新加注鼓励的法码。";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
