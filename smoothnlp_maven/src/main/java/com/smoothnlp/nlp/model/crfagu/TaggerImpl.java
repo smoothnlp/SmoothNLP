@@ -182,7 +182,6 @@ public class TaggerImpl extends Tagger {
     public void buildLatticeWithEmbedding(){
         if(!x_.isEmpty()){
             feature_index_.rebuildEmbeddingFeatures(this);
-
             for (int i = 0; i < x_.size(); i++) {
                 for (int j = 0; j < ysize_; j++) {
                     feature_index_.calcCostWithEmbedding(node_.get(i).get(j)); //计算节点代价 , node_[i][j] 表示一个节点；第i个词是第j个label 的点；
@@ -693,24 +692,25 @@ public class TaggerImpl extends Tagger {
         return "";
     }
 
-    public boolean parse() {
-        if (!feature_index_.buildFeatures(this)) {
-            System.err.println("fail to build featureIndex");
-            return false;
-        }
-        if (x_.isEmpty()) {
-            return true;
-        }
-        buildLattice();
-        if (nbest_ != 0 || vlevel_ >= 1) {
-            forwardbackward();
-        }
-        viterbi();
-        if (nbest_ != 0) {
-            initNbest();
-        }
-        return true;
-    }
+    // 注释掉原有的parse function, 在 Tagger Interface中已经定位默认的parse 为 parseEmbedding
+//    public boolean parse() {
+//        if (!feature_index_.buildFeatures(this)) {
+//            System.err.println("fail to build featureIndex");
+//            return false;
+//        }
+//        if (x_.isEmpty()) {
+//            return true;
+//        }
+//        buildLattice();
+//        if (nbest_ != 0 || vlevel_ >= 1) {
+//            forwardbackward();
+//        }
+//        viterbi();
+//        if (nbest_ != 0) {
+//            initNbest();
+//        }
+//        return true;
+//    }
 
     public boolean parseEmbedding(){
 

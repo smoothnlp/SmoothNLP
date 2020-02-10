@@ -1,5 +1,7 @@
 package com.smoothnlp.nlp.model.crfagu;
 
+import com.smoothnlp.nlp.basic.UtilFns;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,6 +106,7 @@ FeatureIndex {
      * @param node
      */
     public void calcCostWithEmbedding(Node node){
+
         node.cost = 0.0;
         double c = 0.0;
         for (int i = 0; node.fVector.get(i) != -1; i++) {
@@ -376,8 +379,6 @@ FeatureIndex {
         }else{
             System.err.println("目前crfagu仅仅支持拥有Embedding特征的选项, 暂不支持没有Embedding模型的情况");
         }
-
-
         return true;
     }
 
@@ -390,7 +391,15 @@ FeatureIndex {
         for (int cur = 0; cur < tagger.size(); cur++) {
             List<Integer> f = featureCache.get(fid++);  // 去除词的特征，词的特征列表对应特征模板里的Unigram特征
 
-            ArrayList<String> emStrs = featureEmbeddingStrsCache.get(cur);
+            ArrayList<String> emStrs;
+            if (featureEmbeddingStrsCache.size()==0){
+                emStrs = new ArrayList<>();
+//                continue;  // 处理不使用 Embedding Feature 的情况, 兼容普通版本crfpp
+            }else{
+                emStrs = featureEmbeddingStrsCache.get(cur);
+            }
+
+
 
             for (int i = 0; i < y_.size(); i++) {  // label list
                 Node n = new Node();
