@@ -5,6 +5,7 @@ import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.DMatrix;
+import scala.Array;
 
 import java.util.*;
 
@@ -24,7 +25,7 @@ public class CKYDependencyParser implements IDependencyParser {
     private Booster edgeTagModel;
 
     HashMap<Integer,ProjectiveTree> AcedTrees;
-    private static float thresholdRatioStatic = 1.0f;
+    private static float thresholdRatioStatic = 0.2f;
     public float[] targetAvgProbas;
 
     public CKYDependencyParser() {
@@ -51,15 +52,17 @@ public class CKYDependencyParser implements IDependencyParser {
     public DependencyRelationship[] parse(List<SToken> stokens) throws Exception {
 
         CoNLLDependencyGraph cgraph = new CoNLLDependencyGraph(stokens);
+
         // build ftrs
         Float[][] pairFtrs = cgraph.buildAllFtrs();
         float[] flattenPairFtrs = UtilFns.flatten2dFloatArray(pairFtrs);
-
         int numRecords = pairFtrs.length;
         int numFtrs = pairFtrs[0].length;
         DMatrix dmatrix = new DMatrix(flattenPairFtrs, numRecords, numFtrs);
 
+
         float[][] predictScores = this.edgeScoreModel.predict(dmatrix, false, SmoothNLP.XGBoost_DP_Edge_Model_Predict_Tree_Limit);  // 调节treeLimit , 优化时间
+
 
         float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
         float[][] edgeScores = new float[cgraph.size()][cgraph.size()];
@@ -71,7 +74,7 @@ public class CKYDependencyParser implements IDependencyParser {
                 edgeScores[i][j] = predictScoresFlatten[i * cgraph.size() + j];
                 nodeSums[j]+=edgeScores[i][j];
             }
-            // For debug, print out score matrix
+//           //For debug, print out score matrix
 //            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
         }
 
@@ -92,20 +95,21 @@ public class CKYDependencyParser implements IDependencyParser {
         ProjectiveTree ptree = new ProjectiveTree(0, cgraph.size()-1, 0);
         ptree.setAllowSourceFromRoot(true);
         ptree.A(edgeScores,this);
-//        long end = System.currentTimeMillis();
-//        // evaluate CKY-Algorithm run-time
-//        System.out.print("parse PTree time: ");
-//        System.out.println(end-start);
+        long end = System.currentTimeMillis();
+        // evaluate CKY-Algorithm run-time
+        System.out.print("parse PTree time: ");
+        System.out.println(end-start);
 
-//        // print out tree score
-//        System.out.println("tree score: "+ptree.score);
-//        // print out total tree calculated during optimization for debug
-//        System.out.println("tree calcualted total: "+this.AcedTrees.size());
+        // print out tree score
+        System.out.println("tree score: "+ptree.score);
+        // print out total tree calculated during optimization for debug
+        System.out.println("tree calcualted total: "+this.AcedTrees.size());
 //
 //        // print out token size
 //        System.out.println("token size: "+stokens.size());
 //        // print out total tree calculated during optimization for debug
 //        System.out.println("arch size: "+ptree.getArchs().size());
+//        System.out.println("ptree score: "+ptree.score);
 
         List<int[]> arches = ptree.getArchs();
         if (arches.size()!=stokens.size()){
@@ -142,7 +146,6 @@ public class CKYDependencyParser implements IDependencyParser {
             }
        }
 
-
         return relationships;
     }
 
@@ -159,6 +162,7 @@ public class CKYDependencyParser implements IDependencyParser {
 //            sum+=Math.log(proba)+2; // 计算时间过长
 //            sum += proba*proba;  // 过度penalize 较小的proba, favor 较大的proba, 结果从(root/动词)出发的edge偏多
             sum+=proba;
+//            sum+= Math.sqrt(proba);  // 倾向概率更小的proba
             counter+=1;
         }
         return sum/counter;
@@ -171,9 +175,9 @@ public class CKYDependencyParser implements IDependencyParser {
         float score;
         ProjectiveTree leftTree, rightTree;
         int[] arch;
-        private float thresholdRatio = CKYDependencyParser.thresholdRatioStatic;
+        private float thresholdRatio;
         private float thresholdDelta = 0.1f;
-        private int greedyCountThreshold = 8;
+        private int greedyCountThreshold = 10;
         HashSet<Integer> reachedIndexes = new HashSet<>();
         private boolean allowSourceFromRoot = false;
 
@@ -184,6 +188,24 @@ public class CKYDependencyParser implements IDependencyParser {
             probas = new HashSet<>();
             this.score = -9999f;
             this.key = key();
+            this.autoSetThresholdRatio();
+        }
+
+        public void autoSetThresholdRatio(){
+            int tokenSize = right-left;
+            if (tokenSize<=5) {
+                this.thresholdRatio = 1.0f;
+            }else if (tokenSize<=10){
+                this.thresholdRatio = 0.5f;
+            }else if (tokenSize<=20){
+                this.thresholdRatio = 0.4f;
+            }else if (tokenSize<=30){
+                this.thresholdRatio = 0.1f;
+            }else if (tokenSize<=40){
+                this.thresholdRatio = 0.05f;
+            }else{
+                this.thresholdRatio = 2.0f/tokenSize;
+            }
         }
 
         public void setAllowSourceFromRoot(boolean allowSourceFromRoot) {
@@ -252,20 +274,25 @@ public class CKYDependencyParser implements IDependencyParser {
             // 计算gready算法所需要的log
             float archThreshold = 0f;
             float archThresholdUpperBound = 1.0f;
-            if (right - left >= greedyCountThreshold) {  // 对于一定长度以下的tree, 不做greedy处理
-                float sum1= 0;
-                int counter1 = 0;
-                for (int i = left; i <= right; i++){
-                    if  (root!=i){
-                        sum1+=X[root][i];
-                        counter1+=1;
-                    }
-                }
-                archThreshold  = (sum1/counter1)*this.thresholdRatio;
-                if (this.thresholdRatio!=CKYDependencyParser.thresholdRatioStatic){
-                    archThresholdUpperBound = (sum1/counter1)*(this.thresholdRatio+this.thresholdDelta);
-                }
-            }
+//            if (right - left >= greedyCountThreshold) {  // 对于一定长度以下的tree, 不做greedy处理
+//                float sum1= 0;
+//                int counter1 = 0;
+//                for (int i = left; i <= right; i++){
+//                    if  (root!=i){
+//                        sum1+=X[root][i];
+//                        counter1+=1;
+//                    }
+//                }
+//                archThreshold  = (sum1/counter1)*this.thresholdRatio;
+//                if (this.thresholdRatio!=CKYDependencyParser.thresholdRatioStatic){
+//                    archThresholdUpperBound = (sum1/counter1)*(this.thresholdRatio+this.thresholdDelta);
+//                }
+            float[] valid_range = Arrays.copyOfRange(X[root],left,right+1);
+            Arrays.sort(valid_range);
+            float ratioIndexLower = (right-left)*(1-this.thresholdRatio);
+            archThreshold = valid_range[(int) ratioIndexLower];
+//            }
+
 
 
 
@@ -283,10 +310,6 @@ public class CKYDependencyParser implements IDependencyParser {
                     // greedy 的部分, 对于candidate arch X[root][j] 不在阈值范围内, 则跳过
                     continue;
                 }
-
-//                if (X[root][j] < ckyParser.targetAvgProbas[j]*this.thresholdRatio-this.thresholdDelta){
-//                    continue;
-//                }
 
                 for (int q = left; q < right; q += 1) {
                     ProjectiveTree tree1, tree2;
@@ -394,6 +417,10 @@ public class CKYDependencyParser implements IDependencyParser {
         String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
 //        String text = "百度还创新性地推出了基于搜索的营销推广服务";
 //        String text = "一度被政策冷落的油电混合动力汽车，有可能被重新加注鼓励的法码。";
+//        String text = "韩系轮胎卷入“寒流”";
+//        String text = "新款讴歌TL登上环保目录";
+//        String text = "呼吸道飞沫传染是新型冠状病毒的主要传播途径";
+//        String text = "邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
