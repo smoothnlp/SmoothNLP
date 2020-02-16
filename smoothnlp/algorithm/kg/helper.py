@@ -1,4 +1,4 @@
-import math
+import re
 from ...nlp import nlp
 from functools import wraps
 from ...configurations import config
@@ -21,14 +21,17 @@ def adapt_struct(func):
         if "struct" in kargs:
             kargs.pop("struct")
         if isinstance(struct,str):
+            struct = re.sub(u"(\([\w]+\)|（[\w]+）)","",struct)
             struct = nlp.analyze(struct)
         if struct is None or isinstance(text,str):
+            text = re.sub(u"(\([\w]+\)|（[\w]+）)","",text)
             struct = nlp.analyze(text)
         for i in range(len(struct['tokens'])):
             struct['tokens'][i]['index'] = i+1
         if "dependencyRelationships" not in struct:
             config.logger.info("目前SmoothNLP中的知识抽取功能暂不支持长度过长的句子. 谢谢理解. ")
-            return
+            nf = lambda struct : None
+            return nf
         return func(struct = struct,*arg,**kargs)
     return tostruct
 

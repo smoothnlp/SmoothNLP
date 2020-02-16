@@ -27,7 +27,6 @@ def extract_attr_num(struct: dict = None, pretty: bool = False):
 
     for num_phrase in num_phrases:
         min_distance = 9999
-        print(noun_phrases + verb_phrases)
         for noun_phrase in noun_phrases + verb_phrases:
             num_noun_flag,distance = check_2phrase_connected(num_phrase,noun_phrase,rel_map)
             if num_noun_flag and distance <= min_distance:
