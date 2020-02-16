@@ -186,7 +186,7 @@ def extract_state_event(struct: dict = None):
 @adapt_struct
 def extract_attr_event(struct: dict = None):
     return extract_obj_event( struct=struct,
-                         valid_object_rel={"attr","dep"},
+                         valid_object_rel={"attr"},  ## 是否加入 "dep"??
                          event_type="attr" ,
                          object_extract_func= lambda struct,pretty: extract_all_describer_phrase(struct = struct))
 
@@ -218,8 +218,8 @@ def extract_all_event(struct: dict = None,_with_conf_score=True):
     es = extract_state_event(struct=struct,_with_conf_score=_with_conf_score)
     en = extract_num_event(struct = struct,_with_conf_score = _with_conf_score)
     e_attr = extract_attr_event(struct=struct,_with_conf_score = _with_conf_score)
-    events = extend_prep4event(struct=struct,events=ea+es+en+e_attr)
-
+    # events = extend_prep4event(struct=struct,events=ea+es+en+e_attr)
+    events = ea+es+en+e_attr
     e_prep = extract_prep_event(struct = struct, _with_conf_score = _with_conf_score)
     events += e_prep
     # ep = extract_prep_event(struct = struct, pretty=pretty)

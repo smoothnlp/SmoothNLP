@@ -1,6 +1,7 @@
 import math
 from ...nlp import nlp
 from functools import wraps
+from ...configurations import config
 from itertools import combinations,product
 from copy import copy,deepcopy
 
@@ -25,6 +26,9 @@ def adapt_struct(func):
             struct = nlp.analyze(text)
         for i in range(len(struct['tokens'])):
             struct['tokens'][i]['index'] = i+1
+        if "dependencyRelationships" not in struct:
+            config.logger.info("目前SmoothNLP中的知识抽取功能暂不支持长度过长的句子. 谢谢理解. ")
+            return
         return func(struct = struct,*arg,**kargs)
     return tostruct
 

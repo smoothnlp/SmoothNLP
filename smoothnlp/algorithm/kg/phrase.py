@@ -274,10 +274,19 @@ def extract_noun_phrase(struct: dict = None,
                         with_describer: bool = True, ## 如果with_desciber 为true, pretty 必须=False
                         rm_one_char:bool = True
                         ):
-    phrase = extract_phrase_by_rel(struct=struct,
-                                   valid_rel_set={"nsubj","dobj","top","attr","nn","pobj"},
+    valid_noun_rels = {"nsubj","dobj","top","attr","nn","pobj"}
+    valid_noun_describe_rels = {"amod","rcmod","cpm","nummod","clf"}
+    invalid_rels = set({"punct","prep"})
+    if not with_describer:
+        phrase= extract_phrase_by_rel(struct=struct,
+                                   valid_rel_set=valid_noun_rels ,
                                    pretty = pretty,
-                                   recursive_valid_rels={},rm_one_char=rm_one_char)
+                                   recursive_invalid_rels=invalid_rels|valid_noun_describe_rels,rm_one_char=rm_one_char)
+    else:
+        phrase = extract_phrase_by_rel(struct=struct,
+                                       valid_rel_set=valid_noun_rels|valid_noun_describe_rels,
+                                       pretty=pretty,
+                                       recursive_invalid_rels=invalid_rels, rm_one_char=rm_one_char)
     return phrase
 
 def recursively_get_path(rel_map,
@@ -308,7 +317,7 @@ def recursively_get_path(rel_map,
 
 @adapt_struct
 def extract_phrase_by_rel(struct: dict = None, valid_rel_set = {"assmod"} ,multi_token_only=False, pretty=False,
-                             rm_one_char=False, recursive_valid_rels:set = set(), recursively_invalid_rels:set = set()):
+                             rm_one_char=False, recursive_valid_rels:set = set(), recursive_invalid_rels:set = set()):
     rel_map = _get_rel_map(struct=struct)
     tokens = struct['tokens']
     rels = struct['dependencyRelationships']
@@ -318,7 +327,11 @@ def extract_phrase_by_rel(struct: dict = None, valid_rel_set = {"assmod"} ,multi
     phrases = []
 
     for mod_core_token_index in set(mod_core_token_indexes):
-        phrase_indexes = recursively_get_path(rel_map, set([mod_core_token_index]), set(), invalid_rels=recursively_invalid_rels,valid_rels=recursive_valid_rels)
+        phrase_indexes = recursively_get_path(rel_map, 
+                                              source_indexes=set([mod_core_token_index]),
+                                              covered_indexes=set(),      ## 在recursion中track 命中的 token index
+                                              invalid_rels=recursive_invalid_rels,
+                                              valid_rels=recursive_valid_rels)
         phrases.append([tokens[i - 1] for i in phrase_indexes])
 
     # phrases = deduple_phrases(phrases)
@@ -339,14 +352,18 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
     rel_map = _get_rel_map(struct=struct)
     tokens = struct['tokens'];
     rels = struct['dependencyRelationships']
-    modifier_rels = [rel for rel in rels if "mod" in rel['relationship'] or rel['relationship'] in {"dep","dvpm","dvpmod","rcmod"}]
+
+    valid_describer_rels =   {"dep","dvpm","dvpmod"}
+    invalid_describer_rels = {"punct","prep","nsubj","nn"}
+
+    modifier_rels = [rel for rel in rels if "mod" in rel['relationship'] or rel['relationship'] in valid_describer_rels]
     mod_core_token_indexes = [rel['targetIndex'] for rel in modifier_rels]
     phrases = []
 
     # print(mod_core_token_indexes)
 
     for mod_core_token_index in set(mod_core_token_indexes):
-        phrase_indexes = recursively_get_path(rel_map,set([mod_core_token_index]),set())
+        phrase_indexes = recursively_get_path(rel_map,set([mod_core_token_index]),set(),invalid_rels=invalid_describer_rels)
         phrases.append([tokens[i-1] for i in phrase_indexes])
 
     # print(" --- candidate desciber phrases: ", [prettify(p) for p in phrases])
@@ -402,13 +419,16 @@ def extract_verb_phrase(struct:dict=None,
     valid_verb_postags = {"VV", "VC", "VE"}
     # verb_connected_relationships = {'nsubj', 'dobj', "top", "range", 'attr', "prep"}  ## 谓语可以连接向外的依存关系
 
+    v_valid_rels = {"root","ccomp","conj","mmod"}
+    v_describe_rels = {"advmod","rcomp"}
+
     if with_describer:
         verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
-                                    valid_rel_set={"root"}, rm_one_char=False, recursive_valid_rels={"root","ccomp","conj","advmod","rcomp"})
+                                    valid_rel_set={"root"}, rm_one_char=False, recursive_valid_rels=v_valid_rels|v_describe_rels)
     else:
         verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
                                                 valid_rel_set={"root"}, rm_one_char=False,
-                                                recursive_valid_rels={"root", "ccomp", "conj"})
+                                                recursive_valid_rels=v_valid_rels)
     verb_phrases = [phrase for phrase in verb_phrases if sum([token['postag'] in valid_verb_postags for token in phrase])>=0]
     ## 对于和主要verb不仅靠的verb作为从句补充ccomp, 过滤掉他们作为动词的可能
     verb_phrases = [phrase for phrase in verb_phrases if {"root", "conj"}.intersection(set([rel['relationship'] for rel in rels if rel['targetIndex'] in [t['index'] for t in phrase]])) ]
