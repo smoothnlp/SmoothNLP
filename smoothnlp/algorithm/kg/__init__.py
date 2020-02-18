@@ -93,6 +93,8 @@ def extract_all_debug(struct:dict):
 @adapt_struct
 # @adapt_smart_split2sentences
 def extract_all_kg(struct:dict, pretty:bool=True):
+    if (struct is None or struct['dependencyRelationships'] is None):
+        return []
     events = extract_all_event(struct = struct, pretty = pretty)
     return events
 
