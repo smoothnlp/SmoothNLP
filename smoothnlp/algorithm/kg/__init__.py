@@ -107,7 +107,8 @@ def extract(text):
         sents = text
     else:
         sents = [text]
-    structs = nlp.analyze(sents)
+    structs = [nlp.analyze(t) for t in sents]
+    # structs = nlp.analyze(sents)
     all_kgs = []
     for struct in structs:
         all_kgs+=extract_all_kg(struct)
