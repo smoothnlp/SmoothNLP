@@ -215,6 +215,7 @@ def get_scores(corpus,
     start_chars = Counter([n[0] for n in target_ngrams])
     end_chars = Counter([n[-1] for n in target_ngrams])
     threshold = int(len(target_ngrams) * 0.004)
+    threshold = max(50,threshold)
     logger.info("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
