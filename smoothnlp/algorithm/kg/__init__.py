@@ -3,6 +3,7 @@ from .event import extract_all_event,extract_action_event,extract_state_event
 from .entity import extract_subject,extract_object
 from .attr import extract_all_attr
 from ...nlp import nlp
+from ...configurations import config
 from functools import wraps
 
 @adapt_struct
@@ -93,7 +94,8 @@ def extract_all_debug(struct:dict):
 @adapt_struct
 # @adapt_smart_split2sentences
 def extract_all_kg(struct:dict, pretty:bool=True):
-    if (struct is None or struct['dependencyRelationships'] is None):
+    if (struct['dependencyRelationships'] is None):
+        config.logger.info(" sentence is too long for knowledge extraction ")
         return []
     events = extract_all_event(struct = struct, pretty = pretty)
     return events
