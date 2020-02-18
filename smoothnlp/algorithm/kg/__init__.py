@@ -87,21 +87,33 @@ def extract_all_debug(struct:dict):
     print("attr event: ", event.extract_attr_event(struct=struct, pretty=True))
 
     print("~~~~~~~~ all  ~~~~~~~~~")
-    print("all: ", extract_all(struct=struct, pretty=True))
+    print("all: ", extract_all_kg(struct=struct, pretty=True))
 
 
 @adapt_struct
 # @adapt_smart_split2sentences
-def extract_all(struct:dict, pretty:bool=True):
-    # attrs = extract_all_attr(struct = struct, pretty= pretty)
+def extract_all_kg(struct:dict, pretty:bool=True):
     events = extract_all_event(struct = struct, pretty = pretty)
     return events
+
+def extract(text):
+    if len(text)>=50:
+        sents = nlp.split2sentences(text)
+    elif isinstance(text,list):
+        sents = text
+    else:
+        sents = [text]
+    structs = nlp.analyze(sents)
+    all_kgs = []
+    for struct in structs:
+        all_kgs+=extract_all_kg(struct)
+    return all_kgs
 
 struct2tokens = lambda struct: [t['token'] for t in struct['tokens']]
 
 @adapt_struct
 def extract_related(struct,ners= {"GS","COMPANY_REGISTR"},keywords=[],pretty=True):
-    all_kgs = extract_all(struct = struct,pretty=False)
+    all_kgs = extract_all_kg(struct = struct,pretty=False)
     entities = struct['entities']
     keywords = set(keywords)
     tokens = struct['tokens']

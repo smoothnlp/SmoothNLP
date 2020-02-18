@@ -276,7 +276,7 @@ def extract_noun_phrase(struct: dict = None,
                         ):
     valid_noun_rels = {"nsubj","dobj","top","attr","nn","pobj"}
     valid_noun_describe_rels = {"amod","rcmod","cpm","nummod","clf"}
-    invalid_rels = set({"punct","prep"})
+    invalid_rels = {"punct","prep"}
     if not with_describer:
         phrase= extract_phrase_by_rel(struct=struct,
                                    valid_rel_set=valid_noun_rels ,
@@ -323,6 +323,8 @@ def extract_phrase_by_rel(struct: dict = None, valid_rel_set = {"assmod"} ,multi
     rels = struct['dependencyRelationships']
     modifier_rels = [rel for rel in rels if rel['relationship'] in valid_rel_set]
     mod_core_token_indexes = [rel['targetIndex'] for rel in modifier_rels]
+
+    # print(mod_core_token_indexes)
 
     phrases = []
 
@@ -388,8 +390,11 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
 @adapt_struct
 def extract_prep_describer_phrase(struct: dict = None, multi_token_only=True, pretty=False,
                              rm_one_char: bool = True):
-    return extract_phrase_by_rel(struct=struct,pretty=pretty,multi_token_only=multi_token_only,
-                                    valid_rel_set={"prep"},rm_one_char=rm_one_char)
+    return extract_phrase_by_rel(struct=struct,pretty=pretty,
+                                 multi_token_only=multi_token_only,
+                                 valid_rel_set={"prep"},
+                                 recursive_invalid_rels={"punct"},
+                                 rm_one_char=rm_one_char)
 
 
 # todo:
@@ -444,7 +449,7 @@ def extract_num_phrase(struct: dict = None,
                         ):
 
     phrases = extract_phrase_by_rel(struct = struct,
-                                   valid_rel_set={"nummod","range",'punct'},
+                                   valid_rel_set={"nummod","range"},
                                    multi_token_only=multi_token_only,
                                    rm_one_char= True,
                                    pretty = False)
