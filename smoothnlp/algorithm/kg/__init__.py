@@ -133,9 +133,9 @@ def rel2graph(rels:list):
 def graph2fig(g,x:int=800,y:int=60):
     import matplotlib.pyplot as plt
     pos = nx.drawing.layout.kamada_kawai_layout(g)
-    plt.figure()
-    plt.set_figwidth(int(x/plt.dpi))
-    plt.set_figheight(int(y/plt.dpi))
+    fig = plt.figure()
+    fig.set_figwidth(int(x/fig.dpi))
+    fig.set_figheight(int(y/fig.dpi))
 
     def label_modification(label):
         length = len(label)
