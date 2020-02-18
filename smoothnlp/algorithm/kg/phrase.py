@@ -425,7 +425,7 @@ def extract_verb_phrase(struct:dict=None,
     # verb_connected_relationships = {'nsubj', 'dobj', "top", "range", 'attr', "prep"}  ## 谓语可以连接向外的依存关系
 
     v_valid_rels = {"root","ccomp","conj","mmod"}
-    v_describe_rels = {"advmod","rcomp"}
+    v_describe_rels = {"advmod","rcomp","dep"}
 
     if with_describer:
         verb_phrases = extract_phrase_by_rel(struct=struct, pretty=False, multi_token_only=False,
