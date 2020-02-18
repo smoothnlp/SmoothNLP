@@ -130,11 +130,10 @@ def rel2graph(rels:list):
         g.add_edge(rel['subject'], rel['object'], label=label, type=rel['type'], action=rel['action'])
     return g
 
-def graph2fig(g,x:int=800,y:int=60):
+def graph2fig(g,x:int=8,y:int=6):
     import matplotlib.pyplot as plt
     pos = nx.drawing.layout.kamada_kawai_layout(g)
-    fig = plt.figure()
-    fig = plt.figure(figsize = (int(x/fig.dpi),int(y/fig.dpi)))
+    fig = plt.figure(figsize = (x,y))
 
     def label_modification(label):
         length = len(label)
