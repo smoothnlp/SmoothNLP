@@ -5,6 +5,7 @@ from .attr import extract_all_attr
 from ...nlp import nlp
 from ...configurations import config
 from functools import wraps
+import networkx as nx
 
 @adapt_struct
 def smart_split2sentence(struct:dict):
@@ -92,7 +93,6 @@ def extract_all_debug(struct:dict):
 
 
 @adapt_struct
-# @adapt_smart_split2sentences
 def extract_all_kg(struct:dict, pretty:bool=True):
     if (struct['dependencyRelationships'] is None):
         config.logger.info(" sentence is too long for knowledge extraction ")
@@ -113,6 +113,58 @@ def extract(text):
     for struct in structs:
         all_kgs+=extract_all_kg(struct)
     return all_kgs
+
+def rel2graph(rels:list):
+    g = nx.DiGraph()
+    for rel in rels:
+        g.add_node(rel['subject'])
+        g.add_node(rel['object'])
+        if rel['type'] == "state":
+            label = "状态修饰\n({})".format(rel['action'])
+        elif rel['type'] == "num":
+            label = "数字修饰\n({})".format(rel['action'])
+        elif rel['type'] == "prep":
+            label = "条件修饰\n({})".format(rel['action'])
+        else:
+            label = "动作\n({})".format(rel['action'])
+        g.add_edge(rel['subject'], rel['object'], label=label, type=rel['type'], action=rel['action'])
+    return g
+
+def graph2fig(g,x:int=10,y:int=6):
+    import matplotlib.pyplot as plt
+    pos = nx.drawing.layout.kamada_kawai_layout(g)
+    fig = plt.figure(figsize=(x, y))
+
+    def label_modification(label):
+        length = len(label)
+        if 0 < length <= 6:
+            return label
+        elif length <= 12:
+            return label[:length // 2] + "\n" + label[length // 2:]
+        else:
+            return label[:length // 3] + "\n" + label[length // 3:2 * length // 3] + "\n" + label[2 * length // 3:]
+
+    node_labels = {k: label_modification(k) for k in g.nodes}
+
+    nx.draw(g, pos, labels=node_labels,
+            with_labels=True,
+            node_color="lightblue",
+            edge_color="grey",
+            node_size=[min(len(n), 6) * 1200 for n in g.nodes],
+            alpha=1.0,
+            font_color="white",
+            font_size=14,
+            width=3.0,
+            font_family="SimHei")
+
+    nx.draw_networkx_edge_labels(g,
+                                 pos,
+                                 edge_labels=nx.get_edge_attributes(g, "label"),
+                                 font_color='Black',
+                                 font_size=16,
+                                 font_family="SimHei")
+    return fig
+
 
 struct2tokens = lambda struct: [t['token'] for t in struct['tokens']]
 
