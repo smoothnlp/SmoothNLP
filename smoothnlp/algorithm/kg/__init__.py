@@ -101,7 +101,7 @@ def extract_all_kg(struct:dict, pretty:bool=True):
     return events
 
 def extract(text):
-    if len(text)>=50:
+    if isinstance(text,str) and len(text)>=50:
         sents = nlp.split2sentences(text)
     elif isinstance(text,list):
         sents = text
@@ -150,7 +150,7 @@ def graph2fig(g,x:int=8,y:int=6):
             with_labels=True,
             node_color="lightblue",
             edge_color="grey",
-            node_size=[min(len(n), 6) * 1200 for n in g.nodes],
+            node_size=[min(len(n), 6) * 1600 for n in g.nodes],
             alpha=1.0,
             font_color="white",
             font_size=14,
