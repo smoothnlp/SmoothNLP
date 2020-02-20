@@ -182,11 +182,22 @@ def extract_state_event(struct: dict = None):
                          event_type="state" ,
                          object_extract_func= lambda struct,pretty: extract_noun_phrase(struct = struct,pretty=False,with_describer=True))
 
+# @options
+# @adapt_struct
+# def extract_state_event(struct: dict = None):
+#     return extract_obj_event( struct=struct,
+#                          valid_object_rel={"dep"},
+#                          event_type="state" ,
+#                          object_extract_func= lambda struct,pretty: extract_noun_phrase(struct = struct,pretty=False,with_describer=True))
+
+
+
+
 @options
 @adapt_struct
 def extract_attr_event(struct: dict = None):
     return extract_obj_event( struct=struct,
-                         valid_object_rel={"attr"},  ## 是否加入 "dep"??
+                         valid_object_rel={"attr","dep"},  ## 是否加入 "dep"?? Good Case: 国产特斯拉Model3宣布降价至29.9万元
                          event_type="attr" ,
                          object_extract_func= lambda struct,pretty: extract_all_describer_phrase(struct = struct))
 
