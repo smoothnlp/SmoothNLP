@@ -7,53 +7,6 @@ from ...configurations import config
 from functools import wraps
 import networkx as nx
 
-@adapt_struct
-def smart_split2sentence(struct:dict):
-    tokens = struct['tokens']
-    rels = struct['dependencyRelationships']
-    sents = []
-    sent = []
-    # print(tokens)
-    for i in range(len(tokens)-1):
-        index = i+1
-        if tokens[i]['postag'] == "PU" and rels[index]['relationship'] in {"conj"}:
-            sents.append(sent)
-            sent = []
-        else:
-            sent.append(tokens[i])
-    sents.append(sent)
-    # sents = ["".join(sent) for sent in sents]
-    if len(sents) ==1:
-        return struct
-
-    first_sentence = "".join([t['token'] for t in sents[0]])
-    print(first_sentence)
-    first_struct = nlp.analyze(first_sentence)
-    current_subjects = extract_subject(first_struct, pretty=True)
-    if len(current_subjects)!=1:
-        return struct
-    new_structs = [first_struct]
-    current_subject = current_subjects[0]
-    for sent in sents[1:]:
-        sent_first_token = sent[0]
-        sent_str = "".join([t['token'] for t in sent])
-        if sent_first_token['postag'][0] =="V":
-            sent_str  = current_subject + sent_str
-        print(sent_str)
-        new_structs.append(nlp.analyze(sent_str))
-    return new_structs
-
-
-def adapt_smart_split2sentences(func):
-    @wraps(func)
-    def smart_concat(*arg,**karg):
-        struct = karg.pop('struct')
-        structs = smart_split2sentence(struct)
-        outputs = [func(struct = struct,*arg,**karg) for struct in structs]
-        outputs = [oi for o in outputs for oi in o]
-        # outputs += func(struct)
-        return outputs
-    return smart_concat
 
 @adapt_struct
 def extract_all_debug(struct:dict):
@@ -131,6 +84,8 @@ def rel2graph(rels:list):
     return g
 
 def graph2fig(g,x:int=800,y:int=600):
+    if len(g)<=0: ## 处理空的Graph
+        return
     import matplotlib.pyplot as plt
     pos = nx.drawing.layout.kamada_kawai_layout(g)
     fig = plt.figure(figsize = (x/100,y/100),dpi=100)
