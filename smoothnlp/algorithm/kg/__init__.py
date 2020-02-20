@@ -87,9 +87,9 @@ def graph2fig(g,x:int=800,y:int=600):
     if len(g)<=0: ## 处理空的Graph
         return
     import matplotlib.pyplot as plt
-    plt.title('SmoothNLP开源工具生成的知识图谱', fontdict={"fontsize": 14})
     pos = nx.drawing.layout.kamada_kawai_layout(g)
     fig = plt.figure(figsize = (x/100,y/100),dpi=100)
+    plt.title('SmoothNLP开源工具生成的知识图谱', fontdict={"fontsize": 14})
 
     def label_modification(label):
         length = len(label)
