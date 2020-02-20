@@ -125,8 +125,6 @@ def adapt_struct(func):
         return func(struct = struct,*arg,**kargs)
     return tostruct
 
-
-
 @adapt_struct
 def extract_phrase(struct: dict = None,
                    multi_token_only=True,

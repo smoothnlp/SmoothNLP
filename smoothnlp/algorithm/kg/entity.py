@@ -1,33 +1,6 @@
 from .phrase import _find_phrase_connected_rel,adapt_struct,extract_prep_describer_phrase,concat_consecutive_phrases,extract_noun_phrase,extract_all_describer_phrase,_get_rel_map,prettify,_split_conj_sents,extract_verb_phrase
 from .helper import *
 
-## Deprecate 主语抽取Func
-# @adapt_struct
-# def extract_subject(struct:dict=None,pretty:bool = True):
-#     """
-#     返回一段句子中的主语
-#     :param text:
-#     :param struct:
-#     :param pretty:
-#     :return:
-#     """
-#     # if struct is None:
-#     #     struct = nlp.analyze(text)
-#     phrases = extract_noun_phrase(struct=struct,pretty=False,multi_token_only=False,with_describer=False)
-#     subject_tokens = get_dp_rel(struct=struct,rel = "nsubj")+get_dp_rel(struct=struct,rel = "top")
-#     subject_phrase = list()
-#     added_phrase_index = set()
-#
-#     for index in [t['index'] for t in subject_tokens]:
-#         for j in range(len(phrases)):
-#             phrase = phrases[j]
-#             if index in [t['index'] for t in phrase] and j not in added_phrase_index:
-#                 added_phrase_index.add(j)
-#                 if pretty:
-#                     subject_phrase.append("".join([p['token'] for p in phrase]))
-#                 else:
-#                     subject_phrase.append(phrase)
-#     return subject_phrase
 
 @adapt_struct
 def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with_describer : bool = True):
@@ -44,22 +17,9 @@ def extract_entity(struct:dict=None,pretty:bool = True, valid_rel:set = {}, with
 
     object_token_index = []
 
-    # def extend_valid_rel(rels, rel_map):
-    #     for rel in rels:
-    #         if rel['targetIndex'] in rel_map:
-    #             extra_rels = [rel for rel in rel_map[rel['targetIndex']] if rel['relationship'] == "conj"]
-    #             print("   --- extra rels: before run: ", extra_rels)
-    #             extra_rels = extend_valid_rel(extra_rels, rel_map)
-    #             rels += extra_rels
-    #     return rels
-
-
     for vphrase in verbs:
         rels = _find_phrase_connected_rel(vphrase,rel_map)
         rels = [rel for rel in rels if rel['relationship'] in valid_rel]
-        # print("   ---- before extended: ",rels)
-        # rels = extend_valid_rel(rels,rel_map)
-        # print("   ---- after extended: ",rels)
         for rel in rels:
             violate_split_condition = False
             for i in split_indexes:

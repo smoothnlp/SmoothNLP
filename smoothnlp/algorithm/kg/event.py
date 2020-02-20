@@ -99,9 +99,18 @@ def extract_obj_event(struct: dict = None,
     events = []
     rel_map = _get_rel_map(struct)
     object_candidates = object_extract_func(struct = struct, pretty=False)
+
     # object_candidates = extract_noun_phrase(struct = struct,pretty = False,multi_token_only=False,with_describer=True)
 
     event_candidates = extract_subj_and_verb(struct)
+
+    def add_event(subject,vphrase,object,event_type):
+        events.append({
+            "subject": subject,
+            "action": vphrase,
+            "object": object,
+            'type': event_type,
+        })
 
     for event_cand in event_candidates:
         # verb_index = event_cand['action']['index']
@@ -117,32 +126,16 @@ def extract_obj_event(struct: dict = None,
                     'targetIndex'] not in subject_candidate_indexes and rel['targetIndex'] in object_indexes:
 
                     object = object_candidate
-                    ## 添加event之前检查是否跨句
-                    subj_index = phrase_index_range(subject)[0]
-                    obj_index = phrase_index_range(object)[0]
+                    add_event(subject, vphrase, object, event_type)
 
-                    ## ~~~~~~~~~  对于跨并列句的情况进行检查 ~~~~~~~~
-                    ## ~~~ 如: 中美一阶段协议达成,货币政策空间加大  ~~~
+                    conj_rels = _find_phrase_connected_rel(object,rel_map,{"conj"})
+                    conj_indexes = {rel['targetIndex'] for rel in conj_rels}
 
-                    # ## todo: 如果第二句话有助于的情况下; 否则不检查
-                    # ## todo: 如果 主语与动词在同一个句子下, 检查, 否则, 不检查
-                    # violate_split_condition = False
-                    # # print(" -- subject: ", prettify(subject), " object: ", prettify(object))
-                    # for i in split_indexes:
-                    #     # print("subject: ",prettify(subject)," object: ",prettify(object))
-                    #     # print("condition",(subj_index < i) != (obj_index < i))
-                    #     if (subj_index < i) != (obj_index < i):
-                    #         violate_split_condition = True
-                    #         break
-                    # if violate_split_condition:
-                    #     continue
-                    ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    events.append({
-                        "subject": subject,
-                        "action": vphrase,
-                        "object": object,
-                        'type' : event_type,
-                    })
+                    for other_obj in object_candidates:
+                        other_obj_indexes = set([t['index'] for t in other_obj])
+                        if len(conj_indexes & other_obj_indexes)>=1:
+                           add_event(subject,vphrase,other_obj,event_type)
+
                     break
     return events
 
@@ -172,7 +165,8 @@ def extend_prep4event( events ,struct:dict = None,pretty:bool = True, event_type
 def extract_action_event(struct: dict = None):
     return extract_obj_event( struct=struct,
                          valid_object_rel={"dobj"},
-                         event_type="action")
+                         event_type="action",
+                              object_extract_func=lambda struct,pretty: extract_noun_phrase(struct = struct,pretty=False,with_describer=True))
 
 @options
 @adapt_struct
