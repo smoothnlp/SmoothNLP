@@ -354,7 +354,7 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
     rels = struct['dependencyRelationships']
 
     valid_describer_rels =   {"dep","dvpm","dvpmod"}
-    invalid_describer_rels = {"punct","prep","nsubj","nn"}
+    invalid_describer_rels = {"punct","prep","nsubj","nn","attr"}
 
     modifier_rels = [rel for rel in rels if "mod" in rel['relationship'] or rel['relationship'] in valid_describer_rels]
     mod_core_token_indexes = [rel['targetIndex'] for rel in modifier_rels]
@@ -363,7 +363,9 @@ def extract_all_describer_phrase(struct: dict = None, multi_token_only=False, pr
     # print(mod_core_token_indexes)
 
     for mod_core_token_index in set(mod_core_token_indexes):
-        phrase_indexes = recursively_get_path(rel_map,set([mod_core_token_index]),set(),invalid_rels=invalid_describer_rels)
+        phrase_indexes = recursively_get_path(rel_map,set([mod_core_token_index]),set(),
+                                              invalid_rels=invalid_describer_rels,
+                                              )
         phrases.append([tokens[i-1] for i in phrase_indexes])
 
     # print(" --- candidate desciber phrases: ", [prettify(p) for p in phrases])

@@ -117,10 +117,13 @@ def extract_obj_event(struct: dict = None,
         subject_candidate_indexes = set([subtoken['index'] for subtoken in event_cand['subject']])
         subject = event_cand['subject']
         vphrase = event_cand['action']
+        vphrase_indexes = {vp['index'] for vp in vphrase}
         v_rels = _find_phrase_connected_rel(vphrase,rel_map)
 
         for object_candidate in object_candidates:
-            object_indexes = set([t['index'] for t in object_candidate])
+            object_indexes = {t['index'] for t in object_candidate}
+            if len(object_indexes & vphrase_indexes) !=0:  ## 如果动词与object重叠, 跳过
+                continue
             for rel in v_rels:
                 if rel['relationship'] in valid_object_rel and rel[
                     'targetIndex'] not in subject_candidate_indexes and rel['targetIndex'] in object_indexes:
@@ -128,8 +131,9 @@ def extract_obj_event(struct: dict = None,
                     object = object_candidate
                     add_event(subject, vphrase, object, event_type)
 
+                    ## 添加与object有并列关系的词
                     conj_rels = _find_phrase_connected_rel(object,rel_map,{"conj"})
-                    conj_indexes = {rel['targetIndex'] for rel in conj_rels}
+                    conj_indexes = {rel['targetIndex'] for rel in conj_rels if rel['targetIndex'] not in object_indexes}
 
                     for other_obj in object_candidates:
                         other_obj_indexes = set([t['index'] for t in other_obj])
