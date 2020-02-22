@@ -111,6 +111,7 @@ public class Encoder {
             e.printStackTrace();
             return false;
         }
+
         featureIndex.shrink(freq, x); // 不起作用
 
         //初始化所有特征的参数值为0
@@ -136,13 +137,13 @@ public class Encoder {
 
         switch (algo) {
             case CRF_L1:
-                if (!runCRF(x, featureIndex, alpha, alphaEmbedding, maxitr, C, eta, shrinkingSize, threadNum, true)) {
+                if (!runCRF(x, featureIndex, alpha, alphaEmbedding, maxitr, C, eta, shrinkingSize, threadNum, true, modelFile)) {
                     System.err.println("CRF_L1 execute error");
                     return false;
                 }
                 break;
             case CRF_L2:
-                if (!runCRF(x, featureIndex, alpha, alphaEmbedding, maxitr, C, eta, shrinkingSize, threadNum, false)) {
+                if (!runCRF(x, featureIndex, alpha, alphaEmbedding, maxitr, C, eta, shrinkingSize, threadNum, false, modelFile)) {
                     System.err.println("CRF_L2 execute error");
                     return false;
                 }
@@ -186,7 +187,8 @@ public class Encoder {
                            double eta,
                            int shrinkingSize,
                            int threadNum,
-                           boolean orthant) {
+                           boolean orthant,
+                           String modelFile) {
         double oldObj = 1e+37;
         int converge = 0;
         LbfgsOptimizer lbfgs = new LbfgsOptimizer();
@@ -215,6 +217,11 @@ public class Encoder {
         // 多线程执行计算gradient；迭代次数为maxItr;
         ExecutorService executor = Executors.newFixedThreadPool(threadNum);
         for (int itr = 0; itr < maxItr; itr++) {
+
+            if (itr%100==0 & itr>0){
+                featureIndex.save(modelFile.replace(".bin","_")+itr+".bin",false);
+            }
+
             featureIndex.clear();
 
             try {

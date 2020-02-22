@@ -1,5 +1,7 @@
 package com.smoothnlp.nlp.model.crfagu;
 
+import com.smoothnlp.nlp.basic.UtilFns;
+
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -327,8 +329,12 @@ public class EncoderFeatureIndex extends FeatureIndex {
         // update dictionary in key order, to make result compatible with crfpp
         Collections.sort(ordKeys);
         for (String key: ordKeys) {
+            int hardFreq = freq;
+            if (key.contains("U00")){
+                hardFreq = 50;
+            }
             Pair<Integer, Integer> featFreq = dic_.get(key);
-            if (featFreq.getValue() >= freq) {
+            if (featFreq.getValue() >= Math.max(hardFreq,freq)) {
                 old2new.put(featFreq.getKey(), newMaxId);
                 newDic_.put(key, new Pair<Integer,Integer>(newMaxId, featFreq.getValue()));
                 newMaxId += (key.charAt(0) == 'U' ? y_.size() : y_.size() * y_.size());
