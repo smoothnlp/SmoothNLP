@@ -45,19 +45,28 @@ public class DependencyGraghEdgeCostTrain {
 
         ArrayList<Float[][]> ftrCollection = new ArrayList<Float[][]>();
         ArrayList<Float[]> labelCollection = new ArrayList<Float[]>();
+        int counter_line = 0;
         for (String[] cdoc: conll_docs){
             try{
                 CoNLLDependencyGraph conllGraph =CoNLLDependencyGraph.parseLines2Graph(cdoc);
                 conllGraph.setPosNegSampleRate(negSampleRate);
                 conllGraph.selectIndex();
                 labelCollection.add(conllGraph.getAllLabel());
+
                 ftrCollection.add(conllGraph.buildAllFtrs());
+
+                counter_line+=1;
+                if (counter_line % 100==0){
+                    System.out.print(counter_line+"...");
+                }
+
             }catch (Exception e){
                 System.out.println(Arrays.toString(cdoc));
                 System.out.println(e);
                 break;
             }
         }
+        System.out.println();
 
         int record_counter= 0;
         int record_counter2 = 0;
@@ -115,15 +124,17 @@ public class DependencyGraghEdgeCostTrain {
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
                     put("nthread", nthreads);
-                    put("eta", 1.0);
-                    put("max_depth", 6);
+                    put("max_depth", 8);
                     put("silent", 0);
                     put("objective", "binary:logistic");
-                    put("colsample_bytree",0.9);
-                    put("colsample_bylevel",0.9);
+                    put("colsample_bytree",0.95);
+                    put("colsample_bylevel",0.95);
                     put("eta",0.2);
-                    put("subsample",0.9);
-                    put("lambda",0.5);
+                    put("subsample",0.95);
+                    put("lambda",0.2);
+
+                    put("min_child_weight",5);
+                    put("scale_pos_weight",12);
 
                     // other parameters
                     // "objective" -> "multi:softmax", "num_class" -> "6"
@@ -149,7 +160,7 @@ public class DependencyGraghEdgeCostTrain {
     public static void main (String[] args) throws IOException {
 //        readCoNLL2DMatrix("dev.conllx",2);
         // put in train, valid, model destinationß
-//        trainXgbModel("dev.conllx","test.conllx","dpmodel_tem.bin",1);
+//        trainXgbModel("dev_sample.conllx","dev_sample.conllx","dpmodel_tem.bin",1,1,10,8);
         if (args.length==3){
             trainXgbModel(args[0],args[1],args[2],20,1,10,8);
         }else{

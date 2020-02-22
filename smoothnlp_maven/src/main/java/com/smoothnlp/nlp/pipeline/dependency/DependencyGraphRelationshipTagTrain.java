@@ -105,6 +105,7 @@ public class DependencyGraphRelationshipTagTrain {
         ArrayList<Float[][]> ftrCollection = new ArrayList<Float[][]>();
         ArrayList<String[]> labelCollection = new ArrayList<String[]>();
 
+        int counter_line = 0;
 
         for (String[] cdoc: conll_docs){
 
@@ -112,6 +113,11 @@ public class DependencyGraphRelationshipTagTrain {
             CoNLLDependencyGraph conllGraph =CoNLLDependencyGraph.parseLines2Graph(cdoc);
             labelCollection.add(conllGraph.getAllTagLabel());
             ftrCollection.add(conllGraph.buildAllTagFtrs());
+
+            counter_line+=1;
+            if (counter_line % 100==0){
+                System.out.print(counter_line+"...");
+            }
 
             // 4 debug only, 检查feature 和 label添加是否正确
 //            System.out.print("graph size: ");
@@ -122,6 +128,7 @@ public class DependencyGraphRelationshipTagTrain {
 //            System.out.println(conllGraph.buildAllTagFtrs().length);
 
         }
+        System.out.println();
 
         int record_counter= 0;
         int record_counter2 = 0;
@@ -199,7 +206,6 @@ public class DependencyGraphRelationshipTagTrain {
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
                     put("nthread", nthreads);
-                    put("eta", 1.0);
                     put("max_depth", 6);
                     put("silent", 0);
                     put("objective", "multi:softprob");
@@ -207,7 +213,11 @@ public class DependencyGraphRelationshipTagTrain {
                     put("colsample_bylevel",0.95);
                     put("eta",0.2);
                     put("subsample",0.95);
-                    put("lambda",0.5);
+                    put("lambda",1.0);
+
+                    // tree methods for regulation
+                    put("min_child_weight",5);
+                    put("max_leaves",128);
 
                     // other parameters
                     // "objective" -> "multi:softmax", "num_class" -> "6"

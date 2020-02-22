@@ -22,6 +22,7 @@ public class CoNLLDependencyGraph {
     public float[][] edgeScores;
     private int posNegSampleRate = 2;
     private LinkedList<int[]> selectedIndexes = null;
+    private float[][] tagProba;
 
     private static float FloatRange = 1l << 32;
 
@@ -125,6 +126,7 @@ public class CoNLLDependencyGraph {
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
         this.tokens = tokens;
         this.nodeSize = this.tokens.length;
+        this.tagProba = SmoothNLP.POSTAG_PIPELINE.getAllProba(this.tokens);
     }
 
     public void setPosNegSampleRate(int rate){
@@ -140,6 +142,7 @@ public class CoNLLDependencyGraph {
         }
         this.tokens = ctokens;
         this.nodeSize = this.tokens.length;
+        this.tagProba = SmoothNLP.POSTAG_PIPELINE.getAllProba(this.tokens);
     }
 
     public String toString(){
@@ -156,53 +159,11 @@ public class CoNLLDependencyGraph {
         int rel1_end = Math.max(rel1.targetIndex,rel1.dependentIndex);
         int rel2_start = Math.min(rel2.targetIndex,rel2.dependentIndex);
         int rel2_end = Math.max(rel2.targetIndex,rel2.dependentIndex);
-
-//        if (rel1.dependentIndex==0 | rel2.dependentIndex==0){
-//            return false;
-//        }
-//
-//        if (rel2_start<rel1_start & rel1_end<rel2_end){
-//            return false;
-//        }
-//        if (rel1_start<rel2_start & rel2_end<rel1_end){
-//            return false;
-//        }
-//        if (rel1_start>rel2_end){
-//            return false;
-//        }
-//        if (rel2_start>rel1_end){
-//            return false;
-//        }
-//        if (rel1.dependentIndex==rel2.dependentIndex | rel1.targetIndex==rel2.targetIndex ){
-//            return false;
-//        }
-//        return true;
-//        if (rel1.dependentIndex==rel2.targetIndex){
-//            int joint = rel1.dependentIndex;
-//            if (rel1.targetIndex > joint & rel2.dependentIndex < joint){
-//                return false;
-//            }
-//            if (rel1.targetIndex < joint & rel2.dependentIndex > joint){
-//                return false;
-//            }
-//        }
-//        if (rel1.targetIndex == rel2.dependentIndex){
-//            int joint = rel1.targetIndex;
-//            if (rel1.dependentIndex > joint & rel2.targetIndex < joint){
-//                return false;
-//            }
-//            if (rel1.dependentIndex < joint & rel2.targetIndex > joint){
-//                return false;
-//            }
-//        }
         int range1 = rel1_end-rel1_start;
         int range2 = rel2_end - rel2_start;
         Set<Integer> covered_range = new HashSet<>();
         for (int i = rel1_start; i < rel1_end;i++){covered_range.add(i);}
         for (int i = rel2_start; i < rel2_end;i++){covered_range.add(i);}
-
-//        System.out.print(" -- " + covered_range.size()+" vs "+Math.max(range1,range2)+" --- ");
-
         if (covered_range.size()==Math.max(range1,range2)){
             return false;
         }
@@ -230,12 +191,6 @@ public class CoNLLDependencyGraph {
         for (int j = 1; j<this.nodeSize; j++){
             edgePQ.add(new ScoreEdge(0,j,this.edgeScores[0][j]));
         }
-
-//        System.out.println(UtilFns.toJson(this.edgeScores[16][10]));
-//        System.out.println(UtilFns.toJson(this.edgeScores[2][10]));
-//        System.out.println(UtilFns.toJson(this.edgeScores[0]));
-//        System.out.println(UtilFns.toJson(this.edgeScores[16]));
-
 
         // construct a set to keep track of unreached indexes
         HashSet<Integer> unreachedIndexes = new HashSet<Integer>();
@@ -270,14 +225,6 @@ public class CoNLLDependencyGraph {
 
 
             if (unreachedIndexes.contains(selectedEdge.target) | unreachedIndexes.isEmpty() ){
-//                System.out.println();
-//                System.out.print("Attempt insert: ");
-//                System.out.print(selectedEdge.source);
-//                System.out.print(":");
-//                System.out.print(selectedEdge.target);
-//                System.out.println();
-//                System.out.print("  ;;; check range index: ");
-
                 boolean projectable = true;
 
                 // 检查是否有edge交叉的情况
@@ -292,72 +239,9 @@ public class CoNLLDependencyGraph {
                 }
 
                 if (!projectable){  // 存在交叉的情况, skip 这条edge
-//                    System.out.print(" -- projectable failed");
-//                    System.out.println();
                     continue;
                 }
 
-                // check-cycles
-//                if (traverseMap[candidate_rel.targetIndex][candidate_rel.dependentIndex]==1){
-//                    System.out.print(" -- cycle failed");
-//                    System.out.println();
-//                    continue;
-//                }
-
-                // ------------------   update traverse map     ------------
-//                for (int j=0;j<this.nodeSize;j++) {
-//                    if (traverseMap[j][candidate_rel.dependentIndex]==1) {
-//                        System.out.println(" -- history traverse add "+j+ ":"+candidate_rel.targetIndex);
-//                        traverseMap[j][candidate_rel.targetIndex]=1;
-//                    }
-//                    if (traverseMap[candidate_rel.targetIndex][j]==1){
-//                        System.out.println(" -- history traverse add "+candidate_rel.dependentIndex+ ":"+j);
-//                        traverseMap[candidate_rel.dependentIndex][j]=1;
-//                    }
-//                }
-//
-//                for  (int i = 0;i < this.nodeSize; i++){
-//                    for (int j = 0; j< this.nodeSize;j++){
-//                        if (i!=j){
-//                            if (traverseMap[i][candidate_rel.dependentIndex]==1 & traverseMap[candidate_rel.targetIndex][j]==1){
-//                                traverseMap[i][j]=1;
-//                                System.out.println(" -- history traverse add (more)"+i+ ":"+j);
-//                            }
-//                        }
-//
-//                    }
-//                }
-//                traverseMap[candidate_rel.dependentIndex][candidate_rel.targetIndex]=1;
-                // ------------------   update traverse map     ------------
-
-
-//                boolean rootReachable_violation = false;
-//                for (int j = Math.min(candidate_rel.dependentIndex,candidate_rel.targetIndex)+1; j< Math.max(candidate_rel.dependentIndex,candidate_rel.targetIndex); j++){  // 确认candidate_rel 跨度之间的node, 可以被接下来的edge 达到 root_reachable
-//                    if (traverseMap[0][j]!=1){
-//                        System.out.println(" : check unreached "+j);
-//                        boolean node_rootReachable = false;
-//                        for (int i = 1; i< this.nodeSize ; i++){
-//                            if (traverseMap[0][i]==1){
-//                                DependencyRelationship tmp_rel = new DependencyRelationship(i,j);
-//                                if (! this.check2edgeCrossed(candidate_rel,tmp_rel)){
-//                                    node_rootReachable=true;
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                        if (!node_rootReachable){
-//                            System.out.println(" : "+j+" is root unreachable");
-//                            rootReachable_violation = true;
-//                            break;
-//                        }
-//
-//                    }
-//                }
-//                if (rootReachable_violation){
-//                    System.out.print(" -- root reachable failed");
-//                    System.out.println();
-//                    continue;
-//                }
 
 
                 // 计算tag model需要的特征+模型
@@ -409,34 +293,19 @@ public class CoNLLDependencyGraph {
                         }
                     }
 
-//                    System.out.print("-- add range : ");
-//                    System.out.print(start);
-//                    System.out.print(":");
-//                    System.out.print(end);
-//                    System.out.println();
 
                     for (int j = start; j<end; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
                         edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
                     }
                 }
 
-//                for (int j = 1; j<this.nodeSize; j++){  // 损失projectivity, 允许现有的edge 到任何 edge
-//                    edgePQ.add(new ScoreEdge(selectedEdge.target,j,this.edgeScores[selectedEdge.target][j]));
-//                }
-
             }else if (!unreachedIndexes.isEmpty()){
                 passedonEdges.add(selectedEdge);  // 如果dp_tree 尚未 full-span, 且该edge invalid, 暂时存起来
             }
         }
 
-
-
-//
-
         try{
             // 处理 depedency_relaitonship Tree
-
-
 
             Float[][] allftrs = this.buildAllTagFtrs();
             DMatrix dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
@@ -519,14 +388,17 @@ public class CoNLLDependencyGraph {
     }
 
     public Float[] buildFtrs(int dependentIndex, int targetIndex){
+        return buildFtrs(dependentIndex,targetIndex,true, true);
+    }
+
+    public Float[] buildFtrs(int dependentIndex, int targetIndex,
+                             boolean withTokenPosition, boolean withNeighborVec){
         /**
          * the feature building might be simple in early stages
          * for latter development, please reference: https://github.com/orgs/smoothnlp/teams/let-s-survive/discussions/6
          */
         List<Float> ftrs = new LinkedList<>();
         // 两个token 的 hashcode
-//        float dhashcode = this.tokens[dependentIndex].getToken().hashCode();
-//        float thashcode = this.tokens[targetIndex].getToken().hashCode();
 //        float dhashcode = hashString(this.tokens[dependentIndex].getToken());
 //        float thashcode = hashString(this.tokens[targetIndex].getToken());
 //        ftrs.add(dhashcode);
@@ -535,75 +407,63 @@ public class CoNLLDependencyGraph {
         // 两个postag 的 hashcode
 //        float dpostag_hcode = this.tokens[dependentIndex].getPostag().hashCode();
 //        float tpostag_hcode = this.tokens[targetIndex].getPostag().hashCode();
-        float dpostag_hcode = hashString(this.tokens[dependentIndex].getPostag());
-        float tpostag_hcode = hashString(this.tokens[targetIndex].getPostag());
-        ftrs.add(dpostag_hcode);
-        ftrs.add(tpostag_hcode);
+//        float dpostag_hcode = hashString(this.tokens[dependentIndex].getPostag());
+//        float tpostag_hcode = hashString(this.tokens[targetIndex].getPostag());
+//        ftrs.add(dpostag_hcode);
+//        ftrs.add(tpostag_hcode);
 
-        // 特征之间的 位置差
-        ftrs.add((float)dependentIndex - targetIndex);
-        ftrs.add(((float)dependentIndex - targetIndex)/this.tokens.length);
+        ftrs.add(this.tokens[dependentIndex].getTagproba());
+        ftrs.add(this.tokens[targetIndex].getTagproba());
 
-        // 两个token本身在句子中的位置
-        ftrs.add(((float)dependentIndex)/this.tokens.length);
-        ftrs.add(((float)targetIndex)/this.tokens.length);
+        if (withTokenPosition){
+            // 特征之间的 位置差
+//        ftrs.add((float)dependentIndex - targetIndex); // 去除token之间差距绝对值作为特征
+            ftrs.add(((float)dependentIndex - targetIndex)/this.tokens.length);
 
-        // 新特征: depedent 与 target 之间是否存在"逗号"
-//        int start_index = Math.min(dependentIndex,targetIndex);
-//        int end_index = Math.max(dependentIndex,targetIndex);
-//        float fccounter = 0.0f;
-//        for (int i = start_index; i<end_index;i++){
-//            if (this.tokens[i].token == "," | this .tokens[i].token =="，" ){
-//                fccounter+=1;
-//            }
-//        }
-//        ftrs.add(fccounter);
+            // 两个token本身在句子中的位置
+            ftrs.add(((float)dependentIndex)/this.tokens.length);
+            ftrs.add(((float)targetIndex)/this.tokens.length);
+        }
+
 
         // 添加 dependent 与 target 词邻近词的 postag
         for (int index: new int[]{dependentIndex,targetIndex}){
             for (int shift: new int[]{1,2,3}){
                 int left_neighbor_index = index-shift;
                 int right_neighbor_index = index+shift;
+
                 float leftFtr = 0.0f;
                 if (left_neighbor_index<0){
-                    leftFtr = "start".hashCode();
+                    leftFtr = hashString("start");
                 }else{
-//                    leftFtr = this.tokens[left_neighbor_index].getPostag().hashCode();
                     leftFtr = hashString(this.tokens[left_neighbor_index].getPostag());
                 }
                 ftrs.add(leftFtr);
                 float rightFtr = 0.0f;
                 if (right_neighbor_index<this.tokens.length){
-//                    rightFtr = this.tokens[right_neighbor_index].getPostag().hashCode();
                     rightFtr = hashString(this.tokens[right_neighbor_index].getPostag());
                 }else{
-                    rightFtr = "end".hashCode();
+                    rightFtr = hashString("end");
                 }
                 ftrs.add(rightFtr);
             }
         }
 
-        // dependent 与 target 之间token postag的count
-//        float[] interval_postag_counts = new float[Collections.max(postag2index.values())+1];
-//        for (int i = 1; i < this.nodeSize;i++){
-//            try{
-//                int postag_index = postag2index.get(this.tokens[i].getPostag());
-//                interval_postag_counts[postag_index]+=1;
-//            }catch (Exception e){
-//                System.out.println(this.tokens[i].getPostag());
-//                throw e;
-//            }
-//        }
-//        for (float f: interval_postag_counts){
-//            ftrs.add(f);
-//        }
+        if (withNeighborVec){
+            int left_shift = Math.max(0,targetIndex-1);
+            int right_shift = Math.min(targetIndex+1,this.tokens.length-1);
+            float[] neighbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processTokens(new CoNLLToken[]{this.tokens[left_shift],this.tokens[right_shift]});
+            for (float f: neighbor_vec) {ftrs.add(f);}
+        }
 
 
         // embedding 特征
-        float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[dependentIndex].getToken());
-        float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.process(this.tokens[targetIndex].getToken());
-        for (float f: dependent_vec) {ftrs.add(f);};
-        for (float f: target_vec) {ftrs.add(f);};
+        float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[dependentIndex]);
+        float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[targetIndex]);
+        for (float f: dependent_vec) {ftrs.add(f);}
+        for (float f: target_vec) {ftrs.add(f);}
+
+        for (float f: this.tagProba[targetIndex]) {ftrs.add(f);}
 
         return ftrs.toArray(new Float[ftrs.size()]);
     }
@@ -626,24 +486,22 @@ public class CoNLLDependencyGraph {
         }
         int ftr_size = buildFtrs(0,0).length;
 
+//        float[][] tagProbas = SmoothNLP.POSTAG_PIPELINE.getAllProba(this.tokens);
+//        ftr_size+= tagProbas[0].length;
+
         Float[][] all_ftrs = new Float[postiveIndexes.size()][ftr_size];
         int count = 0;
-
-//        System.out.println(" ~~~~~~~~ProcessFtr4Sentence~~~~~~~  ");
-
         for (int[] index : postiveIndexes){
             int i = index[0];
             int j = index[1];
-            // 4 debug only' 验证添加特征顺序是否正确
-//            System.out.print("ftr dependent index: ");
-//            System.out.print(i);
-//            System.out.print("  ;;;  ftr target index: ");
-//            System.out.println(j);
 
-            all_ftrs[count] = buildFtrs(i,j);
+            List<Float> ftrList = new LinkedList<>();
+            for (float ftr: buildFtrs(i,j)){ ftrList.add(ftr); }
+//            for (float ftr: tagProbas[j]){ ftrList.add(ftr); }
+
+            all_ftrs[count] = ftrList.toArray(new Float[ftr_size]);
             count+=1;
         }
-//        System.out.println(" ~~~~~~~~ProcessFtr4Sentence~~~~~~~  ");
         return all_ftrs;
 
     }
@@ -653,13 +511,21 @@ public class CoNLLDependencyGraph {
         /**
          * build features for all token pair
          */
-        int ftr_size = buildFtrs(0,0).length;
+        boolean position = true;
+        boolean neighbors = true;
+
+        int ftr_size = buildFtrs(0,0,position,neighbors).length;
+//        float[][] tagProbas = SmoothNLP.POSTAG_PIPELINE.getAllProba(this.tokens);
+//        ftr_size+= tagProbas[0].length;
 
         if (selectedIndexes==null){
             Float[][] all_ftrs = new Float[(this.nodeSize)*(this.nodeSize)][ftr_size];
             for (int i = 0; i< this.nodeSize ;i++){
                 for (int j =0; j< this.nodeSize; j++){
-                    all_ftrs[i*(this.nodeSize)+j] = buildFtrs(i,j);
+                    List<Float> ftrList = new LinkedList<>();
+                    for (float ftr: buildFtrs(i,j,position,neighbors)){ ftrList.add(ftr); }
+//                    for (float ftr: tagProbas[j]){ ftrList.add(ftr); }
+                    all_ftrs[i*(this.nodeSize)+j] = ftrList.toArray(new Float[ftr_size]);
                 }
             }
             return all_ftrs;
@@ -669,7 +535,7 @@ public class CoNLLDependencyGraph {
             for (int[] index : selectedIndexes){
                 int i = index[0];
                 int j = index[1];
-                all_ftrs[count] = buildFtrs(i,j);
+                all_ftrs[count] = buildFtrs(i,j,position,neighbors);
                 count+=1;
             }
             return all_ftrs;
@@ -713,18 +579,9 @@ public class CoNLLDependencyGraph {
     public String[] getAllTagLabel(){
         // 注意root 作为第0个Token没有tag label
         String[] labels = new String[this.tokens.length-1];
-//        System.out.print("token size: ");
-//        System.out.println(this.tokens.length);
-//        System.out.println(" ~~~~~~~~ProcessTag4Sentence~~~~~~~  ");
-
         for (int i = 1; i < this.tokens.length; i++){
-//            System.out.print("token value: ");
-//            System.out.print(this.tokens[i].token);
-//            System.out.print("  ;;;  token tag: ");
-//            System.out.println(this.tokens[i].relationship);
             labels[i-1] = this.tokens[i].relationship;
         }
-//        System.out.println(" ~~~~~~~~ProcessTag4Sentence~~~~~~~  ");
         return labels;
     }
 
@@ -805,8 +662,16 @@ public class CoNLLDependencyGraph {
 //        System.out.println(UtilFns.toJson(g.selectedIndexes));
 //
 ////        System.out.println(g);
+
+        long start = System.currentTimeMillis();
+
         System.out.println(UtilFns.toJson(g.buildAllTagFtrs()));
-//        System.out.println(g.buildAllFtrs()[0].length);
+        long end = System.currentTimeMillis();
+        System.out.print("tag feature time: ");
+        System.out.println(end-start);
+
+        System.out.println(g.buildAllFtrs()[0].length);
+        System.out.println(g.buildAllTagFtrs()[0].length);
 //        System.out.println(g.getAllLabel().length);
 //
 //        System.out.println(g.buildFtrs(0,1).length);

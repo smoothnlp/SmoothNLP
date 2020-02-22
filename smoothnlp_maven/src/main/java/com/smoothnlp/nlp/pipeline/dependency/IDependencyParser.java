@@ -1,7 +1,11 @@
 package com.smoothnlp.nlp.pipeline.dependency;
 
+import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
+import ml.dmlc.xgboost4j.java.Booster;
+import ml.dmlc.xgboost4j.java.XGBoost;
 
+import java.io.InputStream;
 import java.util.List;
 
 public interface IDependencyParser {

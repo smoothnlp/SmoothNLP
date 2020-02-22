@@ -78,6 +78,8 @@ public class CKYDependencyParser implements IDependencyParser {
 //            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
         }
 
+
+
         this.targetAvgProbas = new float[cgraph.size()];
         for (int j = 0; j < cgraph.size(); j++) {
             float targetSum = 0f;
@@ -97,13 +99,13 @@ public class CKYDependencyParser implements IDependencyParser {
         ptree.A(edgeScores,this);
         long end = System.currentTimeMillis();
         // evaluate CKY-Algorithm run-time
-        System.out.print("parse PTree time: ");
-        System.out.println(end-start);
+//        System.out.print("parse PTree time: ");
+//        System.out.println(end-start);
 
-        // print out tree score
-        System.out.println("tree score: "+ptree.score);
-        // print out total tree calculated during optimization for debug
-        System.out.println("tree calcualted total: "+this.AcedTrees.size());
+//        // print out tree score
+//        System.out.println("tree score: "+ptree.score);
+//        // print out total tree calculated during optimization for debug
+//        System.out.println("tree calcualted total: "+this.AcedTrees.size());
 //
 //        // print out token size
 //        System.out.println("token size: "+stokens.size());
@@ -414,13 +416,25 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public static void main(String[] args) throws Exception {
         IDependencyParser dparser = new CKYDependencyParser();
-        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
+//        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
 //        String text = "百度还创新性地推出了基于搜索的营销推广服务";
 //        String text = "一度被政策冷落的油电混合动力汽车，有可能被重新加注鼓励的法码。";
+//        String text = "一度被政策冷落的油电混合动力汽车";
 //        String text = "韩系轮胎卷入“寒流”";
 //        String text = "新款讴歌TL登上环保目录";
 //        String text = "呼吸道飞沫传染是新型冠状病毒的主要传播途径";
 //        String text = "邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元";
+//        String text = "玻璃钢是以合成树脂为基体材料，以玻璃纤维及其制品为增强材料组成的复合材料。";
+//        String text = "据了解，三七互娱旗下首款云游戏已在开发当中，未来将登陆华为云游戏平台。";  // 华为postag=vv; 117模型中 "平台"--nn-->"华为"
+//        String text = "国产特斯拉Model3宣布降价至29.9万元";  // Embed模型中, 特斯拉被识别成VV, 117ftr模型识别正确
+//        String text = "上海三维制药有限公司是成立于1958年的中国大型制药企业，现作为上药集团旗下的主要成员之一，专业从事APIs和固体制剂的研究、开发、注册、生产、合同制造、市场推广和销售";
+//        String text = "上岛咖啡于1968年进驻于宝岛台湾开始发展";
+//        String text = "玻璃钢平板是保温项目普遍采用的外护层材料，具有阻燃，耐腐蚀，同时根据要求配制各种色彩，使外观更美观。";  // 主语问题; 在训练epoch > 1000 后解决
+//        String text = "七喜电脑股份有限公司其前身为1997年8月成立的七喜电脑有限公司";
+//        String text = "2层口罩的制作材料包括无纺布、鼻梁筋、耳挂。";
+//        String text = "SmoothNLP在V0.3版本中正式推出知识抽取功能";
+        String text =  "中国银行是香港、澳门地区的发钞行，业务范围涵盖商业银行、投资银行、基金、保险、航空租赁等";  // 在137模型中(添加上次词Embedding), 识别: 香港--conj-->地区
+//        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);

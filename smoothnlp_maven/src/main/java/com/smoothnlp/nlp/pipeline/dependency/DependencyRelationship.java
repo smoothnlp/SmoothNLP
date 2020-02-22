@@ -38,7 +38,7 @@ public class DependencyRelationship {
         if (this.dependent==null | this.target ==null){
             return String.valueOf(this.dependentIndex) + String.format("  --(%s)-->  ",this.relationship)+String.valueOf(this.targetIndex);
         }else{
-            return this.dependent.getToken() + String.format(" (%s) --(%s)--> (%s) ",this.dependentIndex,this.relationship,this.targetIndex)+this.target.getToken();
+            return this.dependent.getToken() + String.format(" (%s) --(%s)--> (%s) ",this.dependentIndex,this.relationship,this.targetIndex)+this.target.getToken() + " "+this._edge_score+" - "+this._tag_score;
         }
     }
 

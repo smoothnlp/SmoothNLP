@@ -94,21 +94,23 @@ public class MaxEdgeScoreDependencyParser implements IDependencyParser{
 //        end = System.currentTimeMillis();
 //        System.out.print("dependency time: ");
 //        System.out.println(end-start);
-
+        String text = "在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。";
+//        String text = "呼吸道飞沫传染是新型冠状病毒的主要传播途径";
         long start = System.currentTimeMillis();
-        for (DependencyRelationship e : dparser.parse("公开资料显示，香雪制药2016年通过股权受让的方式取得湖北天济55%股权。")) {
+        for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
         }
         long end = System.currentTimeMillis();
         System.out.print("dependency time: ");
         System.out.println(end-start);
+//        System.out.println(UtilFns.toJson(dparser.parse("阿里巴巴是以曾担任英语教师的马云为首的18人于1999年在浙江杭州创立的公司 ")));
 //        System.out.println(UtilFns.toJson(dparser.parse("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元")));
 ////        System.out.println(UtilFns.toJson(dparser.parse("中共中央政治局召开会议,分析研究2019年经济工作")));
 //        System.out.println(UtilFns.toJson(dparser.parse("阿里与腾讯达成合作协议")));
 //        System.out.println(UtilFns.toJson(dparser.parse("阿里巴巴在英属开曼群岛注册成立")));
 //        System.out.println(UtilFns.toJson(dparser.parse("在面对用户的搜索产品不断丰富的同时，百度还创新性地推出了基于搜索的营销推广服务，并成为最受企业青睐的互联网营销推广平台。")));
 //        System.out.println(UtilFns.toJson(dparser.parse("湖北华一专用汽车有限公司是随州专用汽车制造销售公司")));
-        System.out.println(UtilFns.toJson(dparser.parse("公开资料显示，香雪制药2016年通过股权受让的方式取得湖北天济55%股权。")));
+//        System.out.println(UtilFns.toJson(dparser.parse("公开资料显示，香雪制药2016年通过股权受让的方式取得湖北天济55%股权。")));
 //        System.out.println(UtilFns.toJson(dparser.parse("星晖新能源智能汽车生产基地是省重点发展项目之一，总投资超过200亿元，于2018年1月在黄冈产业园正式开工。")));
 
     }
