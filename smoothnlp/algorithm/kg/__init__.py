@@ -38,8 +38,9 @@ def extract(text,
     else:
         raise TypeError(" Unsupported type for text parameter: {}".format(text))
     all_kgs = []
-    for sent in sents:
-        all_kgs+=extract_all_kg(text = sent, pretty = pretty)
+    sentkgs = extract_all_kg(text = sents, pretty = pretty)
+    for sentkg in sentkgs:
+        all_kgs+=sentkg
     return all_kgs
 
 def rel2graph(rels:list):
