@@ -3,6 +3,12 @@ import networkx as nx
 from ...server import _request
 
 def extract_all_kg(text,pretty:bool = True):
+    """
+    单一文本的知识图谱抽取
+    :param text:
+    :param pretty:
+    :return:
+    """
     kg_result = _request(text,path="/kg/query",other_params={'pretty':pretty})
     return kg_result
 
