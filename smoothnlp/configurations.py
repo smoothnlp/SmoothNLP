@@ -5,7 +5,7 @@ class Config():
         self.NUM_THREADS = 2
         self.POOL_TYPE = "thread"
         self.LOG_LEVEL = 30
-        self.HOST = "http://kong.smoothnlp.com/nlp"
+        self.HOST = "http://kong.smoothnlp.com:8000"
         self.logger = logging.getLogger("SmoothNLP")
         self.setLogLevel(self.LOG_LEVEL)
 
