@@ -6,14 +6,14 @@ from multiprocessing.pool import ThreadPool
 from multiprocessing import Pool
 
 
-def _request_single(text, path, counter=0, max_size_limit=200):
+def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict = {}):
     if len(text) > max_size_limit:
         raise ValueError(
             "text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
     if counter > 9999:
         raise Exception(
             " exceed maximal attemps for parsing. ")
-    content = {"text": text}
+    content = {"text": text,**other_params}
     r = requests.get(config.HOST + path, params=content)
     result = r.json()
     if r.status_code==429:
@@ -27,23 +27,23 @@ def _request_single(text, path, counter=0, max_size_limit=200):
     else:
         raise Exception(r.text)
 
-def _request_concurent(texts:list,path,max_size_limit=200):
+def _request_concurent(texts:list,path,max_size_limit=200,other_params:dict = {}):
     if config.POOL_TYPE=="process":
         pool = Pool(config.NUM_THREADS)
     else:
         pool = ThreadPool(config.NUM_THREADS)
-    params = [(text,path,0,max_size_limit) for text in texts]
+    params = [(text,path,0,max_size_limit,other_params) for text in texts]
     result = pool.starmap(_request_single,params)
     pool.close()
     return result
 
-def _request(text, path="/query", max_size_limit=500):
+def _request(text, path="/nlp/query", max_size_limit=500, other_params:dict = {}):
     if isinstance(text,list):
         config.logger.info(
             "request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS, config.POOL_TYPE))
-        return _request_concurent(text,path,max_size_limit)
+        return _request_concurent(text,path,max_size_limit,other_params)
     elif isinstance(text,str):
-        return _request_single(text,path,counter=0,max_size_limit=max_size_limit)
+        return _request_single(text,path,counter=0,max_size_limit=max_size_limit,other_params=other_params)
     elif isinstance(text,dict):
         return text
     else:
