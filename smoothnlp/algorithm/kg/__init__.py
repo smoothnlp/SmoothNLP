@@ -94,7 +94,7 @@ def graph2fig(g,x:int=800,y:int=600):
             with_labels=True,
             node_color="lightblue",
             edge_color="grey",
-            node_size=[min(len(n), 6) * 1500 for n in g.nodes],
+            node_size=[min(len(n), 5) * 1500 for n in g.nodes],
             alpha=1.0,
             font_color="white",
             font_size=14,
