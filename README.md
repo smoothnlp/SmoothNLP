@@ -1,7 +1,5 @@
 # [SmoothNLP](http://www.smoothnlp.com)
-[![GitHub release](https://img.shields.io/badge/Version-0.3-green.svg)](https://github.com/zhangruinan/SmoothNLP/releases)
-[接口服务](https://market.cloud.tencent.com/products/16368)
-
+![Version](https://img.shields.io/badge/Version-0.3-green.svg) ![Python3](https://img.shields.io/badge/Python-3-blue.svg?style=flat) [![star this repo](http://githubbadges.com/star.svg?user=smoothnlp&repo=SmoothNLP)](https://github.com/smoothnlp/SmoothNLP/stargazers) [![fork this repo](http://githubbadges.com/fork.svg?user=smoothnlp&repo=SmoothNLP&color=fff&background=007ec6)](http://github.com/smoothnlp/SmoothNLP/fork)
 ****	
 
 | Author | Email | 
@@ -16,6 +14,10 @@
 
 - [SmoothNLP](#smoothnlp)
     - [Install 安装](#install-安装)
+    - [知识图谱](#知识图谱)
+        - [调用示例&可视化](#调用示例可视化)
+        - [功能说明](#功能说明)
+            - [应用案例:](#应用案例)
     - [NLP基础Pipelines](#nlp基础pipelines)
         - [1. Tokenize分词](#1-tokenize分词)
         - [2. Postag词性标注](#2-postag词性标注)
@@ -26,28 +28,62 @@
         - [7. 日期描述结构化](#7-日期描述结构化)
         - [8. 依存句法分析](#8-依存句法分析)
         - [9. 切句](#9-切句)
-    - [知识图谱](#知识图谱)
-        - [1. 事件抽取](#1-事件抽取)
-        - [2. 短语抽取](#2-短语抽取)
-            - [纯名词短语](#纯名词短语)
-            - [带有修饰的名词短语](#带有修饰的名词短语)
-            - [主语抽取](#主语抽取)
+        - [10. 多线程支持](#10-多线程支持)
+        - [11. 日志](#11-日志)
     - [无监督学习](#无监督学习)
         - [新词挖掘](#新词挖掘)
         - [事件聚类](#事件聚类)
     - [有监督学习](#有监督学习)
         - [(资讯)事件分类](#资讯事件分类)
-    - [Java 支持](#java-支持)
-        - [说明&常见问题](#说明常见问题)
+    - [服务说明](#服务说明)
+        - [常见问题](#常见问题)
+    - [设置字体](#设置字体)
     - [彩蛋](#彩蛋)
 
 <!-- /TOC -->
 
-
 ## Install 安装
+通过`pip`安装
 ```shell
-pip install smoothnlp>=0.2.20
+pip install smoothnlp>=0.3.0
 ```
+
+通过源代码安装最新版本
+```shell
+git clone https://github.com/smoothnlp/SmoothNLP.git
+cd SmoothNLP
+python setup.py install
+```
+
+
+## 知识图谱
+> 仅支持SmoothNLP `V0.3.0`以后的版本. 
+
+### 调用示例&可视化
+
+```python
+from smoothnlp import kg
+rels = kg.extract(text = ["SmoothNLP在V0.3版本中正式推出知识抽取功能",
+                    "SmoothNLP专注于可解释的NLP技术",
+                    "SmoothNLP支持Python与Java",
+                    "SmoothNLP将帮助工业界与学术界更加高效的构建知识图谱",
+                    "SmoothNLP是上海文磨网络科技公司的开源项目"])  ## 调用SmoothNLP解析
+g = kg.rel2graph(rels)  ## 依据文本解析结果, 生成networkx有向图
+fig = kg.graph2fig(g,x=1000,y=1000)  ## 生成 matplotlib.figure.Figure 图片
+fig.savefig("SmoothNLP_KG_Demo.png") ## 保存图片到PNG
+```
+
+![SmoothNLP_KG_Demo](/tutorials/知识图谱/SmoothNLP_KG_Demo.png)
+
+### 功能说明
+* 在V=0.3版本中, SmoothNLP的知识抽取模块仅支持包含"主语"对象的结构性关系抽取; 
+* 目前支持的关系: `动作事件`,`状态修饰`,`数字修饰`,`条件修饰`;
+* 更多关系, 包括: "从属关系", "并列关系", "描述修饰"等 将在 V0.4中发布. 
+
+#### 应用案例: 
+ 1. [基于百度百科的知识图谱构建]()
+
+ ---------
 
 ## NLP基础Pipelines
 
@@ -149,53 +185,20 @@ smoothnlp.split2sentences("句子1!句子2!")
 > ['句子1!', '句子2!']
 ```
 
-## 知识图谱
-> 仅支持SmoothNLP `V0.3.0`以后的版本. 
-### 1. 事件抽取
-
-**说明** 
-目前支持两类动词主导的事件, 分别是`state`,`action`; 具体定义: 
-* `action`: 可以在时间片段上完成的的动作, 如: `ryzen3000系列采用了7nm工艺的处理器`
-* `state`: 进入(跨时间状态的)的状态, 如: `特斯拉是全球最大的电动汽车制造商`
-
-**示例:** 
+### 10. 多线程支持
+> SmoothNLP 默认使用2个Thread进行服务调用; 
 ```python
-from smoothnlp import kg
-kg.extract_all_event("虽然存在很多争议,特斯拉依旧是全球最成功的电动汽车制造商之一")
-> [{'subject': '特斯拉',
-    'action': '是',
-    'object': '全球最成功的电动汽车制造商之一',
-    'type': 'state'}]
+from smoothnlp import config
+config.setNumThreads(2)
 ```
 
+### 11. 日志
 ```python
-kg.extract_all_event("ryzen3000系列采用了7nm工艺的处理器")
-> [{'subject': 'ryzen3000系列',
-    'action': '采用',
-    'object': '7nm工艺的处理器',
-    'type': 'action'}]
+from smoothnlp import config
+config.setLogLevel("DEBUG")  ## 设定日志级别
 ```
 
-### 2. 短语抽取
-#### 纯名词短语
-```python
-from smoothnlp import kg
-kg.extract_noun_phrase(text="首发|全域保险科技平台“南燕保险科技”完成1500万美元B+轮融资，史带投资领投",pretty=True, with_describer=False)
-> ['全域保险科技平台', '南燕保险科技']
-```
-
-#### 带有修饰的名词短语
-```python
-extract_noun_phrase(text="特斯拉是全球最大的电动汽车制造商。",multi_token_only = False, pretty = True, with_describer=False)
-> ['特斯拉', '全球最大的电动汽车制造商']
-```
-
-#### 主语抽取
-```python
-from smoothnlp import kg
-kg.extract_subject("纺织品B2B平台百布完成1亿美金C2轮融资 老虎环球基金领投")
-> ['纺织品B2B平台百布']
-```
+-----
 
 ## 无监督学习
 ### 新词挖掘
@@ -253,29 +256,32 @@ kg.extract_subject("纺织品B2B平台百布完成1亿美金C2轮融资 老虎�
 
 ----------
 
-## Java 支持
-**SmoothNLP**项目的主要功能都在Java中有实现, 打包好的Jar文件会在[Release页面]定期更新, 或者在提供的[maven](https://github.com/smoothnlp/SmoothNLP/tree/master/smoothnlp_maven)项目代码中, 直接编译即可
-```
-git clone https://github.com/smoothnlp/SmoothNLP.git
-cd smoothnlp_maven
-mvn clean package
-```
-编译好的Jar文件会在 `smoothnlp_maven/target/smoothnlp-*.jar`
+## 服务说明
+1. SmoothNLP通过**云端微服务**提供完整的REST文本解析及相关服务应用. 对于开源爱好者等一般用户, 目前我们提供qps<=5的服务支持; 对于商业用户, 我们提供部不受限制的云端账号或本地部署方案. 
+2. 包括:切词,词性标注,依存句法分析等基础NLP任务由java代码实现, 在文件夹`smoothnlp_maven`下. 可通过 `maven`编译打包
+3. 如果您寻求商业化的NLP或知识图谱解决方案, 欢迎邮件至 business@smoothnlp.com
 
-### 说明&常见问题
+
+### 常见问题
 1. Python环境下, SmoothNP的所有功能通过公开的微服务方式对外数据. 对于本地支持,我们采用了基于`Jpype`的方案. 对应的jar包可基于本项目直接打包使用, 或联系我们提供下载链接. 
 2.  注意, 在0.2.20版本调整后, 以下基础Pipeline功能仅对字符串长度做出了限制(不超过200). 如对较长corpus进行处理, 请先试用`smoothnlp.split2sentences` 进行切句预处理
-3.  如果您使用的Mac,且用anaconda管理python, 可能会碰到报错, 请尝试: 
+4. 知识图谱可视化部分默认支持字体`SimHei`,大多数环境下的matplotlib不支持中文字体, 我们提供字体包的[下载链接](); 您可以通过运行以下代码, 将`Simhei`字体加载入matplotlib字体库
+
+```python
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as font_manager
+## 设置字体
+font_dirs = ['simhei/']
+font_files = font_manager.findSystemFonts(fontpaths=font_dirs)
+font_list = font_manager.createFontList(font_files)
+font_manager.fontManager.ttflist.extend(font_list)
+plt.rcParams['font.family'] = "SimHei"
 ```
-export MACOSX_DEPLOYMENT_TARGET=10.10 CFLAGS='-stdlib=libc++' 
-pip install jpype1 
-pip install smoothnlp
-```
-4. 如果您寻求商业化的NLP解决方案, 欢迎邮件至 business@smoothnlp.com
 
 ## 彩蛋
 1. 如果你对NLP相关算法或引用场景感兴趣, 但是却缺少实现数据, 我们提供免费的数据支持, [下载](https://github.com/smoothnlp/FinancialDatasets). 
 2. 如果你是高校学生, 寻求`NLP`或`知识图谱`相关的研究素材, 甚至是实习机会. 欢迎邮件到 contact@smoothnlp.com
+
 
 
 
