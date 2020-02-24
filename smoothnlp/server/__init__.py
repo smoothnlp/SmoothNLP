@@ -38,7 +38,7 @@ def _request_concurent(texts:list,path,max_size_limit=200,other_params:dict = {}
     pool.close()
     return result
 
-def _request(text, path="/nlp/query", max_size_limit=500, other_params:dict = {}):
+def _request(text, path = config.NLP_PATH, max_size_limit=500, other_params:dict = {}):
     if isinstance(text,list):
         config.logger.info(
             "request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS, config.POOL_TYPE))
