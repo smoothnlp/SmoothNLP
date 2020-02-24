@@ -1,11 +1,9 @@
 import sys
-
-import smoothnlp.algorithm
 from .algorithm import kg
 from .configurations import config
 
 if sys.version_info[0] != 3:
-    # now support python version 3
+    # Only support python version 3
     raise EnvironmentError("~~ SmoothNLP supports Python3 ONLY for now ~~~")
 
 

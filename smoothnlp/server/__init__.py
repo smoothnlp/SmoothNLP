@@ -15,8 +15,9 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
             " exceed maximal attemps for parsing. ")
     content = {"text": text,**other_params}
     r = requests.get(config.HOST + path, params=content)
+    config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
     result = r.json()
-    if r.status_code==429:
+    if r.status_code==429:  ## qps超限制
         counter += 1
         config.logger.debug("Request QPS exceeds server limit")
         config.logger.info("Request has been tried for {} times".format(counter))
@@ -95,11 +96,16 @@ class SmoothNLPRequest(object):
             return
         financial_agency = []
         for entity in entities:
-            if entity['nerTag'].lower() == "company_name":
+            if entity['nerTag'].lower() in {"company_name","gs"}:
                 financial_agency.append(entity)
         return financial_agency
 
     def segment(self,text):
+        """
+        切词
+        :param text:
+        :return:
+        """
         result = _request(text)
         tokens = extract_meta(result, "tokens")
         if tokens is None or text is None:
@@ -111,6 +117,11 @@ class SmoothNLPRequest(object):
         return tokens
 
     def postag(self,text):
+        """
+        词性标注
+        :param text:
+        :return:
+        """
         result = _request(text)
         tokens = extract_meta(result, "tokens")
         return tokens
@@ -119,6 +130,12 @@ class SmoothNLPRequest(object):
         return _request(text,path=config.NLP_PATH)
 
     def parse_date(self,givendate,pubdate=None):
+        """
+        (根据绝对日期) , 解析日期对应的真实日期范围
+        :param givendate:
+        :param pubdate:
+        :return:
+        """
         parameters = {"givendate": givendate}
         if pubdate is not None or pubdate != "":
             parameters['pubdate'] = pubdate
@@ -126,6 +143,11 @@ class SmoothNLPRequest(object):
         return r.json()['payload']['response']
 
     def split2sentences(self,text:str):
+        """
+        依据标点正则切句
+        :param text:
+        :return:
+        """
         split_pattern = "[。;!?！？;\n\rn]+"
         return re.split(split_pattern,text)
         # return _request(text, path = '/split2sentences',max_size_limit=999999)
