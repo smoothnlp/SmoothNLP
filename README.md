@@ -288,7 +288,7 @@ config.setLogLevel("DEBUG")  ## 设定日志级别
 ### 常见问题
 1. Python环境下, SmoothNP的所有功能通过公开的微服务方式对外数据. 对于本地支持,我们采用了基于`Jpype`的方案. 对应的jar包可基于本项目直接打包使用, 或联系我们提供下载链接. 
 2.  注意, 在0.2.20版本调整后, 以下基础Pipeline功能仅对字符串长度做出了限制(不超过200). 如对较长corpus进行处理, 请先试用`smoothnlp.split2sentences` 进行切句预处理
-4. 知识图谱可视化部分默认支持字体`SimHei`,大多数环境下的matplotlib不支持中文字体, 我们提供字体包的[下载链接](); 您可以通过运行以下代码, 将`Simhei`字体加载入matplotlib字体库
+4. 知识图谱可视化部分默认支持字体`SimHei`,大多数环境下的matplotlib不支持中文字体, 我们提供字体包的[下载链接](http://storm.cloud.smoothnlp.com/s/HHM6KkmPymie4RA); 您可以通过运行以下代码, 将`Simhei`字体加载入matplotlib字体库
 
 ```python
 import matplotlib.pyplot as plt
