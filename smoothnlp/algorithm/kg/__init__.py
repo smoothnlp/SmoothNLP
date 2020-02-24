@@ -21,8 +21,14 @@ def extract(text,
         支持格式-2: [str], list of str
     :param pretty: 是否对词组结果进行合并, 默认True
         boolean: True/False
-    :return: 知识图谱(N-元组)
-        list
+    :return: 知识图谱(N-元组)  -- List
+        字段:
+            subject: 对象1
+            object:  对象2
+            aciton: 连接关系
+            type:   连接类型
+            __conf_score: 置信概率
+
 
     Example:
         extract("SmoothNLP在V0.3版本中正式推出知识抽取功能")
