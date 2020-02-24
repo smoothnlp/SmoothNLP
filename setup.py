@@ -17,8 +17,8 @@ setuptools.setup(
     install_requires=[
         'numpy',
         "requests",
-        "sqlalchemy",
-        "pygtrie"
+        "pygtrie",
+        "networkx"
       ],
     keywords=["Chinese","NLP","Python","SmoothNLP"],
     classifiers=[

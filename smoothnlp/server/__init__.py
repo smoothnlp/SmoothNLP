@@ -116,7 +116,7 @@ class SmoothNLPRequest(object):
         return tokens
 
     def analyze(self, text):
-        return _request(text)
+        return _request(text,path=config.NLP_PATH)
 
     def parse_date(self,givendate,pubdate=None):
         parameters = {"givendate": givendate}
