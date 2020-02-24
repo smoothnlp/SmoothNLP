@@ -16,6 +16,7 @@
     - [Install 安装](#install-安装)
     - [知识图谱](#知识图谱)
         - [调用示例&可视化](#调用示例可视化)
+        - [功能文档](#功能文档)
         - [功能说明](#功能说明)
             - [应用案例:](#应用案例)
     - [NLP基础Pipelines](#nlp基础pipelines)
@@ -74,6 +75,28 @@ fig.savefig("SmoothNLP_KG_Demo.png") ## 保存图片到PNG
 ```
 
 ![SmoothNLP_KG_Demo](/tutorials/知识图谱/SmoothNLP_KG_Demo.png)
+
+### 功能文档
+```python
+from smoothnlp import kg
+kg.extract(text = "SmoothNLP在V0.3版本中正式推出知识抽取功能", pretty = True)
+"""
+对输入的 text 进行 知识图谱(N元组)抽取
+    :param text: 进行知识抽取的文本
+        支持格式-1: str, 超过一定长度的text会被自动切句
+        支持格式-2: [str], list of str
+    :param pretty: 是否对词组结果进行合并, 默认True
+        boolean: True/False
+    :return: 知识图谱(N-元组)  -- List 
+        字段: 
+            subject: 对象1 
+            object:  对象2
+            aciton: 连接关系
+            type:   连接类型
+            __conf_score: 置信概率
+"""
+>> [{'_conf_score': 0.9187054, 'action': '正式推出', 'object': '知识抽取功能', 'subject': 'SmoothNLP', 'type': 'action'}]
+```
 
 ### 功能说明
 * 在V=0.3版本中, SmoothNLP的知识抽取模块仅支持包含"主语"对象的结构性关系抽取; 
