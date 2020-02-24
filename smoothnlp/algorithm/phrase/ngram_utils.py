@@ -7,7 +7,7 @@ from collections import Counter
 from operator import mul
 from functools import reduce
 from pygtrie import Trie
-from smoothnlp import logger
+from smoothnlp import config
 
 
 
@@ -216,7 +216,7 @@ def get_scores(corpus,
     end_chars = Counter([n[-1] for n in target_ngrams])
     threshold = int(len(target_ngrams) * 0.004)
     threshold = max(50,threshold)
-    logger.info("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
+    config.logger.info("~~~ Threshold used for removing start end char: {} ~~~~".format(threshold))
     invalid_start_chars = set([char for char, count in start_chars.items() if count > threshold])
     invalid_end_chars = set([char for char, count in end_chars.items() if count > threshold])
 
@@ -226,15 +226,3 @@ def get_scores(corpus,
         word_info_scores.pop(n)
 
     return word_info_scores
-
-
-# print(sentence_split_by_punc("你好,我叫Victor"))
-#
-# print(list(generate_ngram("你好,我叫Victor")))
-# print(generate_ngram(["你好,我叫Victor"]))
-#
-# corpus = ["你好,我叫Victor","你好,我叫Jacinda","你好,我叫Tracy"]
-# ngram_freq,ngram_keys = get_ngram_freq_info(corpus,min_freq=0)
-# print(get_scores(corpus))
-
-# print(get_scores(corpus_iterator(corpus),chunk_size=1))

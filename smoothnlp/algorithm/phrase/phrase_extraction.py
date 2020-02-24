@@ -1,8 +1,7 @@
-from smoothnlp import logger
 from smoothnlp.algorithm.phrase.ngram_utils import sentence_split_by_punc,remove_irregular_chars,get_scores
 from datetime import datetime
 import _io
-from smoothnlp import logger
+from smoothnlp import config
 import types
 
 
@@ -31,7 +30,7 @@ def chunk_generator_adapter(obj, chunk_size):
         else:
             tend = datetime.now()
             sec_used = (tend-tstart).seconds
-            logger.info('~~~ Time used for data processing: {} seconds'.format(sec_used))
+            config.logger.info('~~~ Time used for data processing: {} seconds'.format(sec_used))
             break
 
 
