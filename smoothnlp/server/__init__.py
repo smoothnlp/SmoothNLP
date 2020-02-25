@@ -148,7 +148,7 @@ class SmoothNLPRequest(object):
         :param text:
         :return:
         """
-        split_pattern = "[。;!?！？;\n\rn]+"
+        split_pattern = "[。;!?！？;\n\r]+"
         return re.split(split_pattern,text)
         # return _request(text, path = '/split2sentences',max_size_limit=999999)
 
