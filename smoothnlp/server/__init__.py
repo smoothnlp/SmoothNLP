@@ -25,7 +25,7 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
     elif isinstance(result, dict) and "payload" in result:
         response =  result['payload']['response']
-        if "tokens" not in response:
+        if "tokens" not in response or response['tokens']==None:
             counter+=1
             config.logger.warn("{} failed to parse with tokens, reponse detail : {}".format(text,response))
             return _request_single(text = text, path=path, counter=counter, max_size_limit=max_size_limit)
