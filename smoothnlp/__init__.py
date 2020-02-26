@@ -6,6 +6,9 @@ if sys.version_info[0] != 3:
     # Only support python version 3
     raise EnvironmentError("~~ SmoothNLP supports Python3 ONLY for now ~~~")
 
+__version__ = "0.3.0"
+__author__ = "SmoothNLP Organization"
+
 
 ################################
 ## smoothnlp support function ##
