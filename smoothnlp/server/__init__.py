@@ -49,7 +49,7 @@ def _request(text, path = config.NLP_PATH, max_size_limit=500, other_params:dict
             "request parameter: NUM_THREAD = {}, POOL_TYPE = {}".format(config.NUM_THREADS, config.POOL_TYPE))
         return _request_concurent(text,path,max_size_limit,other_params)
     elif isinstance(text,str):
-        return _request_single(text,path,counter=0,max_size_limit=max_size_limit,other_params=other_params)
+        return _request_single(text,path = path,counter=0,max_size_limit=max_size_limit,other_params=other_params)
     elif isinstance(text,dict):
         return text
     else:
@@ -111,7 +111,7 @@ class SmoothNLPRequest(object):
         :param text:
         :return:
         """
-        result = _request(text)
+        result = _request(text,path=config.NLP_PATH)
         tokens = extract_meta(result, "tokens")
         if tokens is None or text is None:
             return []
