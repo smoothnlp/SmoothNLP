@@ -154,7 +154,7 @@ class SmoothNLPRequest(object):
         :return:
         """
         split_pattern = "[。;!?！？;\n\r]+"
-        return re.split(split_pattern,text)
+        return [s for s in re.split(split_pattern,text) if s]
         # return _request(text, path = '/split2sentences',max_size_limit=999999)
 
     def processcorpus(self,text):
