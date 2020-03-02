@@ -3,16 +3,19 @@ package com.smoothnlp.nlp;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 
 import com.smoothnlp.nlp.basic.*;
 import com.smoothnlp.nlp.io.*;
 import com.smoothnlp.nlp.pipeline.*;
+import com.smoothnlp.nlp.pipeline.dependency.CKYDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
 
 import ml.dmlc.xgboost4j.java.DMatrix;
+import ml.dmlc.xgboost4j.java.XGBoostError;
 
 public class SmoothNLP{
 
@@ -45,30 +48,38 @@ public class SmoothNLP{
     };
 
     public static IDictionary regexDict = new SDictionary(regexLibraries);
+
+
     public static IDictionary trieDict = new TrieDictionary(dictLibraries);
 
     // static Dictionary
-    public static IDictionary DICTIONARIES = new MultiDictionary(new IDictionary[]{trieDict,regexDict});
+    public static IDictionary DICTIONARIES = new MultiDictionary(new IDictionary[]{regexDict,trieDict});
 
     // static model files
-//    public static String CRF_SEGMENT_MODEL = "model/ctb_3gram_segment_f2_c1.5.bin";
     public static String CRF_SEGMENT_MODEL = "model/segment_ctb_4gram_f5_e4_B.bin";
-//    public static String CRF_POSTAG_MODEL = "model/postag_crfpp_f8.bin";
-    public static String CRF_POSTAG_MODEL = "model/postag_3gram_B_f10_e5.bin";
-    public static String CRF_NER_MODEL = "model/ner_4gram_B_200110.bin";
-    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr82.bin";
-    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr82.bin";
 
-    public static int XGBoost_DP_Edge_Model_Predict_Tree_Limit = 64;
-    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 32;
+//    public static String CRF_POSTAG_MODEL = "model/postag_3gram_B_f10_e5.bin";
+//    public static String CRF_POSTAG_MODEL = "model/embed_3gram_f20_e5_dim300_NT_600.bin";
+    public static String CRF_POSTAG_MODEL = "model/postag_all_embed_3gram_f20_e5_dim300_NT_600.bin";
+
+    public static String CRF_NER_MODEL = "model/ner_4gram_B_200110.bin";
+//    public static String CRF_NER_MODEL = "model/embed_ner_f10_e4.bin";
+
+
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr169.bin";
+    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr169.bin";
+
+    public static int XGBoost_DP_Edge_Model_Predict_Tree_Limit = 64;  // 用于提升EdgeModel Predict时效率
+    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 32;   // 用于提升TagModel Predict时效率
 
     public static String WordEmbedding_MODEL = "embedding/vectors_dim32_win15.txt";
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
 
-    public static BaseSequenceTagger POSTAG_PIPELINE = new PostagCRFPP();
-    public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
+    public static PostagCRFPP POSTAG_PIPELINE = new PostagCRFPP();
+//    public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
+    public static IDependencyParser DEPENDENCY_PIPELINE = new CKYDependencyParser();
     public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
     public static BaseEntityRecognizer CRF_NER = new NerCRFPP();
 
@@ -77,15 +88,12 @@ public class SmoothNLP{
     public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
+    public static Pattern PUPattern = Pattern.compile("[！，。,;；？……]+"); // 不包括书名号,感叹号,小括号（）() 顿号、冒号：~@#￥% +—— & 空格 [\s]+| \[\] *丨
+    public static String SegmentPUPattern ="[\\s]+|[+——！【】～__“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]+";
+    public static Pattern NUMPattern = Pattern.compile("[点两双一二三四五六七八九零十〇\\d.%十百千万亿]{2,8}");
 
 
-    public static SmoothNLPResult process(String inputText) throws Exception{
-        LinkedList<String> activeLibraries = new LinkedList<String>() {
-            {
-                add("common");
-            }
-        };
-        SEGMENT_PIPELINE.setActiveDictionaries(activeLibraries);
+    public static synchronized SmoothNLPResult process(String inputText) throws XGBoostError {
 
         SmoothNLPResult res = new SmoothNLPResult();
 
@@ -93,33 +101,24 @@ public class SmoothNLP{
         List<SToken> sTokensPOS = POSTAG_PIPELINE.process(inputText);
         res.tokens = sTokensPOS;
         long end = System.currentTimeMillis();
+        System.out.println();
+        System.out.print("token size: "+res.tokens.size()+"; ");
+
         System.out.print("segment+postag time: ");
-        System.out.println(end-start);
+        System.out.print(end-start+" | ");
 
         start = System.currentTimeMillis();
         res.entities = NER_PIPELINE.process(res.tokens);
         end = System.currentTimeMillis();
         System.out.print("ner time: ");
-        System.out.println(end-start);
-
-//        for (SEntity en : res.entities){
-//            int min_key  = Collections.min(en.sTokenList.keySet());
-//            for (int index : en.sTokenList.keySet()){
-//                if (index == min_key){
-//                    res.tokens.get(index-1).setPostag("NR");
-//                }else{
-//                    res.tokens.get(index-1).setPostag("NN");
-//                }
-//            }
-//        }
+        System.out.print(end-start+" | ");
 
         start = System.currentTimeMillis();
         DependencyRelationship[] dependencyRelationships=DEPENDENCY_PIPELINE.parse(res.tokens);
         res.dependencyRelationships = dependencyRelationships;
         end = System.currentTimeMillis();
         System.out.print("dependency time: ");
-        System.out.println(end-start);
-        System.out.println(res.tokens.size());
+        System.out.print(end-start+" | ");
         return res;
     }
 
@@ -169,7 +168,7 @@ public class SmoothNLP{
 //
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("玩手机")));
 //
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
+         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
 //
          System.out.println(UtilFns.toJson(SmoothNLP.process("深圳厚屹照明有限公司坐落于深圳经济特区")));
          System.out.println(UtilFns.toJson(SmoothNLP.process("安徽(钰诚)控股集团、钰诚国际控股集团有限公司")));
@@ -187,35 +186,8 @@ public class SmoothNLP{
 
          System.out.println(UtilFns.toJson(SmoothNLP.process("中国第一家股份制企业北京天桥百货股份有限公司成立；")));
        System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元")));
-////
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("9月25日,第四范式")));
 
-//         System.out.println(55680);
-//         System.out.println(11455530);
-//         System.out.println(55680*11455530);
-//
-//         BigInteger bi1 = BigInteger.valueOf(11455530);
-//         BigInteger bi2 = BigInteger.valueOf(55680);
-//         System.out.println(bi1.multiply(bi2));
-//         System.out.println(Integer.MAX_VALUE);
-//         System.out.println(bi1.multiply(bi2).intValue());
-//
-//
-//         System.out.println(55680);
-//         System.out.println(10198960);
-//         System.out.println(55680*10198960);
-//
-//         System.out.println("---");
-//         System.out.println(189);
-//         System.out.println(10198960);
-//         System.out.println(189*10198960);
-//         System.out.println(Integer.MAX_VALUE);
-//
-//         System.out.println("---");
-//         System.out.println(189);
-//         System.out.println(11455530);
-//         System.out.println(189*11455530);
-//         System.out.println(Integer.MAX_VALUE);
+
 
 
      }
