@@ -46,27 +46,27 @@ public class SDictionary implements IDictionary{
         resetActiveLibraries();
     }
 
-    public SDictionary(String[] args){
-        this.wordLibrary = new HashMap<>();
-        for (int i = 0; i<args.length;i=i+1){
-            String fileName = args[i];
-            String label = fileName.split(",")[0];
-            List<String> wordList = new LinkedList<>();
-            try {
-                InputStream is = SmoothNLP.IOAdaptor.open(fileName);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                while(reader.ready()) {
-                    String word = reader.readLine();
-                    wordList.add(word);
-                }
-                this.wordLibrary.put(label,wordList);
-            }catch(IOException e){
-                SmoothNLP.LOGGER.severe(e.getMessage());
-            }
-        }
-        buildPatterns();
-        resetActiveLibraries();
-    }
+//    public SDictionary(String[] args){
+//        this.wordLibrary = new HashMap<>();
+//        for (int i = 0; i<args.length;i=i+1){
+//            String fileName = args[i];
+//            String label = fileName.split(",")[0];
+//            List<String> wordList = new LinkedList<>();
+//            try {
+//                InputStream is = SmoothNLP.IOAdaptor.open(fileName);
+//                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+//                while(reader.ready()) {
+//                    String word = reader.readLine();
+//                    wordList.add(word);
+//                }
+//                this.wordLibrary.put(label,wordList);
+//            }catch(IOException e){
+//                SmoothNLP.LOGGER.severe(e.getMessage());
+//            }
+//        }
+//        buildPatterns();
+//        resetActiveLibraries();
+//    }
 
     public void buildPatterns(){
         for (String label: this.wordLibrary.keySet()){
@@ -116,7 +116,7 @@ public class SDictionary implements IDictionary{
                 put("datetime","test.txt");
             }
         };
-        SDictionary dict = new SDictionary(SmoothNLP.regexLibraries);
+        IDictionary dict = new SDictionary(SmoothNLP.regexLibraries);
         System.out.println(UtilFns.toJson(dict.find("深圳市太阳卡通策划设计有限公司")));
         System.out.println(UtilFns.toJson(dict.find("杭州阿里哈哈网络科技有限公司")));
     }

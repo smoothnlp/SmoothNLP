@@ -73,8 +73,8 @@ public class MultiDictionary implements IDictionary {
     }
 
     public static void main(String[] args){
-        MultiDictionary mner = new MultiDictionary(new IDictionary[]{SmoothNLP.trieDict,SmoothNLP.regexDict});
-        System.out.println(UtilFns.toJson(mner.find("深圳市太阳卡通策划设计有限公司成立于2001年03月07日")));
+//        MultiDictionary mner = new MultiDictionary(new IDictionary[]{SmoothNLP.trieDict,SmoothNLP.regexDict});
+//        System.out.println(UtilFns.toJson(mner.find("深圳市太阳卡通策划设计有限公司成立于2001年03月07日")));
     }
 
 }

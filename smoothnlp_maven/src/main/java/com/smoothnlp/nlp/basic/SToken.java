@@ -4,7 +4,7 @@ public class SToken {
 
     public String token;
     public String postag;
-    public double tagproba;
+    public float tagproba;
 
     public SToken(String token){
         this.token = token;
@@ -31,6 +31,8 @@ public class SToken {
 
     public String getPostag(){return this.postag;}
 
-    public void setTagproba(double tagproba){this.tagproba = tagproba;}
+    public void setTagproba(double tagproba){this.tagproba = (float) tagproba;}
+
+    public float getTagproba(){return this.tagproba;}
 
 }
