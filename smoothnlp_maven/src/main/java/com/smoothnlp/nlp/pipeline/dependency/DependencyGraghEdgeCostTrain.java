@@ -134,7 +134,7 @@ public class DependencyGraghEdgeCostTrain {
                     put("lambda",0.2);
 
                     put("min_child_weight",5);
-                    put("scale_pos_weight",12);
+                    put("scale_pos_weight",negSampleRate);
 
                     // other parameters
                     // "objective" -> "multi:softmax", "num_class" -> "6"

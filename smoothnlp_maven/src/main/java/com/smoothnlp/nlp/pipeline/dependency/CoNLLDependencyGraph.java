@@ -123,6 +123,18 @@ public class CoNLLDependencyGraph {
         float2tag.put(46.0f, "plmod");
     }
 
+    public static float cosineSimilarity(float[] vectorA, float[] vectorB) {
+        float dotProduct = 0.0f;
+        float normA = 0.0f;
+        float normB = 0.0f;
+        for (int i = 0; i < vectorA.length; i++) {
+            dotProduct += vectorA[i] * vectorB[i];
+            normA += Math.pow(vectorA[i], 2);
+            normB += Math.pow(vectorB[i], 2);
+        }
+        return dotProduct / (float) (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
     public CoNLLDependencyGraph(CoNLLToken[] tokens){
         this.tokens = tokens;
         this.nodeSize = this.tokens.length;
@@ -452,14 +464,26 @@ public class CoNLLDependencyGraph {
         if (withNeighborVec){
             int left_shift = Math.max(0,targetIndex-1);
             int right_shift = Math.min(targetIndex+1,this.tokens.length-1);
-            float[] neighbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processTokens(new CoNLLToken[]{this.tokens[left_shift],this.tokens[right_shift]});
-            for (float f: neighbor_vec) {ftrs.add(f);}
+            float[] leftneigbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[left_shift]);
+            float[] rightneigbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[right_shift]);
+            for (float f: leftneigbor_vec) {ftrs.add(f);}
+            for (float f: rightneigbor_vec) {ftrs.add(f);}
+
+//            // add neighbor cosine similarity
+//            ftrs.add(cosineSimilarity(leftneigbor_vec,rightneigbor_vec));
+
+//            float[] neighbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processTokens(new CoNLLToken[]{this.tokens[left_shift],this.tokens[right_shift]});
+//            for (float f: neighbor_vec) {ftrs.add(f);}
         }
 
 
         // embedding 特征
         float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[dependentIndex]);
         float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[targetIndex]);
+
+        // add dependent target similarity
+//        ftrs.add(cosineSimilarity(dependent_vec,target_vec));
+
         for (float f: dependent_vec) {ftrs.add(f);}
         for (float f: target_vec) {ftrs.add(f);}
 

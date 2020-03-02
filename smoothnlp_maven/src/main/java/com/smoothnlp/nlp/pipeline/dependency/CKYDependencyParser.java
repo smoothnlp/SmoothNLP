@@ -3,8 +3,10 @@ package com.smoothnlp.nlp.pipeline.dependency;
 import com.smoothnlp.nlp.SmoothNLP;
 import com.smoothnlp.nlp.basic.SToken;
 import com.smoothnlp.nlp.basic.UtilFns;
+import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.DMatrix;
+import ml.dmlc.xgboost4j.java.XGBoostError;
 import scala.Array;
 
 import java.util.*;
@@ -42,14 +44,14 @@ public class CKYDependencyParser implements IDependencyParser {
         this.AcedTrees = new HashMap<>();
     }
 
-    public DependencyRelationship[] parse(String input) throws Exception {
+    public DependencyRelationship[] parse(String input) throws XGBoostError {
         List<SToken> tokens = SmoothNLP.POSTAG_PIPELINE.process(input);
         return this.parse(tokens);
     }
 
     ;
 
-    public DependencyRelationship[] parse(List<SToken> stokens) throws Exception {
+    public DependencyRelationship[] parse(List<SToken> stokens) throws XGBoostError {
 
         CoNLLDependencyGraph cgraph = new CoNLLDependencyGraph(stokens);
 
@@ -67,17 +69,29 @@ public class CKYDependencyParser implements IDependencyParser {
         float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
         float[][] edgeScores = new float[cgraph.size()][cgraph.size()];
 
-        float[] nodeSums = new float[cgraph.size()];
+        float[] nodeSumsFrom = new float[cgraph.size()];
+        float[] nodeSumsTo = new float[cgraph.size()];
+
 
         for (int i = 0; i < cgraph.size(); i++) {
             for (int j = 0; j < cgraph.size(); j++) {
                 edgeScores[i][j] = predictScoresFlatten[i * cgraph.size() + j];
-                nodeSums[j]+=edgeScores[i][j];
+                nodeSumsFrom[i]+=edgeScores[i][j];
+                nodeSumsTo[j]+=edgeScores[i][j];
             }
-//           //For debug, print out score matrix
-//            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
         }
 
+        for (int i = 0; i < cgraph.size(); i++){
+            for (int j = 0; j < cgraph.size(); j++){
+                // 对两node之间的probability做出normalize
+                // "SmoothNLP在V0.3版本中正式推出知识抽取功能" 介词关系正确
+                edgeScores[i][j] = edgeScores[i][j]*0.3f
+                        +(edgeScores[i][j]/nodeSumsFrom[i])*0.35f
+                        +(edgeScores[i][j]/nodeSumsTo[j])*0.35f;
+            }
+           //For debug, print out score matrix
+            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
+        }
 
 
         this.targetAvgProbas = new float[cgraph.size()];
@@ -115,7 +129,7 @@ public class CKYDependencyParser implements IDependencyParser {
 
         List<int[]> arches = ptree.getArchs();
         if (arches.size()!=stokens.size()){
-            throw new Exception("CKY Dependency Parser: tree arches size does not match token size");
+            throw new ValueException("CKY Dependency Parser: tree arches size does not match token size");
         }
 
         DependencyRelationship[] relationships = new DependencyRelationship[cgraph.size()-1];
@@ -175,11 +189,11 @@ public class CKYDependencyParser implements IDependencyParser {
         int root,key;
         HashSet<Float> probas;
         float score;
-        ProjectiveTree leftTree, rightTree;
+        private ProjectiveTree leftTree, rightTree;
         int[] arch;
         private float thresholdRatio;
         private float thresholdDelta = 0.1f;
-        private int greedyCountThreshold = 10;
+        private int greedyCountThreshold = 15;
         HashSet<Integer> reachedIndexes = new HashSet<>();
         private boolean allowSourceFromRoot = false;
 
@@ -198,9 +212,9 @@ public class CKYDependencyParser implements IDependencyParser {
             if (tokenSize<=5) {
                 this.thresholdRatio = 1.0f;
             }else if (tokenSize<=10){
-                this.thresholdRatio = 0.5f;
+                this.thresholdRatio = 0.6f;
             }else if (tokenSize<=20){
-                this.thresholdRatio = 0.4f;
+                this.thresholdRatio = 0.2f;
             }else if (tokenSize<=30){
                 this.thresholdRatio = 0.1f;
             }else if (tokenSize<=40){
@@ -230,7 +244,7 @@ public class CKYDependencyParser implements IDependencyParser {
             return ckyParser.AcedTrees.get(tree.key);
         }
 
-        public void A(float[][] X, CKYDependencyParser ckyParser) throws Exception{
+        public void A(float[][] X, CKYDependencyParser ckyParser){
 
             if (!allowSourceFromRoot){
 //                left = Math.max(left,1);
@@ -348,9 +362,17 @@ public class CKYDependencyParser implements IDependencyParser {
                         tree2.addSelf2AcedTrees(ckyParser);
                     }
 
-                    if (tree1.reachedIndexes.contains(j) | tree2.reachedIndexes.contains(j)){
-                        // 如果tree1/tree2 中 "j"已经被覆盖, 跳过
-                        continue;
+                    try {
+                        if (tree1.reachedIndexes.contains(j) | tree2.reachedIndexes.contains(j)) {
+                            // 如果tree1/tree2 中 "j"已经被覆盖, 跳过
+                            continue;
+                        }
+                    }catch(Exception e){
+                        System.out.println("---- tree1: "+tree1);
+                        System.out.println("---- tree2: "+tree2);
+                        System.out.println("tree1 indexes: "+tree1.reachedIndexes);
+                        System.out.println("tree2indexes: "+tree2.reachedIndexes);
+                        throw e;
                     }
 
                     _probas.addAll(tree1.probas);
@@ -426,15 +448,22 @@ public class CKYDependencyParser implements IDependencyParser {
 //        String text = "邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元";
 //        String text = "玻璃钢是以合成树脂为基体材料，以玻璃纤维及其制品为增强材料组成的复合材料。";
 //        String text = "据了解，三七互娱旗下首款云游戏已在开发当中，未来将登陆华为云游戏平台。";  // 华为postag=vv; 117模型中 "平台"--nn-->"华为"
-//        String text = "国产特斯拉Model3宣布降价至29.9万元";  // Embed模型中, 特斯拉被识别成VV, 117ftr模型识别正确
+        String text = "国产特斯拉Model3宣布降价至29.9万元";  // Embed模型中, 特斯拉被识别成VV, 117ftr模型识别正确
 //        String text = "上海三维制药有限公司是成立于1958年的中国大型制药企业，现作为上药集团旗下的主要成员之一，专业从事APIs和固体制剂的研究、开发、注册、生产、合同制造、市场推广和销售";
 //        String text = "上岛咖啡于1968年进驻于宝岛台湾开始发展";
+//        String text = "到目前为止，BMJ是印尼最大、最成功的过滤嘴与卷烟纸供应商，它的产品几乎被应用于每一支印尼生产的机制卷烟中";
+//        String text = "公司逐渐成为了质量和产量都居世界领先地位的生产商";
+//        String text = "2005年三枪集团实现销售额14亿元人民币，处于行业领先地位";
 //        String text = "玻璃钢平板是保温项目普遍采用的外护层材料，具有阻燃，耐腐蚀，同时根据要求配制各种色彩，使外观更美观。";  // 主语问题; 在训练epoch > 1000 后解决
 //        String text = "七喜电脑股份有限公司其前身为1997年8月成立的七喜电脑有限公司";
 //        String text = "2层口罩的制作材料包括无纺布、鼻梁筋、耳挂。";
 //        String text = "SmoothNLP在V0.3版本中正式推出知识抽取功能";
-        String text =  "中国银行是香港、澳门地区的发钞行，业务范围涵盖商业银行、投资银行、基金、保险、航空租赁等";  // 在137模型中(添加上次词Embedding), 识别: 香港--conj-->地区
+//        String text = "腾讯进军印度保险市场：花15亿元收购一公司10%股份";
+//        String text = "中国银行是香港、澳门地区的发钞行";
+//        String text =  "中国银行是香港、澳门地区的发钞行，业务范围涵盖商业银行、投资银行、基金、保险、航空租赁等";  // 在137模型中(添加上次词Embedding), 识别: 香港--conj-->地区
 //        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
+//        String text = "Windows API是一套用来控制Windows的各个部件的外观和行为的预先定义的Windows函数";
+//        String text = "腾讯云是一家云服务提供商";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
