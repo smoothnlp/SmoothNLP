@@ -72,7 +72,7 @@ class SmoothNLPRequest(object):
         return extract_meta(result,"dependencyRelationships")
 
     def ner(self,text):
-        result = _request(text)
+        result = _request(text,path=config.NLP_PATH)
         return extract_meta(result,"entities")
 
     def number_recognize(self,text):
@@ -127,7 +127,7 @@ class SmoothNLPRequest(object):
         :param text:
         :return:
         """
-        result = _request(text)
+        result = _request(text,path=config.NLP_PATH)
         tokens = extract_meta(result, "tokens")
         return tokens
 
