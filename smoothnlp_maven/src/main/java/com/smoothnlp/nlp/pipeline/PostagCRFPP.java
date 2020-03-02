@@ -213,6 +213,7 @@ public class PostagCRFPP extends CRFModel{
 //        System.out.println((s.process("这之后，百度还发布了好运中国年、AI办事处等十多个即将在2020年推出的超级IP，对用户的精细化运营正在为百度创造更大的商业空间。")));
 //        System.out.println((s.process("首发|借助AI智能升级传统餐饮业 艾唯尔科技获东方富海数千万元Pre-A轮融资")));
 //        System.out.println((s.process("百度是全球最大的中文搜索引擎，2000年1月由李彦宏、徐勇两人创立于北京中关村，致力于向人们提供“简单，可依赖”的信息获取方式")));
+        System.out.println(s.process("SmoothNLP在V0.3版本中正式推出知识抽取功能"));
         System.out.println((s.process("上岛咖啡于1968年进驻于宝岛台湾开始发展")));
         System.out.println((s.process("据了解，三七互娱旗下首款云游戏已在开发当中，未来将登陆华为云游戏平台。"))); // 华为 vv
         System.out.println((s.process("云计算将推动物联网产业发展")));
@@ -225,6 +226,7 @@ public class PostagCRFPP extends CRFModel{
         System.out.println(s.process("国产特斯拉Model3宣布降价至29.9万元")); // 特斯拉 vv
         System.out.println((s.process("借助AI智能升级传统餐饮业,艾唯尔科技获东方富海数千万元Pre-A轮融资")));
         System.out.println(s.process("四川内江查获50余万个三无口罩"));
+        System.out.println(s.process("POSIX标准是由IEEE和ISO/IEC共同开发的标准系统"));
         System.out.println(s.process("中国银行是香港、澳门地区的发钞行，业务范围涵盖商业银行、投资银行、基金、保险、航空租赁等"));
         System.out.println(s.process("口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。"));
     }

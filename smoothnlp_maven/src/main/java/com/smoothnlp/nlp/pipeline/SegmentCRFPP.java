@@ -64,12 +64,12 @@ public class SegmentCRFPP extends CRFModel{
         // 6. 数字的中文/阿拉伯表示的混合形态不切开, 如 15万
 
         // 注意 [&.-] 为数字与字母见常用连接标点
-        String pupattern = "[|+——！/\\-，。？、~@#￥%……&*（）℃”“()》《丨\"\\[\\]]{1}";
+//        String pupattern = "[|+——！/\\-，。？、~@#￥%……&*（）℃”“()》《丨\"\\[\\]]{1}";
         String engpattern = "[a-zA-Z0-9]{1,10}([&.-]{0,1})[a-zA-Z0-9]{0,10}";
         String numpattern = "[点两双一二三四五六七八九零十〇\\d.%十百千万亿]{2,8}";
         String spcpattern = "[\\s]+";
 
-        String allpattern =  UtilFns.join("|",new String[]{numpattern,engpattern,pupattern,spcpattern});
+        String allpattern =  UtilFns.join("|",new String[]{numpattern,engpattern,SmoothNLP.SegmentPUPattern,spcpattern});
         Pattern pattern = Pattern.compile(allpattern);
 
 //        Pattern pattern  = Pattern.compile("[a-zA-Z0-9]{2,10}|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
@@ -172,6 +172,7 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("新建一个400万吨/年的选矿厂。"));
         System.out.println(s.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元"));
         System.out.println(s.process("我的狗吃苹果"));
+        System.out.println(s.process("怀化什么时候能有自己的马拉松赛？_都市生活_怀化新闻网"));
 
     }
 
