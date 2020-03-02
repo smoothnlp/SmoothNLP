@@ -89,7 +89,7 @@ public class SmoothNLP{
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
     public static Pattern PUPattern = Pattern.compile("[！，。,;；？……]+"); // 不包括书名号,感叹号,小括号（）() 顿号、冒号：~@#￥% +—— & 空格 [\s]+| \[\] *丨
-    public static String SegmentPUPattern ="[\\s]+|[+——！【】～__“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]+";
+    public static String SegmentPUPattern ="[\\s]+|[+——！【】～__“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]{1}";
     public static Pattern NUMPattern = Pattern.compile("[点两双一二三四五六七八九零十〇\\d.%十百千万亿]{2,8}");
 
 
