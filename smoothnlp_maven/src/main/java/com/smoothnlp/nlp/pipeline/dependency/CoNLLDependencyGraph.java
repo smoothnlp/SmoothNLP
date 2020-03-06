@@ -29,46 +29,10 @@ public class CoNLLDependencyGraph {
     private static Map<String, Integer> postag2index;
     static {
         postag2index = new HashMap<>();
-        postag2index.put("AD",0);
-        postag2index.put("AS",1);
-        postag2index.put("BA",0);
-        postag2index.put("CC",2);
-        postag2index.put("CD",3);
-        postag2index.put("CS",0);
-        postag2index.put("DEC",4);
-        postag2index.put("DEG",4);
-        postag2index.put("DER",4);
-        postag2index.put("DEV",4);
-        postag2index.put("DT",5);
-        postag2index.put("ETC",0);
-        postag2index.put("FRAG",0);
-        postag2index.put("FW",0);
-        postag2index.put("IJ",6);
-        postag2index.put("JJ",7);
-        postag2index.put("LB",0);
-        postag2index.put("LC",8);
-        postag2index.put("M",9);
-        postag2index.put("MSP",0);
-        postag2index.put("NN",10);
-        postag2index.put("NOI",0);
-        postag2index.put("NR",11);
-        postag2index.put("NT",12);
-        postag2index.put("OD",0);
-        postag2index.put("ON",0);
-        postag2index.put("P",13);
-        postag2index.put("PN",14);
-        postag2index.put("PU",15);
-        postag2index.put("SB",0);
-        postag2index.put("SP",16);
-        postag2index.put("URL",0);
-        postag2index.put("VA",17);
-        postag2index.put("VC",18);
-        postag2index.put("VE",19);
-        postag2index.put("VV",20);
-        postag2index.put("LOC",21);
-        postag2index.put("CTY",22);
-        postag2index.put("DTR",23);
-        postag2index.put("DTA",24);
+        postag2index.put("LOC",1);
+        postag2index.put("CTY",2);
+        postag2index.put("DTR",3);
+        postag2index.put("DTA",4);
     }
 
     public static Map<Float,String> float2tag;
@@ -410,54 +374,74 @@ public class CoNLLDependencyGraph {
          * for latter development, please reference: https://github.com/orgs/smoothnlp/teams/let-s-survive/discussions/6
          */
         List<Float> ftrs = new LinkedList<>();
-        // 两个token 的 hashcode
-//        float dhashcode = hashString(this.tokens[dependentIndex].getToken());
-//        float thashcode = hashString(this.tokens[targetIndex].getToken());
-//        ftrs.add(dhashcode);
-//        ftrs.add(thashcode);
 
-        // 两个postag 的 hashcode
-//        float dpostag_hcode = this.tokens[dependentIndex].getPostag().hashCode();
-//        float tpostag_hcode = this.tokens[targetIndex].getPostag().hashCode();
-//        float dpostag_hcode = hashString(this.tokens[dependentIndex].getPostag());
-//        float tpostag_hcode = hashString(this.tokens[targetIndex].getPostag());
-//        ftrs.add(dpostag_hcode);
-//        ftrs.add(tpostag_hcode);
+        // DONE: target postag 考虑到 DTA, RTA 等规则定义的情况
+        String tPostag = this.tokens[targetIndex].getPostag();
+        float ttagcode = 0f;
+        if (postag2index.containsKey(tPostag)){ttagcode = postag2index.get(tPostag);}
+        ftrs.add(ttagcode);
 
+        // dependent 的tag 的hash-value与概率
+        float dpostag_hcode = hashString(this.tokens[dependentIndex].getPostag());
+        ftrs.add(dpostag_hcode);
         ftrs.add(this.tokens[dependentIndex].getTagproba());
+
+        // target postag probability distribution
+        for (float f: this.tagProba[targetIndex]) {ftrs.add(f);}
         ftrs.add(this.tokens[targetIndex].getTagproba());
 
         if (withTokenPosition){
-            // 特征之间的 位置差
-//        ftrs.add((float)dependentIndex - targetIndex); // 去除token之间差距绝对值作为特征
+            // DONE: 新特征
+            // 如果特征之间的位置差在10以内, 添加绝对位置差, 否则一律为11
+            float abs_distance = (float)dependentIndex - targetIndex;
+            abs_distance = Math.min(abs_distance,10);
+            ftrs.add(abs_distance);
+
+            // 特征之间的相对位置差
             ftrs.add(((float)dependentIndex - targetIndex)/this.tokens.length);
 
-            // 两个token本身在句子中的位置
+            // 两个token本身在句子中的位置(相对位置, 0-1之间)
             ftrs.add(((float)dependentIndex)/this.tokens.length);
             ftrs.add(((float)targetIndex)/this.tokens.length);
         }
 
+        // dependent/target token 对应的 embedding 特征
+        float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[dependentIndex]);
+        float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[targetIndex]);
+        for (float f: dependent_vec) {ftrs.add(f);}
+        for (float f: target_vec) {ftrs.add(f);}
 
-        // 添加 dependent 与 target 词邻近词的 postag
+        // 处理3-gram以内的Neighbor
         for (int index: new int[]{dependentIndex,targetIndex}){
             for (int shift: new int[]{1,2,3}){
                 int left_neighbor_index = index-shift;
                 int right_neighbor_index = index+shift;
 
                 float leftFtr = 0.0f;
+                float leftPostagProba = 1.0f;
                 if (left_neighbor_index<0){
                     leftFtr = hashString("start");
                 }else{
+                    leftPostagProba = this.tokens[left_neighbor_index].getTagproba();
                     leftFtr = hashString(this.tokens[left_neighbor_index].getPostag());
                 }
-                ftrs.add(leftFtr);
+
                 float rightFtr = 0.0f;
+                float rightPostagProba = 1.0f;
                 if (right_neighbor_index<this.tokens.length){
+                    rightPostagProba = this.tokens[right_neighbor_index].getTagproba();
                     rightFtr = hashString(this.tokens[right_neighbor_index].getPostag());
                 }else{
                     rightFtr = hashString("end");
                 }
+                // 添加neighbor的postag的hash-value
+                ftrs.add(leftFtr);
                 ftrs.add(rightFtr);
+                // 添加neighbor的postag的概率 (只考虑step=0)
+                if (shift<=1){
+                    ftrs.add(leftPostagProba);
+                    ftrs.add(rightPostagProba);
+                }
             }
         }
 
@@ -466,28 +450,20 @@ public class CoNLLDependencyGraph {
             int right_shift = Math.min(targetIndex+1,this.tokens.length-1);
             float[] leftneigbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[left_shift]);
             float[] rightneigbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[right_shift]);
+            // 添加左右邻的embedding特征
             for (float f: leftneigbor_vec) {ftrs.add(f);}
             for (float f: rightneigbor_vec) {ftrs.add(f);}
 
-//            // add neighbor cosine similarity
-//            ftrs.add(cosineSimilarity(leftneigbor_vec,rightneigbor_vec));
-
-//            float[] neighbor_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processTokens(new CoNLLToken[]{this.tokens[left_shift],this.tokens[right_shift]});
-//            for (float f: neighbor_vec) {ftrs.add(f);}
+            // DONE: add neighbor cosine similarity with target
+            ftrs.add(cosineSimilarity(leftneigbor_vec,target_vec));
+            ftrs.add(cosineSimilarity(rightneigbor_vec,target_vec));
         }
 
+        // DONE: add dependent&target similarity
+        ftrs.add(cosineSimilarity(dependent_vec,target_vec));
 
-        // embedding 特征
-        float[] dependent_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[dependentIndex]);
-        float[] target_vec = SmoothNLP.WORDEMBEDDING_PIPELINE.processToken(this.tokens[targetIndex]);
-
-        // add dependent target similarity
-//        ftrs.add(cosineSimilarity(dependent_vec,target_vec));
-
-        for (float f: dependent_vec) {ftrs.add(f);}
-        for (float f: target_vec) {ftrs.add(f);}
-
-        for (float f: this.tagProba[targetIndex]) {ftrs.add(f);}
+        // todo 新特征:
+        // target 与左邻(1,2-step-size), 右边邻的相似度
 
         return ftrs.toArray(new Float[ftrs.size()]);
     }
@@ -707,9 +683,6 @@ public class CoNLLDependencyGraph {
 //        pqSE.add(new ScoreEdge(0,0,1.0f));
 //        pqSE.add(new ScoreEdge(0,0,2.0f));
 //        System.out.println(pqSE.poll().score);
-
-
-
 
     }
 
