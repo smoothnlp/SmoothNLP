@@ -68,14 +68,29 @@ class SmoothNLPRequest(object):
         pass
 
     def dependencyrelationships(self,text):
+        """
+        依存句法分析
+        :param text:
+        :return:
+        """
         result = _request(text)
         return extract_meta(result,"dependencyRelationships")
 
     def ner(self,text):
+        """
+        实体识别
+        :param text:
+        :return:
+        """
         result = _request(text,path=config.NLP_PATH)
         return extract_meta(result,"entities")
 
     def number_recognize(self,text):
+        """
+        将在smoothnlp V0.3.1 中deprecate
+        :param text:
+        :return:
+        """
         entities = self.ner(text)
         if entities is None :
             return
@@ -86,6 +101,11 @@ class SmoothNLPRequest(object):
         return numbers
 
     def money_recognize(self,text):
+        """
+        将在smoothnlp V0.3.1 中deprecate
+        :param text:
+        :return:
+        """
         entities = self.ner(text)
         if entities is None :
             return
@@ -96,6 +116,11 @@ class SmoothNLPRequest(object):
         return money
 
     def company_recognize(self, text):
+        """
+        将在smoothnlp V0.3.1 中deprecate
+        :param text:
+        :return:
+        """
         entities = self.ner(text)
         if entities is None:
             return
@@ -155,12 +180,6 @@ class SmoothNLPRequest(object):
         """
         split_pattern = "[。!?！？；;\n\r]+"
         return [s for s in re.split(split_pattern,text) if s]
-        # return _request(text, path = '/split2sentences',max_size_limit=999999)
 
-    def processcorpus(self,text):
-        texts = self.split2sentences(text)
-        texts = [t for t in texts if len(t)>=3 and len(t)<=200]
-        return self.analyze(texts)
-        # return _request(text, path='/processcorpus', max_size_limit=999999)
 
 
