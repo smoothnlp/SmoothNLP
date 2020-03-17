@@ -181,5 +181,12 @@ class SmoothNLPRequest(object):
         split_pattern = "[。!?！？；;\n\r]+"
         return [s for s in re.split(split_pattern,text) if s]
 
-
+    def split_sentences_save_punctuation(self,text:str):
+        """
+        依据标点正则切句,句子后保留相关标点
+        :param text:
+        :return:
+        """
+        cuts='(.+?(?:。|”|。|！|？|……))'
+        return [s for s in re.split(cuts,text) if s]
 
