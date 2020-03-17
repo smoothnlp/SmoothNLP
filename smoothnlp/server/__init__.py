@@ -13,6 +13,8 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
     if counter > 9999:
         raise Exception(
             " exceed maximal attemps for parsing. ")
+    if config.apikey is not None and isinstance(config.apikey,str):   ## pro 版本支持 apikey 调用
+        other_params['apikey'] = config.apikey
     content = {"text": text,**other_params}
     r = requests.get(config.HOST + path, params=content)
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
@@ -24,11 +26,7 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
         time.sleep(0.05)  ## 延迟50毫秒再调用
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
     elif isinstance(result, dict) and "payload" in result:
-        response =  result['payload']['response']
-        # if ("tokens" not in response or response['tokens']==None) and ("subject" not in response):
-        #     counter+=1
-        #     config.logger.warn("{} failed to parse with tokens, reponse detail : {}".format(text,response))
-        #     return _request_single(text = text, path=path, counter=counter, max_size_limit=max_size_limit)
+        response = result['payload']['response']
         return response
     else:
         raise Exception(r.text)

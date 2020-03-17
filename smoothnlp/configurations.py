@@ -5,11 +5,12 @@ class Config():
         self.NUM_THREADS = 2
         self.POOL_TYPE = "thread"
         self.LOG_LEVEL = 30
-        self.HOST = "http://kong.smoothnlp.com:8000"
+        self.HOST = "http://api.smoothnlp.com"
         self.NLP_PATH = "/nlp/query"
         self.KG_PATH = "/kg/query"
         self.logger = logging.getLogger("SmoothNLP")
         self.setLogLevel(self.LOG_LEVEL)
+        self.apikey = None
 
     def setLogLevel(self,level):
         self.LOG_LEVEL = level
@@ -30,5 +31,8 @@ class Config():
 
     def setKG_Path(self,kg_path):
         self.NLP_PATH = kg_path
+
+    def setApiKey(self,apikey):
+        self.apikey = apikey
 
 config = Config()
