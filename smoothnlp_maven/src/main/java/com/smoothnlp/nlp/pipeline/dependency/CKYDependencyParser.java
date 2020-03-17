@@ -7,7 +7,6 @@ import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.DMatrix;
 import ml.dmlc.xgboost4j.java.XGBoostError;
-import scala.Array;
 
 import java.util.*;
 
@@ -27,15 +26,10 @@ public class CKYDependencyParser implements IDependencyParser {
     private Booster edgeTagModel;
 
     HashMap<Integer,ProjectiveTree> AcedTrees;
-    private static float thresholdRatioStatic = 0.2f;
     public float[] targetAvgProbas;
 
     public CKYDependencyParser() {
         init(SmoothNLP.DP_EDGE_SCORE_XGBOOST, SmoothNLP.DP_EDGE_TAG_XGBOOST);
-    }
-
-    public void setThresholdRatioStatic(float thresholdRatioStatic) {
-        this.thresholdRatioStatic = thresholdRatioStatic;
     }
 
     private void init(String edgeScoreModel, String edgeTagModel) {
@@ -53,6 +47,9 @@ public class CKYDependencyParser implements IDependencyParser {
 
     public DependencyRelationship[] parse(List<SToken> stokens) throws XGBoostError {
 
+//        long start,end;
+//        start = System.currentTimeMillis();
+
         CoNLLDependencyGraph cgraph = new CoNLLDependencyGraph(stokens);
 
         // build ftrs
@@ -62,9 +59,12 @@ public class CKYDependencyParser implements IDependencyParser {
         int numFtrs = pairFtrs[0].length;
         DMatrix dmatrix = new DMatrix(flattenPairFtrs, numRecords, numFtrs);
 
+//        end = System.currentTimeMillis();
+//        System.out.print(" future building time: ");
+//        System.out.println(end-start);
+
 
         float[][] predictScores = this.edgeScoreModel.predict(dmatrix, false, SmoothNLP.XGBoost_DP_Edge_Model_Predict_Tree_Limit);  // 调节treeLimit , 优化时间
-
 
         float[] predictScoresFlatten = UtilFns.flatten2dFloatArray(predictScores);
         float[][] edgeScores = new float[cgraph.size()][cgraph.size()];
@@ -85,12 +85,12 @@ public class CKYDependencyParser implements IDependencyParser {
             for (int j = 0; j < cgraph.size(); j++){
                 // 对两node之间的probability做出normalize
                 // "SmoothNLP在V0.3版本中正式推出知识抽取功能" 介词关系正确
-                edgeScores[i][j] = edgeScores[i][j]*0.3f
-                        +(edgeScores[i][j]/nodeSumsFrom[i])*0.35f
-                        +(edgeScores[i][j]/nodeSumsTo[j])*0.35f;
+                edgeScores[i][j] = edgeScores[i][j]*0.4f
+                        +(edgeScores[i][j]/nodeSumsFrom[i])*0.4f
+                        +(edgeScores[i][j]/nodeSumsTo[j])*0.2f;
             }
-           //For debug, print out score matrix
-            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
+            //For debug, print out score matrix
+//            System.out.println(" score-"+i+" : "+UtilFns.toJson(edgeScores[i]));
         }
 
 
@@ -105,14 +105,13 @@ public class CKYDependencyParser implements IDependencyParser {
             this.targetAvgProbas[j]=targetSum/(cgraph.size()-1);
         }
 
-        long start = System.currentTimeMillis();
+//        start = System.currentTimeMillis();
         this.AcedTrees = new HashMap<>();
-
         ProjectiveTree ptree = new ProjectiveTree(0, cgraph.size()-1, 0);
         ptree.setAllowSourceFromRoot(true);
         ptree.A(edgeScores,this);
-        long end = System.currentTimeMillis();
-        // evaluate CKY-Algorithm run-time
+//        end = System.currentTimeMillis();
+////         evaluate CKY-Algorithm run-time
 //        System.out.print("parse PTree time: ");
 //        System.out.println(end-start);
 
@@ -143,7 +142,9 @@ public class CKYDependencyParser implements IDependencyParser {
         // 计算Relationship的tag
         Float[][] allftrs = cgraph.buildAllTagFtrs();
         dmatrix = new DMatrix(UtilFns.flatten2dFloatArray(allftrs),allftrs.length,allftrs[0].length,Float.NaN);
+
         float[][] predictprobas = edgeTagModel.predict(dmatrix,false,SmoothNLP.XGBoost_DP_tag_Model_Predict_Tree_Limit);
+
         for (int i=1 ; i< cgraph.tokens.length; i++){
             float[] probas = predictprobas[i-1];
             int max_index = 0;
@@ -160,7 +161,7 @@ public class CKYDependencyParser implements IDependencyParser {
                 relationships[i-1].relationship ="root";
                 relationships[i-1]._tag_score = 1.0f;
             }
-       }
+        }
 
         return relationships;
     }
@@ -191,11 +192,11 @@ public class CKYDependencyParser implements IDependencyParser {
         float score;
         private ProjectiveTree leftTree, rightTree;
         int[] arch;
-        private float thresholdRatio;
-        private float thresholdDelta = 0.1f;
-        private int greedyCountThreshold = 15;
+        private float thresholdRatio = 0.0f;
+        private float min_edge_score = 0.2f;
         HashSet<Integer> reachedIndexes = new HashSet<>();
         private boolean allowSourceFromRoot = false;
+
 
         public ProjectiveTree(int left, int right, int root) {
             this.left = left;
@@ -209,18 +210,13 @@ public class CKYDependencyParser implements IDependencyParser {
 
         public void autoSetThresholdRatio(){
             int tokenSize = right-left;
-            if (tokenSize<=5) {
+//            this.thresholdRatio = 1.0f;
+            if (tokenSize<=10) {
                 this.thresholdRatio = 1.0f;
-            }else if (tokenSize<=10){
-                this.thresholdRatio = 0.6f;
             }else if (tokenSize<=20){
-                this.thresholdRatio = 0.2f;
-            }else if (tokenSize<=30){
-                this.thresholdRatio = 0.1f;
-            }else if (tokenSize<=40){
-                this.thresholdRatio = 0.05f;
+                this.thresholdRatio = 0.5f;
             }else{
-                this.thresholdRatio = 2.0f/tokenSize;
+                this.thresholdRatio = 10.0f/tokenSize;
             }
         }
 
@@ -289,27 +285,18 @@ public class CKYDependencyParser implements IDependencyParser {
 
             // 计算gready算法所需要的log
             float archThreshold = 0f;
-            float archThresholdUpperBound = 1.0f;
-//            if (right - left >= greedyCountThreshold) {  // 对于一定长度以下的tree, 不做greedy处理
-//                float sum1= 0;
-//                int counter1 = 0;
-//                for (int i = left; i <= right; i++){
-//                    if  (root!=i){
-//                        sum1+=X[root][i];
-//                        counter1+=1;
-//                    }
-//                }
-//                archThreshold  = (sum1/counter1)*this.thresholdRatio;
-//                if (this.thresholdRatio!=CKYDependencyParser.thresholdRatioStatic){
-//                    archThresholdUpperBound = (sum1/counter1)*(this.thresholdRatio+this.thresholdDelta);
-//                }
             float[] valid_range = Arrays.copyOfRange(X[root],left,right+1);
             Arrays.sort(valid_range);
             float ratioIndexLower = (right-left)*(1-this.thresholdRatio);
             archThreshold = valid_range[(int) ratioIndexLower];
+
+//            int valid_j_counter = 0;
+//            for (float f: valid_range){
+//                if (f>archThreshold){
+//                    valid_j_counter+=1;
+//                }
 //            }
-
-
+//            System.out.println(valid_j_counter+":"+(float)valid_j_counter/valid_range.length);
 
 
             // 一般情况 Dynamic Programming
@@ -322,8 +309,13 @@ public class CKYDependencyParser implements IDependencyParser {
                     continue;  // 只允许root有一条outcomming-edge
                 }
 
-                if ( X[root][j] > archThresholdUpperBound | X[root][j] < archThreshold){
+                if ( X[root][j] < archThreshold ){
                     // greedy 的部分, 对于candidate arch X[root][j] 不在阈值范围内, 则跳过
+                    continue;
+                }
+
+                if ( X[root][j] < this.min_edge_score){
+                    // X[root][j] 过小于阈值, 不考虑; 如果没有合适的解, 阈值会逐步降低
                     continue;
                 }
 
@@ -391,11 +383,13 @@ public class CKYDependencyParser implements IDependencyParser {
                 }
             }
 
-            if (this.score < 0 & right-left >= greedyCountThreshold){  // 如果当前threshold过于严格, 则降低 by this.thresholdDelta
-                this.thresholdRatio -= thresholdDelta;
-                if (this.thresholdRatio>=0.0f){
-                    this.A(X,ckyParser);
-                }
+            if (this.score < 0 ){  // 如果当前threshold过于严格, 则降低 by this.thresholdDelta
+//                this.thresholdRatio += thresholdDelta;
+                this.thresholdRatio *= 2;
+                this.thresholdRatio = Math.min(1.0f,this.thresholdRatio);
+                this.min_edge_score = this.min_edge_score/2;
+                this.A(X,ckyParser);
+
 //                else{
 //                    throw new Exception(archThreshold+" threshold:ratio  "+ this.thresholdRatio +UtilFns.toJson(this));
 //                }
@@ -409,9 +403,6 @@ public class CKYDependencyParser implements IDependencyParser {
                 }
             }
 
-//            if (right-left!= this.reachedIndexes.size()){
-//                System.out.println(this);
-//            }
 
         }
 
@@ -448,7 +439,7 @@ public class CKYDependencyParser implements IDependencyParser {
 //        String text = "邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元";
 //        String text = "玻璃钢是以合成树脂为基体材料，以玻璃纤维及其制品为增强材料组成的复合材料。";
 //        String text = "据了解，三七互娱旗下首款云游戏已在开发当中，未来将登陆华为云游戏平台。";  // 华为postag=vv; 117模型中 "平台"--nn-->"华为"
-        String text = "国产特斯拉Model3宣布降价至29.9万元";  // Embed模型中, 特斯拉被识别成VV, 117ftr模型识别正确
+//        String text = "国产特斯拉Model3宣布降价至29.9万元";  // Embed模型中, 特斯拉被识别成VV, 117ftr模型识别正确
 //        String text = "上海三维制药有限公司是成立于1958年的中国大型制药企业，现作为上药集团旗下的主要成员之一，专业从事APIs和固体制剂的研究、开发、注册、生产、合同制造、市场推广和销售";
 //        String text = "上岛咖啡于1968年进驻于宝岛台湾开始发展";
 //        String text = "到目前为止，BMJ是印尼最大、最成功的过滤嘴与卷烟纸供应商，它的产品几乎被应用于每一支印尼生产的机制卷烟中";
@@ -461,7 +452,7 @@ public class CKYDependencyParser implements IDependencyParser {
 //        String text = "腾讯进军印度保险市场：花15亿元收购一公司10%股份";
 //        String text = "中国银行是香港、澳门地区的发钞行";
 //        String text =  "中国银行是香港、澳门地区的发钞行，业务范围涵盖商业银行、投资银行、基金、保险、航空租赁等";  // 在137模型中(添加上次词Embedding), 识别: 香港--conj-->地区
-//        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
+        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
 //        String text = "Windows API是一套用来控制Windows的各个部件的外观和行为的预先定义的Windows函数";
 //        String text = "腾讯云是一家云服务提供商";
         long start = System.currentTimeMillis();
@@ -474,4 +465,3 @@ public class CKYDependencyParser implements IDependencyParser {
 
     }
 }
-
