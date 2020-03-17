@@ -176,8 +176,9 @@ class SmoothNLPRequest(object):
         :param text:
         :return:
         """
-        split_pattern = "[。!?！？；;\n\r]+"
-        return [s for s in re.split(split_pattern,text) if s]
+
+        split_pattern = "(.+[。!?！？；;……\n\r]+)"
+        return [s.strip() for s in re.split(split_pattern,text) if s]
 
 
 
