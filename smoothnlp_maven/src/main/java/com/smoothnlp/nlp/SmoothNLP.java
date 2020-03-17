@@ -58,19 +58,17 @@ public class SmoothNLP{
     // static model files
     public static String CRF_SEGMENT_MODEL = "model/segment_ctb_4gram_f5_e4_B.bin";
 
-//    public static String CRF_POSTAG_MODEL = "model/postag_3gram_B_f10_e5.bin";
-//    public static String CRF_POSTAG_MODEL = "model/embed_3gram_f20_e5_dim300_NT_600.bin";
-    public static String CRF_POSTAG_MODEL = "model/postag_all_embed_3gram_f20_e5_dim300_NT_600.bin";
+    public static String CRF_POSTAG_MODEL = "model/postag_all_embed_3gram_f20_e4_dim1024_NT.bin";
 
     public static String CRF_NER_MODEL = "model/ner_4gram_B_200110.bin";
 //    public static String CRF_NER_MODEL = "model/embed_ner_f10_e4.bin";
 
 
-    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr169.bin";
-    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr169.bin";
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr175_1024.bin";
+    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr175_1024.bin";
 
     public static int XGBoost_DP_Edge_Model_Predict_Tree_Limit = 64;  // 用于提升EdgeModel Predict时效率
-    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 32;   // 用于提升TagModel Predict时效率
+    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 48;   // 用于提升TagModel Predict时效率
 
     public static String WordEmbedding_MODEL = "embedding/vectors_dim32_win15.txt";
 
@@ -88,9 +86,11 @@ public class SmoothNLP{
     public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
-    public static Pattern PUPattern = Pattern.compile("[！，。,;；？……]+"); // 不包括书名号,感叹号,小括号（）() 顿号、冒号：~@#￥% +—— & 空格 [\s]+| \[\] *丨
-    public static String SegmentPUPattern ="[\\s]+|[+——！【】～__“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]{1}";
-    public static Pattern NUMPattern = Pattern.compile("[点两双一二三四五六七八九零十〇\\d.%十百千万亿]{2,8}");
+    public static Pattern PUPattern = Pattern.compile("[！，。,;；：？……]+"); // 不包括书名号,感叹号,小括号（）() 顿号、冒号：~@#￥% +—— & 空格 [\s]+| \[\] *丨
+    public static String SegmentPUPattern ="[\\s]+|((―|\\.){2,6}|[+——！\\-【】～__“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]{1})";
+
+    public static String NUMPatternStr = "(([\\d]{1,5}|[点两双一二三四五六七八九零十〇十百千万亿]{2,8}[.．%％]{1})[点两双一二三四五六七八九零十〇十百千万亿]{0,8}|[\\d]{2,8}[.．%％]{0,1}[\\d十百千万亿]{0,8})";
+    public static Pattern NUMPattern = Pattern.compile(NUMPatternStr);
 
 
     public static synchronized SmoothNLPResult process(String inputText) throws XGBoostError {
