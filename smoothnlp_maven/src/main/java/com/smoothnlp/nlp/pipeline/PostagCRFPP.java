@@ -20,9 +20,9 @@ import com.smoothnlp.nlp.basic.IDictionary.MatchResult;
 
 public class PostagCRFPP extends CRFModel{
     protected ModelImpl model;
-    private Pattern pupattern,numpattern;
     private IDictionary tokenLibrary,datetimeLibrary;
     private static int sequenceTagNumber = 38;
+    private float[][] tokenTagProbas;
 
     private static HashSet<String> validPostagSet = new HashSet<>();
     static {
@@ -58,11 +58,6 @@ public class PostagCRFPP extends CRFModel{
         this.model = new ModelImpl();
         this.model.open(SmoothNLP.CRF_POSTAG_MODEL,2,1,1.0);
 
-        this.pupattern  = Pattern.compile("[\\s]+|[+——！“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]+");
-        String numpattern = "[点两双一二三四五六七八九零十〇\\d.%十百千万亿]{2,8}";
-        String old_numpattern = "[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]+";
-        this.numpattern = Pattern.compile(numpattern);
-
         this.datetimeLibrary = new SDictionary(new HashMap<String, String>() {
             {
                 put("DTA", "datetime.txt");
@@ -92,34 +87,13 @@ public class PostagCRFPP extends CRFModel{
     };
 
     public float[][] getAllProba(CoNLLToken[] stokens){
-
-        Tagger tagger = this.model.createTagger();
-        float[][] tokenTagProbas = new float[stokens.length][validPostagSet.size()];
-        if (tagger==null){
-            SmoothNLP.LOGGER.severe(String.format("CRF segment model is not properly read"));
-            return null;
-        }
-        else {
-            for (SToken stoken : stokens) {
-                String ftr = super.buildFtrs(stoken.getToken());
-                tagger.add(ftr);
-            }
-            tagger.parse();
-            for (int i = 0; i < stokens.length; i++) {
-                int counter = 0;
-                for (int j = 0; j < sequenceTagNumber; j++) {
-                   if (validPostagSet.contains(tagger.yname(j))){
-                       tokenTagProbas[i][counter] = (float) tagger.prob(i, j);
-                       counter+=1;
-                   };
-                }
-            }
-        }
-        return tokenTagProbas;
-
+        return this.tokenTagProbas;
     }
 
     public List<SToken> process(List<SToken> stokens){
+
+        tokenTagProbas = new float[stokens.size()+1][validPostagSet.size()];
+
         Tagger tagger = this.model.createTagger();
         if (tagger==null){
             SmoothNLP.LOGGER.severe(String.format("CRF segment model is not properly read"));
@@ -143,6 +117,7 @@ public class PostagCRFPP extends CRFModel{
 //                if (tagIndex==0){  // 静止tagger 预测标点, 标点由强规则匹配
                 double bestPorba = 0;
 
+                int ycounter = 0;  // 用于track tokenTagProbas 中 array 的index
 //                System.out.println(stokens.get(i).getToken());
                 for (int j = 0; j<sequenceTagNumber; j++){
 //                    System.out.println(tagger.yname(j) + ":"+tagger.prob(i,j));
@@ -150,9 +125,14 @@ public class PostagCRFPP extends CRFModel{
                         tagIndex = j;
                         bestPorba = tagger.prob(i,j);
                     };
+
+                    // 存储token proba
+                    if (validPostagSet.contains(tagger.yname(j))){
+                        tokenTagProbas[i+1][ycounter] = (float) tagger.prob(i, j);
+                        ycounter+=1;
+                    };
+
                 }
-//                }
-//                System.out.println(tagIndex+":"+bestPorba);
                 String ytag = tagger.yname(tagIndex);  // predict的t
                 double tagproba = bestPorba;
 
@@ -243,6 +223,10 @@ public class PostagCRFPP extends CRFModel{
         System.out.println(s.process("百度一下你就知道"));
         System.out.println(s.process("百度创新性地推出了基于搜索的营销推广服务"));
         System.out.println(s.process("完美日记"));
+        System.out.println(s.process("为什么特斯拉给汽车产业链上市公司带来的，不仅仅是订单？"));
+        System.out.println(s.process("小鹏汽车获得新一轮融资"));
+        System.out.println(s.process("萨德系统零部件供应商"));
+        System.out.println(s.process("拼多多第三季度营收达到3亿美金"));
     }
 
 }
