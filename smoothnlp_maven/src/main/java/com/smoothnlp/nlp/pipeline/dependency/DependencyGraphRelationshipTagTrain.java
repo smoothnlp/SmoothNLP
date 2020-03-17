@@ -206,11 +206,11 @@ public class DependencyGraphRelationshipTagTrain {
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
                     put("nthread", nthreads);
-                    put("max_depth", 6);
+                    put("max_depth", 12);
                     put("silent", 0);
                     put("objective", "multi:softprob");
-                    put("colsample_bytree",0.95);
-                    put("colsample_bylevel",0.95);
+                    put("colsample_bytree",0.90);
+                    put("colsample_bylevel",0.90);
                     put("eta",0.2);
                     put("subsample",0.95);
                     put("lambda",1.0);

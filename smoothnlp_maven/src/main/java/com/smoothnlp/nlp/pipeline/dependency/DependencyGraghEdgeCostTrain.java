@@ -124,7 +124,7 @@ public class DependencyGraghEdgeCostTrain {
             Map<String, Object> params = new HashMap<String, Object>() {
                 {
                     put("nthread", nthreads);
-                    put("max_depth", 8);
+                    put("max_depth", 16);
                     put("silent", 0);
                     put("objective", "binary:logistic");
                     put("colsample_bytree",0.95);
