@@ -4,7 +4,17 @@ import re
 from ..configurations import config
 from multiprocessing.pool import ThreadPool
 from multiprocessing import Pool
+from functools import wraps
 
+def pro_only(func):
+    @wraps(func)
+    def check_apikey(*arg,**kargs):
+        print(config.apikey)
+        if config.apikey is None:
+            config.logger.critical("{} 仅仅支持 smoothnlp pro 版本. 请联系contact@smoothnlp.com 获得license".format(func.__name__))
+            raise ValueError("{} is a pro only function. set coorect apikey or email contact@smoothnlp.com to get a pro license".format(func.__name__))
+        return func(*arg,**kargs)
+    return check_apikey()
 
 def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict = {}):
     if len(text) > max_size_limit:
@@ -61,7 +71,7 @@ def extract_meta(meta,key):
     else:
         raise ValueError("Meta Extraction Failure")
 
-class SmoothNLPRequest(object):
+class SmoothNLPClient(object):
     def __init__(self):
         pass
 
@@ -157,6 +167,12 @@ class SmoothNLPRequest(object):
     def analyze(self, text):
         return _request(text,path=config.NLP_PATH)
 
+    def parseq(self, text, parseq_url = "/pro/kg/parseq"):
+        return _request(text, path= parseq_url)
+
+    def process_corpus(self,corpus,path):
+        return _request(text = corpus, path = path)
+
     def parse_date(self,givendate,pubdate=None):
         """
         (根据绝对日期) , 解析日期对应的真实日期范围
@@ -176,9 +192,12 @@ class SmoothNLPRequest(object):
         :param text:
         :return:
         """
-
         split_pattern = "(.+[。!?！？；;……\n\r]+)"
         return [s.strip() for s in re.split(split_pattern,text) if s]
+
+nlp = SmoothNLPClient()
+
+
 
 
 
