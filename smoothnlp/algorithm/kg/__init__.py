@@ -1,4 +1,4 @@
-from ...nlp import nlp
+from ...server import nlp
 import networkx as nx
 from ...server import _request
 
