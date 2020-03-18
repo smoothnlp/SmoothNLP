@@ -171,7 +171,7 @@ class SmoothNLPClient(object):
         return _request(text, path= parseq_url)
 
     def process_corpus(self,corpus,path):
-        return _request(text = corpus, path = path)
+        return _request(text = corpus, path = path, max_size_limit = 999999)
 
     def parse_date(self,givendate,pubdate=None):
         """
