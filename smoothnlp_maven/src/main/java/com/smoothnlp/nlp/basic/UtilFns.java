@@ -1,9 +1,6 @@
 package com.smoothnlp.nlp.basic;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.smoothnlp.nlp.SmoothNLP;
@@ -90,7 +87,7 @@ public class UtilFns {
     }
 
     public static List<String> split2sentences(String corpus){
-        return split2sentences(corpus, "[。，;]|[!?！？;]+");
+        return split2sentences(corpus, "[。!！?？; ；……\n\r]+");
     }
 
     public static List<String> split2sentences(String corpus, String splitsStr){
@@ -99,21 +96,29 @@ public class UtilFns {
         Matcher matcher = seg_patterns.matcher(corpus);
         int indexer = 0;
         while (matcher.find()){
-            sentences.add(corpus.substring(indexer,matcher.end()));
+
+            sentences.add(corpus.substring(indexer,matcher.end()).trim());
             indexer = matcher.end();
         }
         if (indexer ==0){
-            sentences.add(corpus);
+            sentences.add(corpus.trim());
         }else{
             if (indexer<corpus.length()){
-                sentences.add(corpus.substring(indexer+1));
+                sentences.add(corpus.substring(indexer+1).trim());
             }
         }
         return sentences;
     }
 
     public static void main(String[] args){
+
         System.out.println(split2sentences("广汽集团上季度营收27.78亿; 广汽集团上月利润达到5千万"));
+        System.out.println(split2sentences("句子1!句子2?"));
+        System.out.println(split2sentences("句子1！句子2?"));
+        System.out.println(split2sentences("句子1。句子2?"));
+        System.out.println(split2sentences("句子1?句子2?"));
+        System.out.println(split2sentences("句子1？句子2?"));
+        System.out.println(split2sentences("句子1\n句子2?\n"));
     }
 
 }
