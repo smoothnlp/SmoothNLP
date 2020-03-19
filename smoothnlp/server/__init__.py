@@ -5,6 +5,7 @@ from ..configurations import config
 from multiprocessing.pool import ThreadPool
 from multiprocessing import Pool
 from functools import wraps
+from requests.exceptions import Timeout
 
 def pro_only(func):
     @wraps(func)
@@ -20,13 +21,17 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
     if len(text) > max_size_limit:
         raise ValueError(
             "text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
-    if counter > 9999:
+    if counter > 999:
         raise Exception(
             " exceed maximal attemps for parsing. ")
     if config.apikey is not None and isinstance(config.apikey,str):   ## pro 版本支持 apikey 调用
         other_params['apikey'] = config.apikey
     content = {"text": text,**other_params}
-    r = requests.get(config.HOST + path, params=content)
+    try:
+        r = requests.get(config.HOST + path, params=content,timeout=30)
+    except Timeout as e:
+        counter+=1
+        return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
     result = r.json()
     if r.status_code==429:  ## qps超限制
