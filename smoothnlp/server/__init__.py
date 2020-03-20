@@ -7,6 +7,7 @@ from multiprocessing.pool import ThreadPool
 from multiprocessing import Pool
 from functools import wraps
 from requests.exceptions import Timeout
+from requests.exceptions import ConnectionError
 
 def pro_only(func):
     @wraps(func)
@@ -29,8 +30,8 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
         other_params['apikey'] = config.apikey
     content = {"text": text,**other_params}
     try:
-        r = requests.get(config.HOST + path, params=content,timeout=30)
-    except Timeout as e:
+        r = requests.get(config.HOST + path, params=content,timeout=300)
+    except (Timeout,ConnectionError) as e:
         config.logger.critical(str(e))
         return None
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
