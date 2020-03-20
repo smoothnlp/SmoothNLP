@@ -1,4 +1,5 @@
 import requests
+requests.adapters.DEFAULT_RETRIES = 10
 import time
 import re
 from ..configurations import config
