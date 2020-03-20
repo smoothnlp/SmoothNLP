@@ -31,8 +31,8 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
     try:
         r = requests.get(config.HOST + path, params=content,timeout=30)
     except Timeout as e:
-        counter+=1
-        return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
+        config.logger.critical(str(e))
+        return None
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
     result = r.json()
     if r.status_code==429:  ## qps超限制
