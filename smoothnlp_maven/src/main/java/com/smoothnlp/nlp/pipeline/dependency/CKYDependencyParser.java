@@ -57,7 +57,7 @@ public class CKYDependencyParser implements IDependencyParser {
         float[] flattenPairFtrs = UtilFns.flatten2dFloatArray(pairFtrs);
         int numRecords = pairFtrs.length;
         int numFtrs = pairFtrs[0].length;
-        DMatrix dmatrix = new DMatrix(flattenPairFtrs, numRecords, numFtrs);
+        DMatrix dmatrix = new DMatrix(flattenPairFtrs, numRecords, numFtrs,Float.NaN);
 
 //        end = System.currentTimeMillis();
 //        System.out.print(" future building time: ");
@@ -452,9 +452,10 @@ public class CKYDependencyParser implements IDependencyParser {
 //        String text = "腾讯进军印度保险市场：花15亿元收购一公司10%股份";
 //        String text = "中国银行是香港、澳门地区的发钞行";
 //        String text =  "中国银行是香港、澳门地区的发钞行，业务范围涵盖商业银行、投资银行、基金、保险、航空租赁等";  // 在137模型中(添加上次词Embedding), 识别: 香港--conj-->地区
-        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
+//        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
 //        String text = "Windows API是一套用来控制Windows的各个部件的外观和行为的预先定义的Windows函数";
 //        String text = "腾讯云是一家云服务提供商";
+        String text = "发脾气对孩子有多 大影响";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
