@@ -30,7 +30,7 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
         other_params['apikey'] = config.apikey
     content = {"text": text,**other_params}
     try:
-        r = requests.get(config.HOST + path, params=content,timeout=300)
+        r = requests.get(config.HOST + path, params=content,timeout=120)
     except (Timeout,ConnectionError) as e:
         config.logger.critical(str(e))
         return None
