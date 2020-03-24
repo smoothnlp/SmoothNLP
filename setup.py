@@ -6,9 +6,9 @@ long_description = open(os.path.join(rootdir, 'README.md')).read()
 
 setuptools.setup(
     name="SmoothNLP",
-    version="0.3.0",
-    author="Ruinan(Victor) Zhang, Jun Yin",
-    author_email="zhangruinan@smoothnlp.com, yinjun@smoothnlp.com",
+    version="0.3.1",
+    author="SmoothNLP Oraganization",
+    author_email="contact@smoothnlp.com",
     description="Python Package for SmoothNLP",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -20,10 +20,11 @@ setuptools.setup(
         "pygtrie",
         "networkx"
       ],
-    keywords=["Chinese","NLP","Python","SmoothNLP"],
+    keywords=["NLP","Python","SmoothNLP","Natural Language Processing","Knowledge Graph Extraction"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    test_suite = "smoothnlp.unittest.testall",
 )
