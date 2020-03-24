@@ -23,7 +23,7 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
     if len(text) > max_size_limit:
         raise ValueError(
             "text with size over 200 is prohibited. you may use smoothnlp.nlp.split2sentences as preprocessing")
-    if counter > 999:
+    if counter > 99:
         raise Exception(
             " exceed maximal attemps for parsing. ")
     if config.apikey is not None and isinstance(config.apikey,str):   ## pro 版本支持 apikey 调用
@@ -31,9 +31,14 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
     content = {"text": text,**other_params}
     try:
         r = requests.get(config.HOST + path, params=content,timeout=120)
-    except (Timeout,ConnectionError) as e:
+    except (Timeout) as e:
         config.logger.critical(str(e))
         return None
+    except (ConnectionError) as e:
+        config.logger.warn(str(e))
+        time.sleep(0.5)  ## 延迟50毫秒再调用
+        counter += 10
+        return
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
     result = r.json()
     if r.status_code==429:  ## qps超限制
