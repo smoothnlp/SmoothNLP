@@ -10,6 +10,7 @@
 
 ****
 
+
 <!-- TOC -->
 
 - [SmoothNLP](#smoothnlp)
@@ -36,12 +37,14 @@
         - [事件聚类](#事件聚类)
     - [有监督学习](#有监督学习)
         - [(资讯)事件分类](#资讯事件分类)
+    - [Tutorial](#tutorial)
     - [服务说明](#服务说明)
         - [常见问题](#常见问题)
     - [设置字体](#设置字体)
     - [彩蛋](#彩蛋)
 
 <!-- /TOC -->
+
 
 ## Install 安装
 通过`pip`安装
@@ -154,36 +157,7 @@ kg.extract(text = "SmoothNLP在V0.3版本中正式推出知识抽取功能", pre
 ```
 
 
-### 5.数字实体识别
-```python
->> smoothnlp.number_recognize("百度移动应用的月活跃设备达11亿台")
-[{'charStart': 13,
-  'charEnd': 16,
-  'text': '11亿',
-  'nerTag': 'NUMBER',
-  'sTokenList': {'9': {'token': '11亿', 'postag': 'm'}},
-  'normalizedEntityValue': '1100000000'}]
-```
-
-### 6. 金额识别与结构化
-```python
->> smoothnlp.money_recognize("百度市值跌破400亿美元")
-[{'charStart': 6,
-  'charEnd': 12,
-  'text': '400亿美元',
-  'nerTag': 'MONEY',
-  'sTokenList': {'4': {'token': '400亿', 'postag': 'm'},
-   '5': {'token': '美元', 'postag': 'M'}},
-  'normalizedEntityValue': '$40000000000'}]
-```
-
-### 7. 日期描述结构化
-```python
->> smoothnlp.parse_date("2018年一季度")
-{'startDate': '2018-01-01', 'endDate': '2018-03-31'}
-```
-
-### 8. 依存句法分析
+### 5. 依存句法分析
 > 注意, `smoothnlp.dep_parsing`返回的`Index=0` 为 dummy的`root`token.
 
 [依存句法分析标签解释wiki](https://github.com/smoothnlp/SmoothNLP/wiki/%E4%BE%9D%E5%AD%98%E5%8F%A5%E6%B3%95%E5%88%86%E6%9E%90%E8%A7%A3%E9%87%8A%E6%96%87%E6%A1%A3)
@@ -202,20 +176,20 @@ smoothnlp.dep_parsing("特斯拉是全球最大的电动汽车制造商。")
   {'relationship': 'punct', 'dependentIndex': 2, 'targetIndex': 10}]
 ```
 
-### 9. 切句
+### 6. 切句
 ```python
 smoothnlp.split2sentences("句子1!句子2!")
 > ['句子1!', '句子2!']
 ```
 
-### 10. 多线程支持
+### 7. 多线程支持
 > SmoothNLP 默认使用2个Thread进行服务调用; 
 ```python
 from smoothnlp import config
 config.setNumThreads(2)
 ```
 
-### 11. 日志
+### 8. 日志
 ```python
 from smoothnlp import config
 config.setLogLevel("DEBUG")  ## 设定日志级别
@@ -279,10 +253,19 @@ config.setLogLevel("DEBUG")  ## 设定日志级别
 
 ----------
 
+## Tutorial
+- [多线程调用](tutorials/多进程调用/SmoothNLP多线程调用Demo.ipynb)
+
+
 ## 服务说明
+
+### 声明
 1. SmoothNLP通过**云端微服务**提供完整的REST文本解析及相关服务应用. 对于开源爱好者等一般用户, 目前我们提供qps<=5的服务支持; 对于商业用户, 我们提供部不受限制的云端账号或本地部署方案. 
 2. 包括:切词,词性标注,依存句法分析等基础NLP任务由java代码实现, 在文件夹`smoothnlp_maven`下. 可通过 `maven`编译打包
 3. 如果您寻求商业化的NLP或知识图谱解决方案, 欢迎邮件至 business@smoothnlp.com
+
+### Pro 专业版本
+SmoothNLP Pro 支持稳定可靠的企业级用户, [使用文档](https://github.com/smoothnlp/SmoothNLP/tree/master/tutorials/Pro%E4%B8%93%E4%B8%9A%E7%89%88); 如需试用或购买, 请联系 contact@smoothnlp.com
 
 
 ### 常见问题
