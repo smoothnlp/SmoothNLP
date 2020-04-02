@@ -199,7 +199,7 @@ class SmoothNLPClient(object):
         :param text:
         :return:
         """
-        split_pattern = "(.+[。!?！？；;……\n\r]+)"
+        split_pattern = "(.+?[。!?！？；;……\n\r]+)"
         return [s.strip() for s in re.split(split_pattern,text) if s]
 
 nlp = SmoothNLPClient()
