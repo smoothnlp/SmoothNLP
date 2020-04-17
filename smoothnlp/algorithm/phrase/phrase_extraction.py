@@ -53,7 +53,7 @@ def extract_phrase(corpus,
         corpus_splits = [remove_irregular_chars(sent) for sent in sentence_split_by_punc(corpus)]
     elif isinstance(corpus,list):
         corpus_splits = [remove_irregular_chars(sent) for news in corpus for sent in
-                                sentence_split_by_punc(str(news)) if remove_irregular_chars(sent) != 0]
+                                sentence_split_by_punc(str(news)) if len(remove_irregular_chars(sent)) != 0]
     else:
         corpus_splits = chunk_generator_adapter(corpus, chunk_size)
     word_info_scores = get_scores(corpus_splits,min_n,max_n,chunk_size,min_freq)
