@@ -1,6 +1,5 @@
 package com.smoothnlp.nlp;
 
-import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -12,9 +11,7 @@ import com.smoothnlp.nlp.pipeline.*;
 import com.smoothnlp.nlp.pipeline.dependency.CKYDependencyParser;
 import com.smoothnlp.nlp.pipeline.dependency.DependencyRelationship;
 import com.smoothnlp.nlp.pipeline.dependency.IDependencyParser;
-import com.smoothnlp.nlp.pipeline.dependency.MaxEdgeScoreDependencyParser;
 
-import ml.dmlc.xgboost4j.java.DMatrix;
 import ml.dmlc.xgboost4j.java.XGBoostError;
 
 public class SmoothNLP{
@@ -56,40 +53,52 @@ public class SmoothNLP{
     public static IDictionary DICTIONARIES = new MultiDictionary(new IDictionary[]{regexDict,trieDict});
 
     // static model files
-    public static String CRF_SEGMENT_MODEL = "model/segment_ctb_4gram_f5_e4_B.bin";
+    public static String CRF_SEGMENT_MODEL = "model/ctb9_4gram_f20_e4_B.bin";
 
-    public static String CRF_POSTAG_MODEL = "model/postag_all_embed_3gram_f20_e4_dim1024_NT.bin";
+    public static String CRF_POSTAG_MODEL = "src/main/backup/postag_all_embed_3gram_f20_e4_dim1024_NT.bin";
+//    public static String XGBoost_Postag_Model = "model/postag_X_64.bin";
+    public static String XGBoost_Postag_Model = "model/postag_X_ctb9_dim32.bin";
 
     public static String CRF_NER_MODEL = "model/ner_4gram_B_200110.bin";
-//    public static String CRF_NER_MODEL = "model/embed_ner_f10_e4.bin";
 
+//    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr175_x.bin";
+//    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr175_x.bin";
 
-    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ftr175_1024.bin";
-    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ftr175_1024.bin";
+    public static String DP_EDGE_SCORE_XGBOOST = "model/dpedge_model_ctb9_ftr175_x.bin";
+    public static String DP_EDGE_TAG_XGBOOST = "model/dptag_model_ctb9_ftr175_x.bin";
 
     public static int XGBoost_DP_Edge_Model_Predict_Tree_Limit = 64;  // 用于提升EdgeModel Predict时效率
-    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 48;   // 用于提升TagModel Predict时效率
+    public static int XGBoost_DP_tag_Model_Predict_Tree_Limit = 64;   // 用于提升TagModel Predict时效率
 
     public static String WordEmbedding_MODEL = "embedding/vectors_dim32_win15.txt";
+    public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
+//    public static String WordEmbedding_MODEL_Large = "embedding/vectors_dim300_win10.txt";
+//    public static WordEmbedding WORDEMBEDDING_PIPELINE_Large = new WordEmbedding(WordEmbedding_MODEL_Large);
 
     // static Pipelines
     public static BaseSequenceTagger SEGMENT_PIPELINE = new SegmentCRFPP();
 
-    public static PostagCRFPP POSTAG_PIPELINE = new PostagCRFPP();
-//    public static IDependencyParser DEPENDENCY_PIPELINE = new MaxEdgeScoreDependencyParser();
+    public static PostagXgboost POSTAG_PIPELINE = new PostagXgboost();
     public static IDependencyParser DEPENDENCY_PIPELINE = new CKYDependencyParser();
     public static BaseEntityRecognizer NORMALIZED_NER = new NormalizedNER();
     public static BaseEntityRecognizer CRF_NER = new NerCRFPP();
 
     public static BaseEntityRecognizer REGEX_NER = new RegexNER(true);
     public static MultiNersPipeline NER_PIPELINE = new MultiNersPipeline(new BaseEntityRecognizer[]{NORMALIZED_NER,REGEX_NER,CRF_NER});
-    public static WordEmbedding WORDEMBEDDING_PIPELINE = new WordEmbedding();
+
 //    public static IEntityRecognizer STOKEN_NER = new RegexNER(new String[]{"STOPWORDS","stopwords.txt"},false);
 
     public static Pattern PUPattern = Pattern.compile("[！，。,;；：？……]+"); // 不包括书名号,感叹号,小括号（）() 顿号、冒号：~@#￥% +—— & 空格 [\s]+| \[\] *丨
-    public static String SegmentPUPattern ="[\\s]+|((―|\\.){2,6}|[+——！\\-【】～__“”|，。/？、~@#￥%……&*（）()》《丨\\[\\]]{1})";
+    public static String SegmentPUPattern ="[\\s]+|((―|\\.){2,6}|[+——！\\-【】～__“”|，。/？、~@#￥……&*（）()》《丨\\[\\]]{1})";
 
-    public static String NUMPatternStr = "(([\\d]{1,5}|[点两双一二三四五六七八九零十〇十百千万亿]{2,8}[.．%％]{1})[点两双一二三四五六七八九零十〇十百千万亿]{0,8}|[\\d]{2,8}[.．%％]{0,1}[\\d十百千万亿]{0,8})";
+    public static String NUMPatternStr = "(" +
+            "(" +
+            "[1-9]{1,5}[%％]{0,1}([.．]{1}[\\d]{1,5})[%％]{0,1}|" +
+            "[点两双一二三四五六七八九零十〇十百千万亿]{2,8}[.．%％]{0,1}" +
+            ")|" +
+//            "[点两双一二三四五六七八九零十〇十百千万亿]{0,8}|" +
+            "[\\d]{1,8}[\\d十百千万亿]{0,8}" +
+            ")";
     public static Pattern NUMPattern = Pattern.compile(NUMPatternStr);
 
 
