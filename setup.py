@@ -6,7 +6,7 @@ long_description = open(os.path.join(rootdir, 'README.md')).read()
 
 setuptools.setup(
     name="SmoothNLP",
-    version="0.3.1",
+    version="0.3.2",
     author="SmoothNLP Oraganization",
     author_email="contact@smoothnlp.com",
     description="Python Package for SmoothNLP",
