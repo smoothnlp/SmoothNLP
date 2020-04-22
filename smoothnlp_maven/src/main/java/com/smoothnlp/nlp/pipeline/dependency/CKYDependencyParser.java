@@ -25,11 +25,13 @@ public class CKYDependencyParser implements IDependencyParser {
     private Booster edgeScoreModel;
     private Booster edgeTagModel;
 
+    private boolean loaded;
+
     HashMap<Integer,ProjectiveTree> AcedTrees;
     public float[] targetAvgProbas;
 
     public CKYDependencyParser() {
-        init(SmoothNLP.DP_EDGE_SCORE_XGBOOST, SmoothNLP.DP_EDGE_TAG_XGBOOST);
+        this.loaded = false;
     }
 
     private void init(String edgeScoreModel, String edgeTagModel) {
@@ -46,6 +48,10 @@ public class CKYDependencyParser implements IDependencyParser {
     ;
 
     public DependencyRelationship[] parse(List<SToken> stokens) throws XGBoostError {
+        if (!this.loaded){
+            init(SmoothNLP.DP_EDGE_SCORE_XGBOOST, SmoothNLP.DP_EDGE_TAG_XGBOOST);
+            this.loaded = true;
+        }
 
 //        long start,end;
 //        start = System.currentTimeMillis();
@@ -216,7 +222,7 @@ public class CKYDependencyParser implements IDependencyParser {
             }else if (tokenSize<=20){
                 this.thresholdRatio = 0.5f;
             }else{
-                this.thresholdRatio = 10.0f/tokenSize;
+                this.thresholdRatio = 6.0f/tokenSize;
             }
         }
 
@@ -445,7 +451,7 @@ public class CKYDependencyParser implements IDependencyParser {
 //        String text = "到目前为止，BMJ是印尼最大、最成功的过滤嘴与卷烟纸供应商，它的产品几乎被应用于每一支印尼生产的机制卷烟中";
 //        String text = "公司逐渐成为了质量和产量都居世界领先地位的生产商";
 //        String text = "2005年三枪集团实现销售额14亿元人民币，处于行业领先地位";
-//        String text = "玻璃钢平板是保温项目普遍采用的外护层材料，具有阻燃，耐腐蚀，同时根据要求配制各种色彩，使外观更美观。";  // 主语问题; 在训练epoch > 1000 后解决
+        String text = "玻璃钢平板是保温项目普遍采用的外护层材料，具有阻燃，耐腐蚀，同时根据要求配制各种色彩，使外观更美观。";  // 主语问题; 在训练epoch > 1000 后解决
 //        String text = "七喜电脑股份有限公司其前身为1997年8月成立的七喜电脑有限公司";
 //        String text = "2层口罩的制作材料包括无纺布、鼻梁筋、耳挂。";
 //        String text = "SmoothNLP在V0.3版本中正式推出知识抽取功能";
@@ -455,7 +461,7 @@ public class CKYDependencyParser implements IDependencyParser {
 //        String text = "口罩是一种卫生用品，一般指戴在口鼻部位用于过滤进入口鼻的空气，以达到阻挡有害的气体、气味、飞沫进出佩戴者口鼻的用具，以纱布或纸等制成。";
 //        String text = "Windows API是一套用来控制Windows的各个部件的外观和行为的预先定义的Windows函数";
 //        String text = "腾讯云是一家云服务提供商";
-        String text = "发脾气对孩子有多 大影响";
+//        String text = "发脾气对孩子有多大影响";
         long start = System.currentTimeMillis();
         for (DependencyRelationship e : dparser.parse(text)) {
             System.out.println(e);
