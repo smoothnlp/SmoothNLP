@@ -43,7 +43,7 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
     try:
         result = r.json()
-    except (json.decoder.JSONDecodeError,Exception) as e:\
+    except (json.decoder.JSONDecodeError,Exception) as e:
         print(e)
         counter +=3
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
