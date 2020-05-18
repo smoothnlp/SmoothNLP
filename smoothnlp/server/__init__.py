@@ -45,6 +45,7 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
         result = r.json()
     except (json.decoder.JSONDecodeError,Exception) as e:
         print(e)
+        print(r.text)
         counter +=3
         return _request_single(text, path=path, counter=counter, max_size_limit=max_size_limit)
     if r.status_code==429:  ## qps超限制
