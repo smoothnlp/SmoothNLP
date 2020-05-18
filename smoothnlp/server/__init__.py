@@ -8,6 +8,7 @@ from multiprocessing import Pool
 from functools import wraps
 from requests.exceptions import Timeout
 from requests.exceptions import ConnectionError
+import json
 
 def pro_only(func):
     @wraps(func)
@@ -40,7 +41,10 @@ def _request_single(text, path, counter=0, max_size_limit=200, other_params:dict
         counter += 10
         return
     config.logger.debug("sending request to {} with parameter={}".format(config.HOST + path,content))
-    result = r.json()
+    try:
+        result = r.json()
+    except json.JSONDecodeError:
+        counter +=2
     if r.status_code==429:  ## qps超限制
         counter += 1
         config.logger.debug("Request QPS exceeds server limit")
