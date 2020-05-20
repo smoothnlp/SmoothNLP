@@ -50,13 +50,46 @@ def extract(text,
         all_kgs+=sentkg
     return all_kgs
 
+   
+def shortest_path_length(G):
+    from heapq import heappush, heappop
+    def _dijkstra(G, node):
+        """使用dijkstra算法计算 node 与 图中其它节点 之间的最短路径"""
+        G_succ = {k: list(G._adj[k].keys()) for k in G._adj.keys()}
+        for u,v in G.edges():
+            G_succ[v] += [u]  # 保存全部邻接关系
+        push = heappush
+        pop = heappop
+        dist = {}  # dictionary of final distances
+        seen = {}
+        fringe = []
+        if node not in G:
+            raise nx.NodeNotFound(f"Node {node} not in G")
+        seen[node] = 0
+        push(fringe, (0, node))
+        while fringe:
+            (d, v) = pop(fringe)
+            if v in dist:
+                continue  # already searched this node.
+            dist[v] = d
+            for u in G_succ[v]:
+                vu_dist = dist[v] + 1
+                if u in dist:
+                    if vu_dist < dist[u]:
+                        raise ValueError('Contradictory paths found:','negative weights?')
+                elif u not in seen or vu_dist < seen[u]:
+                    seen[u] = vu_dist
+                    push(fringe, (vu_dist, u))
+        return dist
+    return {n:_dijkstra(G, n) for n in G}   
+
 def rel2graph(rels:list):
     """
     依据多条知识图谱N元组构建Networkx类型的有向图
     :param rels:
     :return: nx.DiGraph
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     for rel in rels:
         g.add_node(rel['subject'])
         g.add_node(rel['object'])
@@ -89,7 +122,11 @@ def graph2fig(g,x:int=800,y:int=600):
     plt.rcParams['font.family'] = "SimHei"
     if len(g)<=0: ## 处理空的Graph
         return
-    pos = nx.drawing.layout.kamada_kawai_layout(g)
+    if len(g)==2:
+        pos = nx.drawing.planar_layout(g)
+    else:
+        dists = shortest_path_length(g)
+        pos = nx.drawing.kamada_kawai_layout(g,dist=dists)
     fig = plt.figure(figsize = (x/100,y/100),dpi=100)
     plt.title('SmoothNLP开源工具生成的知识图谱', fontdict={"fontsize": 14})
 
@@ -103,6 +140,8 @@ def graph2fig(g,x:int=800,y:int=600):
             return label[:length // 3] + "\n" + label[length // 3:2 * length // 3] + "\n" + label[2 * length // 3:]
 
     node_labels = {k: label_modification(k) for k in g.nodes}
+    edge_labels = {(k[0],k[1]):label for k,label in nx.get_edge_attributes(g, "label").items()}
+
 
     nx.draw(g, pos, labels=node_labels,
             with_labels=True,
@@ -117,7 +156,7 @@ def graph2fig(g,x:int=800,y:int=600):
 
     nx.draw_networkx_edge_labels(g,
                                  pos,
-                                 edge_labels=nx.get_edge_attributes(g, "label"),
+                                 edge_labels=edge_labels,
                                  font_color='Black',
                                  font_size=16,
                                  font_family="SimHei")
