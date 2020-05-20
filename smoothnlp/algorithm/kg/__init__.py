@@ -89,7 +89,7 @@ def rel2graph(rels:list):
     :param rels:
     :return: nx.DiGraph
     """
-    g = nx.MultiDiGraph()
+    g = nx.DiGraph()
     for rel in rels:
         g.add_node(rel['subject'])
         g.add_node(rel['object'])
@@ -140,7 +140,7 @@ def graph2fig(g,x:int=800,y:int=600):
             return label[:length // 3] + "\n" + label[length // 3:2 * length // 3] + "\n" + label[2 * length // 3:]
 
     node_labels = {k: label_modification(k) for k in g.nodes}
-    edge_labels = {(k[0],k[1]):label for k,label in nx.get_edge_attributes(g, "label").items()}
+    edge_labels = {k:label for k,label in nx.get_edge_attributes(g, "label").items()}
 
 
     nx.draw(g, pos, labels=node_labels,
