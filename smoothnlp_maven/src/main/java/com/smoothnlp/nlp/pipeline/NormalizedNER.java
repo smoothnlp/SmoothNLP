@@ -324,7 +324,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
 
         double multiplier = 1.0;
         boolean notMatched = true;
-        char currencySign = '$';
+        char currencySign = '¥';
 
         // we check multiCharCurrencyWords first
         for (String currencyWord: multiCharCurrencyWords.keySet()){
@@ -342,6 +342,7 @@ public class NormalizedNER extends BaseEntityRecognizer{
                 }
                 s = s.replaceAll(currencyWord, "");
                 currencySign = multiCharCurrencyWords.get(currencyWord);
+
                 notMatched = false;
             }
         }
@@ -602,19 +603,19 @@ public class NormalizedNER extends BaseEntityRecognizer{
 //        System.out.println(ner.analyze(inputText));
 
 
-        inputText = "广汽集团一季度营收142.56亿，归母净利润27.78亿元";
-        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
-        System.out.println(ner.analyze(inputText));
+//        inputText = "广汽集团一季度营收142.56亿，归母净利润27.78亿元";
+//        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+//        System.out.println(ner.analyze(inputText));
+//
+//        inputText = "数亿";
+//        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+//        System.out.println(ner.analyze(inputText));
+//
+//        inputText = "一点三亿";
+//        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
+//        System.out.println(ner.analyze(inputText));
 
-        inputText = "数亿";
-        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
-        System.out.println(ner.analyze(inputText));
-
-        inputText = "一点三亿";
-        System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
-        System.out.println(ner.analyze(inputText));
-
-        inputText = "江山控股(00295)拟11.66元出售10个太阳能项目";
+        inputText = "738.18元";
         System.out.println(SmoothNLP.POSTAG_PIPELINE.process(inputText));
         System.out.println(ner.analyze(inputText));
 
