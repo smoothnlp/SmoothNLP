@@ -14,6 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/smoothnlp/SmoothNLP",
     packages=setuptools.find_packages(),
+    package_data={'smoothnlp': ['resources/*']},
     install_requires=[
         'numpy',
         "requests",
