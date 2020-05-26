@@ -2,7 +2,7 @@ import setuptools
 import os
 
 rootdir = os.path.abspath(os.path.dirname(__file__))
-long_description = open(os.path.join(rootdir, 'README.md')).read()
+long_description = open(os.path.join(rootdir, 'README.md'), encoding='utf-8').read()
 
 setuptools.setup(
     name="SmoothNLP",
