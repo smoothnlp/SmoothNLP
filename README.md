@@ -61,7 +61,7 @@ python setup.py install
 
 
 ## 知识图谱
-> 仅支持SmoothNLP `V0.3.0`以后的版本; 请尽可能 
+> 仅支持SmoothNLP `V0.3.0`以后的版本; 以下展示为`V0.4`版本后样例:
 
 ### 调用示例&可视化
 
