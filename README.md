@@ -61,23 +61,24 @@ python setup.py install
 
 
 ## 知识图谱
-> 仅支持SmoothNLP `V0.3.0`以后的版本. 
+> 仅支持SmoothNLP `V0.3.0`以后的版本; 请尽可能 
 
 ### 调用示例&可视化
 
 ```python
-from smoothnlp import kg
-rels = kg.extract(text = ["SmoothNLP在V0.3版本中正式推出知识抽取功能",
-                    "SmoothNLP专注于可解释的NLP技术",
-                    "SmoothNLP支持Python与Java",
-                    "SmoothNLP将帮助工业界与学术界更加高效的构建知识图谱",
-                    "SmoothNLP是上海文磨网络科技公司的开源项目"])  ## 调用SmoothNLP解析
-g = kg.rel2graph(rels)  ## 依据文本解析结果, 生成networkx有向图
-fig = kg.graph2fig(g,x=1000,y=1000)  ## 生成 matplotlib.figure.Figure 图片
-fig.savefig("SmoothNLP_KG_Demo.png") ## 保存图片到PNG
+from smoothnlp.algorithm import kg
+from kgexplore import visual
+ngrams = kg.extract_ngram(["SmoothNLP在V0.3版本中正式推出知识抽取功能",
+                        "SmoothNLP专注于可解释的NLP技术",
+                        "SmoothNLP支持Python与Java",
+                        "SmoothNLP将帮助工业界与学术界更加高效的构建知识图谱",
+                        "SmoothNLP是上海文磨网络科技公司的开源项目",
+                     "SmoothNLP在V0.4版本中推出对图谱节点的分类功能",
+                     "KGExplore是SmoothNLP的一个子项目"])
+visual.visualize(ngrams,width=12,height=10)
 ```
 
-![SmoothNLP_KG_Demo](/tutorials/知识图谱/SmoothNLP_KG_Demo.png)
+![SmoothNLP_KG_Demo](/tutorials/知识图谱/0.4demo.png)
 
 ### 功能文档
 ```python
