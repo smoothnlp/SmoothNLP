@@ -1,5 +1,5 @@
 # [SmoothNLP](http://www.smoothnlp.com)
-![Version](https://img.shields.io/badge/Version-0.3-green.svg) ![Python3](https://img.shields.io/badge/Python-3-blue.svg?style=flat) [![star this repo](http://githubbadges.com/star.svg?user=smoothnlp&repo=SmoothNLP)](https://github.com/smoothnlp/SmoothNLP/stargazers) [![fork this repo](http://githubbadges.com/fork.svg?user=smoothnlp&repo=SmoothNLP&color=fff&background=007ec6)](http://github.com/smoothnlp/SmoothNLP/fork)
+![Version](https://img.shields.io/badge/Version-0.4-green.svg) ![Python3](https://img.shields.io/badge/Python-3-blue.svg?style=flat) [![star this repo](http://githubbadges.com/star.svg?user=smoothnlp&repo=SmoothNLP)](https://github.com/smoothnlp/SmoothNLP/stargazers) [![fork this repo](http://githubbadges.com/fork.svg?user=smoothnlp&repo=SmoothNLP&color=fff&background=007ec6)](http://github.com/smoothnlp/SmoothNLP/fork)
 ****	
 
 | Author | Email | 
@@ -17,21 +17,15 @@
     - [Install 安装](#install-安装)
     - [知识图谱](#知识图谱)
         - [调用示例&可视化](#调用示例可视化)
-        - [功能文档](#功能文档)
-        - [功能说明](#功能说明)
-            - [应用案例:](#应用案例)
     - [NLP基础Pipelines](#nlp基础pipelines)
         - [1. Tokenize分词](#1-tokenize分词)
         - [2. Postag词性标注](#2-postag词性标注)
         - [3. NER 实体识别](#3-ner-实体识别)
         - [4. 金融实体识别](#4-金融实体识别)
-        - [5. 数字实体识别](#5-数字实体识别)
-        - [6. 金额识别与结构化](#6-金额识别与结构化)
-        - [7. 日期描述结构化](#7-日期描述结构化)
-        - [8. 依存句法分析](#8-依存句法分析)
-        - [9. 切句](#9-切句)
-        - [10. 多线程支持](#10-多线程支持)
-        - [11. 日志](#11-日志)
+        - [5. 依存句法分析](#5-依存句法分析)
+        - [6. 切句](#6-切句)
+        - [7. 多线程支持](#7-多线程支持)
+        - [8. 日志](#8-日志)
     - [无监督学习](#无监督学习)
         - [新词挖掘](#新词挖掘)
         - [事件聚类](#事件聚类)
@@ -39,6 +33,8 @@
         - [(资讯)事件分类](#资讯事件分类)
     - [Tutorial](#tutorial)
     - [服务说明](#服务说明)
+        - [声明](#声明)
+        - [Pro 专业版本](#pro-专业版本)
         - [常见问题](#常见问题)
     - [设置字体](#设置字体)
     - [彩蛋](#彩蛋)
@@ -49,7 +45,7 @@
 ## Install 安装
 通过`pip`安装
 ```shell
-pip install smoothnlp>=0.3.0
+pip install smoothnlp>=0.4.0
 ```
 
 通过源代码安装最新版本
