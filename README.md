@@ -69,46 +69,21 @@ python setup.py install
 from smoothnlp.algorithm import kg
 from kgexplore import visual
 ngrams = kg.extract_ngram(["SmoothNLP在V0.3版本中正式推出知识抽取功能",
-                        "SmoothNLP专注于可解释的NLP技术",
-                        "SmoothNLP支持Python与Java",
-                        "SmoothNLP将帮助工业界与学术界更加高效的构建知识图谱",
-                        "SmoothNLP是上海文磨网络科技公司的开源项目",
-                     "SmoothNLP在V0.4版本中推出对图谱节点的分类功能",
-                     "KGExplore是SmoothNLP的一个子项目"])
+                            "SmoothNLP专注于可解释的NLP技术",
+                            "SmoothNLP支持Python与Java",
+                            "SmoothNLP将帮助工业界与学术界更加高效的构建知识图谱",
+                            "SmoothNLP是上海文磨网络科技公司的开源项目",
+                            "SmoothNLP在V0.4版本中推出对图谱节点的分类功能",
+                            "KGExplore是SmoothNLP的一个子项目"])
 visual.visualize(ngrams,width=12,height=10)
 ```
 
 ![SmoothNLP_KG_Demo](/tutorials/知识图谱/0.4demo.png)
 
-### 功能文档
-```python
-from smoothnlp import kg
-kg.extract(text = "SmoothNLP在V0.3版本中正式推出知识抽取功能", pretty = True)
-"""
-对输入的 text 进行 知识图谱(N元组)抽取
-    :param text: 进行知识抽取的文本
-        支持格式-1: str, 超过一定长度的text会被自动切句
-        支持格式-2: [str], list of str
-    :param pretty: 是否对词组结果进行合并, 默认True
-        boolean: True/False
-    :return: 知识图谱(N-元组)  -- List 
-        字段: 
-            subject: 对象1 
-            object:  对象2
-            aciton: 连接关系
-            type:   连接类型
-            __conf_score: 置信概率
-"""
->> [{'_conf_score': 0.9187054, 'action': '正式推出', 'object': '知识抽取功能', 'subject': 'SmoothNLP', 'type': 'action'}]
-```
 
-### 功能说明
-* 在V=0.3版本中, SmoothNLP的知识抽取模块仅支持包含"主语"对象的结构性关系抽取; 
-* 目前支持的关系: `动作事件`,`状态修饰`,`数字修饰`,`条件修饰`;
-* 更多关系, 包括: "从属关系", "并列关系", "描述修饰"等 将在 V0.4中发布. 
-
-#### 应用案例: 
- 1. [基于百度百科的知识图谱构建]()
+> 功能说明
+* V0.4版本中支持的边关系(edge-type), 包括: `事件触发`, `状态描述`, `属性描述`, `数值描述`. 
+* V0.4版本中支持的节点种类(node-type), 包括:  `产品`、`地区`、`公司与品牌`、`货品`、`机构`、`人物`、`修饰短语`、`其他`. 
 
  ---------
 
