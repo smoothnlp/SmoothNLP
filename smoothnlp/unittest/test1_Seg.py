@@ -55,18 +55,20 @@ class Test_Segment(unittest.TestCase):
         '''
         数字相关的逻辑：
             小数点(.)百分号(%)不和数字切开；
-            数字后面有表示时间、金钱的单位(年、万)，则与单位拼在一起；
+            数字后面有表示时间、金钱的单位(年、万)，则与单位切开；
             部分包含数字的特殊词语(36氪、Q3、K12、B1轮)；
             其他符号与数字切开
         '''
         print('\n######',sys._getframe().f_code.co_name,'测试结果：######')
-        self.assertEqual('营收增加15.2万元','15.2万','增加')
+        self.assertEqual('营收增加15.2万元','15.2','增加')
         self.assertEqual('外运发展第一大股东累计减持15.2%','15.2%','减持')
-        self.assertEqual('四维图新2018年营收达21.35亿','21.35亿','达')        
-        self.assertEqual('奥飞动漫2015年游戏营收1.3亿','1.3亿','营收')
+        self.assertEqual('四维图新2018年营收达21.35亿','21.35','达')        
+        self.assertEqual('奥飞动漫2015年游戏营收1.3亿','1.3','营收')
         self.assertEqual('江山控股(00295)拟11.66元出售10个太阳能项目','(','控股')
         self.assertEqual('上市对36氪有三大好处','36氪','对')
         self.assertEqual('帮邦行完成1亿元人民币B1轮投资','B1轮','人民币')
+        self.assertEqual('金额7919487.65元','7919487.65','金额')
+        self.assertEqual('查看2013年9月13日11点49分至11点58分监控录像','2013年9月13日11点49分','查看')
         self.assertGreaterEqual(1-failed_counter/num_test_case,0.5)
     
     
@@ -94,6 +96,7 @@ class Test_Segment(unittest.TestCase):
         self.assertEqual('独家|年营收超50亿 巴拉巴拉“登陆”小程序','|','独家')
         self.assertEqual('新闻晚参|全国建材家居市场运行维稳，定制家居营收、净利增速双下滑','|','参')
         self.assertEqual('国内新旧造车势力牵手：蔚来和长安成立合资公司 发展电动车|钛快讯','|','电动车')
+        self.assertEqual('①经调阅查看2013年9月13日11点49分至11点58分监控录像发现','经','')
         ## 混合  目前切开
         self.assertEqual('冬至日-44.7℃ “中国最冷小镇”迎入冬来最低温','-','日')
         self.assertEqual('“烈火”-3夜射成功 印弹道导弹战略威慑力初具规模','-','”')
