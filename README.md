@@ -241,9 +241,8 @@ SmoothNLP Pro 支持稳定可靠的企业级用户, [使用文档](https://githu
 
 
 ### 常见问题
-1. Python环境下, SmoothNP的所有功能通过公开的微服务方式对外数据. 对于本地支持,我们采用了基于`Jpype`的方案. 对应的jar包可基于本项目直接打包使用, 或联系我们提供下载链接. 
-2.  注意, 在0.2.20版本调整后, 以下基础Pipeline功能仅对字符串长度做出了限制(不超过200). 如对较长corpus进行处理, 请先试用`smoothnlp.split2sentences` 进行切句预处理
-4. 知识图谱可视化部分默认支持字体`SimHei`,大多数环境下的matplotlib不支持中文字体, 我们提供字体包的[下载链接](http://storm.cloud.smoothnlp.com/s/HHM6KkmPymie4RA); 您可以通过运行以下代码, 将`Simhei`字体加载入matplotlib字体库
+1.  注意, 在0.2.20版本调整后, 以下基础Pipeline功能仅对字符串长度做出了限制(不超过200). 如对较长corpus进行处理, 请先试用`smoothnlp.split2sentences` 进行切句预处理
+2. 知识图谱可视化部分(V0.4版本以前)默认支持字体`SimHei`,大多数环境下的matplotlib不支持中文字体, 我们提供字体包的[下载链接](http://storm.cloud.smoothnlp.com/s/HHM6KkmPymie4RA); 您可以通过运行以下代码, 将`Simhei`字体加载入matplotlib字体库
 
 ```python
 import matplotlib.pyplot as plt
@@ -257,8 +256,9 @@ plt.rcParams['font.family'] = "SimHei"
 ```
 
 ## 彩蛋
-1. 如果你对NLP相关算法或引用场景感兴趣, 但是却缺少实现数据, 我们提供免费的数据支持, [下载](https://github.com/smoothnlp/FinancialDatasets). 
-2. 如果你是高校学生, 寻求`NLP`或`知识图谱`相关的研究素材, 甚至是实习机会. 欢迎邮件到 contact@smoothnlp.com
+1. 如果你对本项目, 有任何建议或者想成为联合开发者, 欢迎提交issue或pull request; 作为回赠, 我们会提供数据分享或 [kgexplore](https://github.com/smoothnlp/KGExplore) 的免费数据体验
+2. 如果你对NLP相关算法或引用场景感兴趣, 但是却缺少实现数据, 我们提供免费的数据支持, [下载](https://github.com/smoothnlp/FinancialDatasets). 
+3. 如果你是高校学生, 寻求`NLP`或`知识图谱`相关的研究素材, 甚至是实习机会. 欢迎邮件到 contact@smoothnlp.com
 
 
 
