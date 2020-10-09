@@ -68,8 +68,9 @@ public class SegmentCRFPP extends CRFModel{
         String engpattern = "[a-zA-Z0-9]{1,10}([&.-]{0,1})[a-zA-Z0-9]{0,10}";
         String numpattern = "[点两双一二三四五六七八九零十〇\\d.%十百千万亿]{2,8}";
         String spcpattern = "[\\s]+";
+        String bookpattern = "[《[\\w\\W\\d\\D\\s\\S]*》]+";
 
-        String allpattern =  UtilFns.join("|",new String[]{numpattern,engpattern,SmoothNLP.SegmentPUPattern,spcpattern});
+        String allpattern =  UtilFns.join("|",new String[]{numpattern,engpattern,SmoothNLP.SegmentPUPattern,spcpattern,bookpattern});
         Pattern pattern = Pattern.compile(allpattern);
 
 //        Pattern pattern  = Pattern.compile("[a-zA-Z0-9]{2,10}|[\\s]+|[点两双一二三四五六七八九零十〇\\d|.|%|个|十|百|千|万|亿]{2,}/|[+——！，。？、~@#￥%……&*（）()》《丨\\[\\]]+");
@@ -173,6 +174,7 @@ public class SegmentCRFPP extends CRFModel{
         System.out.println(s.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元"));
         System.out.println(s.process("我的狗吃苹果"));
         System.out.println(s.process("怀化什么时候能有自己的马拉松赛？_都市生活_怀化新闻网"));
+        System.out.println(s.process("\"证券日报称，《美人鱼》、《三打白骨精》、《澳门风云3》等即将上映的强档电影，让春节期间的票房备受期待。\"\n"));
 
     }
 
