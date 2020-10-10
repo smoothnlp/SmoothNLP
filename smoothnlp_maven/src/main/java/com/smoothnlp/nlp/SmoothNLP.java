@@ -28,6 +28,7 @@ public class SmoothNLP{
             put("GS", "financial_agencies.txt");
             put("FINANCE_METRIX", "financial_metrics.txt");
             put("METRIX_ACTION", "metric_action.txt");
+            put("PRODUCT", "手机型号.txt");
             put("COMPANY_METRIX","organization_metrics.txt");
             put("COMMON","common_tokens.txt");
             put("COMMON_CHENGYU","common_chengyu.txt");
@@ -177,26 +178,27 @@ public class SmoothNLP{
 //
 //         System.out.println(UtilFns.toJson(SmoothNLP.process("玩手机")));
 //
-         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("大屏手机")));
+////
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("深圳厚屹照明有限公司坐落于深圳经济特区")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("安徽(钰诚)控股集团、钰诚国际控股集团有限公司")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州(钰诚)控股集团、钰诚国际控股集团有限公司")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("上海(钰诚)控股集团、钰诚国际控股集团有限公司")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("扬州(钰诚)控股集团、钰诚国际控股集团有限公司")));
 //
-         System.out.println(UtilFns.toJson(SmoothNLP.process("深圳厚屹照明有限公司坐落于深圳经济特区")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("安徽(钰诚)控股集团、钰诚国际控股集团有限公司")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州(钰诚)控股集团、钰诚国际控股集团有限公司")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("上海(钰诚)控股集团、钰诚国际控股集团有限公司")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("扬州(钰诚)控股集团、钰诚国际控股集团有限公司")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州(阿里哈哈)网络科技有限公司")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州（网易）网络科技有限公司")));
+//
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州阿里哈哈网络科技有限公司")));
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("星晖新能源智能汽车生产基地是省重点发展项目之一，总投资超过200亿元，于2018年1月在黄冈产业园正式开工。")));
+//
+////         System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司建于一九八九年，位于河北永年高新技术工业园区，拥有固定资产1200万元，现有职工280名")));
+//
+//         System.out.println(UtilFns.toJson(SmoothNLP.process("中国第一家股份制企业北京天桥百货股份有限公司成立；")));
+//       System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元")));
 
-         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州(阿里哈哈)网络科技有限公司")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州（网易）网络科技有限公司")));
-
-         System.out.println(UtilFns.toJson(SmoothNLP.process("杭州阿里哈哈网络科技有限公司")));
-         System.out.println(UtilFns.toJson(SmoothNLP.process("星晖新能源智能汽车生产基地是省重点发展项目之一，总投资超过200亿元，于2018年1月在黄冈产业园正式开工。")));
-
-//         System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司建于一九八九年，位于河北永年高新技术工业园区，拥有固定资产1200万元，现有职工280名")));
-
-         System.out.println(UtilFns.toJson(SmoothNLP.process("中国第一家股份制企业北京天桥百货股份有限公司成立；")));
-       System.out.println(UtilFns.toJson(SmoothNLP.process("邯郸市通达机械制造有限公司拥有固定资产1200万元，现有职工280名，其中专业技术人员80名，高级工程师两名，年生产能力10000吨，产值8000万元")));
-
-
+//        System.out.println(UtilFns.toJson(SmoothNLP.process("智能改写是智能写作最重要的功能之一。")));
+        System.out.println(UtilFns.toJson(SmoothNLP.process("Redmi K30配多功能NFC：门禁、公交、车钥匙通杀。")));
 
 
      }

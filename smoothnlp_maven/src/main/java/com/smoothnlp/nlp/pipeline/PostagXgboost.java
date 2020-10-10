@@ -448,7 +448,8 @@ public class PostagXgboost extends BaseSequenceTagger{
 
             System.out.println(s.process("截至3月，我国网民规模为9.04亿，较2018年底增长7508万；"));
             System.out.println(s.process("腾讯股票暴跌10%"));
-
+            System.out.println(s.process("腾讯进军印度保险市场：花15亿元收购一公司10%股份"));
+            System.out.println(s.process("七喜电脑股份有限公司其前身为1997年8月成立的七喜电脑有限公司"));
 
 
         }

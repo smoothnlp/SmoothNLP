@@ -24,7 +24,7 @@ public class PostagCRFPP extends CRFModel{
     private static int sequenceTagNumber = 38;
     private float[][] tokenTagProbas;
 
-    private static HashSet<String> validPostagSet = new HashSet<>();
+    public static HashSet<String> validPostagSet = new HashSet<>();
     static {
         validPostagSet.add("AD");
         validPostagSet.add("AS");
@@ -90,6 +90,55 @@ public class PostagCRFPP extends CRFModel{
         return this.tokenTagProbas;
     }
 
+    public List<SToken> postProcess(List<SToken> stokens){
+        for (int  i=0; i<stokens.size();i++){
+
+            String ytag = stokens.get(i).getPostag();
+            float tagproba = stokens.get(i).getTagproba();
+
+            if (stokens.get(i).getToken().equals("、")){
+                // 对于中文中的顿号, 强制处理成CC-并列关系
+                ytag = "CC";
+                tagproba = 1.0f;
+            }
+
+            // 对于字符串为"空格" 或者其他中文标点, 如"丨"的token, 强行改写postag = "PU"
+            Matcher pumatcher = SmoothNLP.PUPattern.matcher(stokens.get(i).token);
+            while (pumatcher.find()){
+                if (pumatcher.end() - pumatcher.start() == stokens.get(i).token.length()) {
+                    ytag = "PU";
+                    tagproba = 1.0f;
+                }
+            }
+
+            Matcher numMatcher = SmoothNLP.NUMPattern.matcher(stokens.get(i).token);
+            while (numMatcher.find()){
+                if (numMatcher.end() - numMatcher.start() == stokens.get(i).token.length()){
+                    ytag = "CD";
+                    tagproba = 1.0f;
+                }
+            }
+
+            List<MatchResult> res = this.tokenLibrary.find(stokens.get(i).token);
+            for (MatchResult m: res){
+                if (m.end-m.start == stokens.get(i).token.length() ) {  // 检验是否是完整匹配
+                    stokens.get(i).setPostag(m.label);
+                }
+            }
+
+            res = this.datetimeLibrary.find(stokens.get(i).token);
+            for (MatchResult m: res){
+                if (m.end-m.start == stokens.get(i).token.length() ) {
+                    stokens.get(i).setPostag(m.label);
+                }
+            }
+
+            stokens.get(i).setPostag(ytag);
+            stokens.get(i).setTagproba(tagproba);
+        }
+        return stokens;
+    }
+
     public List<SToken> process(List<SToken> stokens){
 
         tokenTagProbas = new float[stokens.size()+1][validPostagSet.size()];
@@ -136,48 +185,13 @@ public class PostagCRFPP extends CRFModel{
                 String ytag = tagger.yname(tagIndex);  // predict的t
                 double tagproba = bestPorba;
 
-                if (stokens.get(i).getToken().equals("、")){
-                    // 对于中文中的顿号, 强制处理成CC-并列关系
-                    ytag = "CC";
-                    tagproba = 1.0;
-                }
-
-                // 对于字符串为"空格" 或者其他中文标点, 如"丨"的token, 强行改写postag = "PU"
-                Matcher pumatcher = SmoothNLP.PUPattern.matcher(stokens.get(i).token);
-                while (pumatcher.find()){
-                    if (pumatcher.end() - pumatcher.start() == stokens.get(i).token.length()) {
-                        ytag = "PU";
-                        tagproba = 1.0;
-                    }
-                }
-
-                Matcher numMatcher = SmoothNLP.NUMPattern.matcher(stokens.get(i).token);
-                while (numMatcher.find()){
-                    if (numMatcher.end() - numMatcher.start() == stokens.get(i).token.length()){
-                        ytag = "CD";
-                        tagproba = 1;
-                    }
-                }
-
                 stokens.get(i).setPostag(ytag);
                 stokens.get(i).setTagproba(tagproba);
 
-                List<MatchResult> res = this.tokenLibrary.find(stokens.get(i).token);
-                for (MatchResult m: res){
-                    if (m.end-m.start == stokens.get(i).token.length() ) {  // 检验是否是完整匹配
-                        stokens.get(i).setPostag(m.label);
-                    }
-                }
-
-                res = this.datetimeLibrary.find(stokens.get(i).token);
-                for (MatchResult m: res){
-                    if (m.end-m.start == stokens.get(i).token.length() ) {
-                        stokens.get(i).setPostag(m.label);
-                    }
-                }
 
             }
         }
+        stokens = this.postProcess(stokens);
         return stokens;
     };
 
@@ -227,6 +241,7 @@ public class PostagCRFPP extends CRFModel{
         System.out.println(s.process("小鹏汽车获得新一轮融资"));
         System.out.println(s.process("萨德系统零部件供应商"));
         System.out.println(s.process("拼多多第三季度营收达到3亿美金"));
+        System.out.println(s.process("腾讯云IoT与意法半导体宣布在物联网方面展开合作"));
     }
 
 }
