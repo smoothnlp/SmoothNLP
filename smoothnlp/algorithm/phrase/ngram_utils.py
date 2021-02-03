@@ -206,7 +206,8 @@ def get_scores(corpus,
                  left_right_entropy[word][0],   #left_entropy
                  left_right_entropy[word][1],   #right_entropy
                  min(left_right_entropy[word][0],left_right_entropy[word][1]),    #branch entropy  BE=min{left_entropy,right_entropy}
-                 word_liberalization(left_right_entropy[word][0],left_right_entropy[word][1])+mi[word][1]   #our score
+                 word_liberalization(left_right_entropy[word][0],left_right_entropy[word][1])+mi[word][1],   #our score
+                 ngram_freq[word]  # word frequency
                      )
               for word in joint_phrase}
 
